@@ -32,6 +32,7 @@
     <maven.compiler.target>1.7</maven.compiler.target>
      <asmVersion>5.0.1</asmVersion>
        <antVersion>1.9.3</antVersion>
+       <asm-defuse.version>0.0.4</asm-defuse.version>
   </properties>
 
   <dependencies>
@@ -65,6 +66,11 @@
       <artifactId>asm-analysis</artifactId>
       <version>${asmVersion}</version>
     </dependency>
+    <dependency>
+    <groupId>br.usp.each.saeg</groupId>
+    <artifactId>asm-defuse</artifactId>
+    <version>${asm-defuse.version}</version>
+</dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant</artifactId>
