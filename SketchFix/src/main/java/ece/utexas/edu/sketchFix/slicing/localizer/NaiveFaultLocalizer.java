@@ -1,11 +1,13 @@
 /**
  * @author Lisa Jul 19, 2016 NaiveFaultLocalizer.java 
  */
-package ece.utexas.edu.sketchFix.slicing;
+package ece.utexas.edu.sketchFix.slicing.localizer;
 
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
+
+import ece.utexas.edu.sketchFix.slicing.LineData;
 
 public class NaiveFaultLocalizer extends FaultLocalizerStrategy {
 
@@ -14,7 +16,7 @@ public class NaiveFaultLocalizer extends FaultLocalizerStrategy {
 	}
 
 	@Override
-	public List<LineData> locateFaultyLines(List<Vector<String>> negTraces, List<Vector<String>> posTPath) {
+	public List<LineData> locateFaultyLines(String[] negTraces, String[] posTPath) {
 		// TODO Auto-generated method stub
 		return null;
 	}

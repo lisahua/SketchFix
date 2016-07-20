@@ -6,11 +6,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class LineNumberClassVisitor extends ClassVisitor implements Opcodes {
-	private String recorder = LineNumberRecorder.class.getCanonicalName().replace(".", "/");
-	private String funcName = "recordLine";
 	public static String className = "";
-	private boolean flag = false;
-
+public static String methodName = "";
 	public LineNumberClassVisitor(ClassVisitor cv) {
 		super(ASM5);
 		this.cv = cv;
@@ -24,6 +21,7 @@ public class LineNumberClassVisitor extends ClassVisitor implements Opcodes {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature,
 			final String[] exceptions) {
+		methodName = name;
 		LineNumberMethodVisitor mv = new LineNumberMethodVisitor(
 				cv.visitMethod(access, name, desc, signature, exceptions));
 	

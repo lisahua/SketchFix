@@ -1,7 +1,7 @@
 /**
  * @author Lisa Jul 19, 2016 ProfileFaultLocalizer.java 
  */
-package ece.utexas.edu.sketchFix.slicing;
+package ece.utexas.edu.sketchFix.slicing.localizer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,14 +9,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import ece.utexas.edu.sketchFix.slicing.LineData;
+
 public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<LineData> locateFaultyLines(List<Vector<String>> negTraces, List<Vector<String>> posTraces) {
+	public List<LineData> locateFaultyLines(String[] negPath, String[] posPath) {
 		HashMap<String, Integer> negCount = new HashMap<String, Integer>();
 		HashMap<String, Integer> posCount = new HashMap<String, Integer>();
 		Vector<String> interaction = new Vector<String>();
+		List<Vector<String>> negTraces = readFiles(negPath);
 		// Merge negTraces
 		for (int i = 0; i < negTraces.size(); i++) {
 			for (String s : negTraces.get(i)) {
@@ -29,8 +32,8 @@ public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 			}
 		}
 		// compare neg with all posTraces
-		for (Vector<String> trace : posTraces) {
-			for (String s : trace) {
+		for (String path : posPath) {
+			for (String s : readFile(path)) {
 				if (negCount.containsKey(s)) {
 					int count = 1;
 					if (posCount.containsKey(s))
@@ -39,8 +42,8 @@ public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 				}
 			}
 		}
-		int negSize = negTraces.size();
-		int posSize = posTraces.size();
+		int negSize = negPath.length;
+		int posSize = posPath.length;
 		List<LineData> suspiciousLoc = new ArrayList<LineData>();
 		// count Tarantula rate
 		for (int i = 0; i < interaction.size(); i++) {
@@ -48,7 +51,7 @@ public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 			suspiciousLoc.add(new LineData(s, i, negCount.get(s) * 1.0 / negSize, posCount.get(s) * 1.0 / posSize));
 		}
 		Collections.sort(suspiciousLoc);
-		
+
 		return suspiciousLoc;
 	}
 

@@ -3,15 +3,24 @@
  */
 package ece.utexas.edu.sketchFix.slicing;
 
-public class LineData implements Comparable {
+public class LineData implements Comparable<LineData> {
 	String file;
 	int line;
 	double suspicious;
 	int loc;
+	String method;
 
 	public LineData(String s, int loc, double negRate, double posRate) {
 		suspicious = negRate / (negRate + posRate);
 		this.loc = loc;
+		String[] tkn = s.split("-");
+		if (tkn.length > 2) {
+			file = tkn[0];
+			method = tkn[1];
+			// FIXME may throw exception
+			line = Integer.parseInt(tkn[2]);
+		} else
+			file = s;
 
 	}
 
@@ -31,13 +40,39 @@ public class LineData implements Comparable {
 		this.line = line;
 	}
 
+	public double getSuspicious() {
+		return suspicious;
+	}
+
+	public void setSuspicious(double suspicious) {
+		this.suspicious = suspicious;
+	}
+
+	public int getLoc() {
+		return loc;
+	}
+
+	public void setLoc(int loc) {
+		this.loc = loc;
+	}
+
+	public String getMethod() {
+		return method;
+	}
+
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
 	@Override
-	public int compareTo(Object o) {
-		LineData data = (LineData) o;
+	public int compareTo(LineData data) {
 		if (data.suspicious > suspicious)
 			return 1;
 		else
 			return -1;
 	}
 
+	public String getClassAndMethod() {
+		return file + "-" + method;
+	}
 }
