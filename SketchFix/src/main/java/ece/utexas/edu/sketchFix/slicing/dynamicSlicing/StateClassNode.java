@@ -9,19 +9,21 @@ import java.util.Vector;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.ClassNode;
 
 import ece.utexas.edu.sketchFix.slicing.LineData;
 
-public class StateClassVisitor extends ClassVisitor implements Opcodes {
+public class StateClassNode extends ClassNode implements Opcodes {
 	public static String className = "";
 	HashMap<String, Vector<LineData>> methodMap = new HashMap<String, Vector<LineData>>();
+	public static String methodName = "";
 
-	public StateClassVisitor(ClassVisitor cv) {
+	public StateClassNode(ClassVisitor cv) {
 		super(ASM5);
 		this.cv = cv;
 	}
 
-	public StateClassVisitor(ClassVisitor cv, LineData[] suspLocs) {
+	public StateClassNode(ClassVisitor cv, LineData[] suspLocs) {
 		super(ASM5);
 		this.cv = cv;
 		for (LineData data : suspLocs) {
@@ -41,9 +43,10 @@ public class StateClassVisitor extends ClassVisitor implements Opcodes {
 	public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature,
 			final String[] exceptions) {
 		String key = className + "-" + name;
+		methodName = name;
 		MethodVisitor mv = null;
 		if (methodMap.containsKey(key))
-			mv = new StateMethodVisitor(cv.visitMethod(access, name, desc, signature, exceptions));
+			mv = new StateMethodNode(access, name, desc, signature, exceptions);
 		else
 			mv = super.visitMethod(access, name, desc, signature, exceptions);
 		return mv;
