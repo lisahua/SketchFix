@@ -48,7 +48,10 @@ public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 		// count Tarantula rate
 		for (int i = 0; i < interaction.size(); i++) {
 			String s = interaction.get(i);
-			suspiciousLoc.add(new LineData(s, i, negCount.get(s) * 1.0 / negSize, posCount.get(s) * 1.0 / posSize));
+			if (!posCount.containsKey(s))
+				suspiciousLoc.add(new LineData(s, i, negCount.get(s) * 1.0 / negSize, 0));
+			else
+				suspiciousLoc.add(new LineData(s, i, negCount.get(s) * 1.0 / negSize, posCount.get(s) * 1.0 / posSize));
 		}
 		Collections.sort(suspiciousLoc);
 

@@ -5,7 +5,6 @@ package ece.utexas.edu.sketchFix.instrument;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.HashSet;
 
@@ -34,8 +33,10 @@ public class InstrumentModel {
 
 				FileInputStream is = new FileInputStream(file);
 				ClassReader cr = new ClassReader(is);
-				ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
-				cr.accept(new LineNumberClassVisitor(cw), 0);
+//				ClassNode cn = new ClassNode();
+//				cr.accept(new StateClassVisitor(cn), 0);
+				ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+				cr.accept(new LineNumberClassVisitor(cw), ClassReader.EXPAND_FRAMES);
 				FileOutputStream fos = new FileOutputStream(getInstrumentDir(file));
 				fos.write(cw.toByteArray());
 				fos.close();

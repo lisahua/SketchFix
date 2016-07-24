@@ -6,7 +6,7 @@ package ece.utexas.edu.sketchFix.slicing;
 public class LineData implements Comparable<LineData> {
 	String file;
 	int line;
-	double suspicious;
+	double suspicious=0.0;
 	int loc;
 	String method;
 
@@ -69,7 +69,7 @@ public class LineData implements Comparable<LineData> {
 		if (data.suspicious > suspicious)
 			return 1;
 		else
-			return -1;
+			return 0;
 	}
 
 	public String getClassAndMethod() {
