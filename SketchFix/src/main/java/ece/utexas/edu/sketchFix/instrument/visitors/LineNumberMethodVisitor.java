@@ -4,9 +4,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import ece.utexas.edu.sketchFix.slicing.stateRecord.StateClassVisitor;
-import ece.utexas.edu.sketchFix.slicing.stateRecord.StateRecorder;
-
 public class LineNumberMethodVisitor extends MethodVisitor implements Opcodes {
 	private String lineRecorder = LineNumberRecorder.class.getCanonicalName().replace(".", "/");
 	private String stateRecorder = StateRecorder.class.getCanonicalName().replace(".", "/");
@@ -16,7 +13,7 @@ public class LineNumberMethodVisitor extends MethodVisitor implements Opcodes {
 		super(ASM5);
 		this.mv = mv;
 		StateRecorder.setTraceFile(
-				".build_tests/" + StateClassVisitor.className + "-" + StateClassVisitor.methodName + ".txt");
+				".build_tests/" + LineNumberClassVisitor.className + "-" + LineNumberClassVisitor.methodName + ".txt");
 	
 	}
 

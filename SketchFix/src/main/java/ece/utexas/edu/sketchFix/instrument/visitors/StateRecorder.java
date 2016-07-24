@@ -1,7 +1,7 @@
 /**
  * @author Lisa Jul 16, 2016 LineNumberRecorder.java 
  */
-package ece.utexas.edu.sketchFix.slicing.stateRecord;
+package ece.utexas.edu.sketchFix.instrument.visitors;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
