@@ -3,37 +3,56 @@
  */
 package ece.utexas.edu.sketchFix.instrument.visitors;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 
 public class StateRecorder {
-    private static FileOutputStream writer = null;
-    private static String traceFile = "";
+	private static FileOutputStream writer = null;
+	private static String traceFile = "";
+private static int count=0;
+	private StateRecorder() {
 
-    private StateRecorder() {
+	}
 
-    }
+	public static void setTraceFile(String file) {
+		traceFile = file;
+	}
 
-    public static void setTraceFile(String file) {
-        traceFile = file;
-    }
+	public static void _sketchFix_recordLine(Object line) {
+			if (traceFile.equals(""))
+				traceFile = ".trace_state.txt";
+			try {
+				writer = new FileOutputStream(traceFile+(count++), true);
+				ObjectOutputStream out = new ObjectOutputStream(writer);
+				
+				out.writeObject(line);
+				
+				out.flush();
+				writer.flush();
+				out.close();
+				writer.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
-    public static void recordLine(Object line) {
-        if (writer == null) {
-            if (traceFile.equals(""))
-                traceFile = ".trace_state.txt";
-            try {
-                writer = new FileOutputStream(traceFile, true);
-                ObjectOutputStream out = new ObjectOutputStream(writer);
-                out.writeObject(line);
-                out.close();
-                writer.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+	public static void _sketchFix_recordLine(int line) {
+		_sketchFix_recordLine(String.valueOf(line));
+	}
 
-    }
+	public static void _sketchFix_recordLine(boolean line) {
+		_sketchFix_recordLine(String.valueOf(line));
+	}
+
+	public static void _sketchFix_recordLine(double line) {
+		_sketchFix_recordLine(String.valueOf(line));
+	}
+
+	public static void _sketchFix_recordLine(float line) {
+		_sketchFix_recordLine(String.valueOf(line));
+	}
+
+	public static void _sketchFix_recordLine(long line) {
+		_sketchFix_recordLine(String.valueOf(line));
+	}
 }

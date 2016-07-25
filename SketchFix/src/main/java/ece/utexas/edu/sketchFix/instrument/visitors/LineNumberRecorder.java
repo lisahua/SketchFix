@@ -18,7 +18,7 @@ public class LineNumberRecorder {
 		traceFile = file;
 	}
 
-	public static void recordLine(String line) {
+	public static void _sketchFix_recordLine(String line) {
 		if (writer == null) {
 			if (traceFile.equals(""))
 				traceFile = ".trace.txt";
@@ -32,7 +32,6 @@ public class LineNumberRecorder {
 		writer.println(line);
 		writer.flush();
 	}
-
 	public static void flush() {
 		writer.flush();
 	}
