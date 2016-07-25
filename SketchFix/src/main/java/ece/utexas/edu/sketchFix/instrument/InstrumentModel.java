@@ -6,10 +6,12 @@ package ece.utexas.edu.sketchFix.instrument;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.HashSet;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 import ece.utexas.edu.sketchFix.instrument.visitors.LineNumberClassVisitor;
 import ece.utexas.edu.sketchFix.instrument.visitors.LineNumberRecorder;
@@ -33,13 +35,18 @@ public class InstrumentModel {
 
 				FileInputStream is = new FileInputStream(file);
 				ClassReader cr = new ClassReader(is);
-//				ClassNode cn = new ClassNode();
-//				cr.accept(new StateClassVisitor(cn), 0);
+				// ClassNode cn = new ClassNode();
+				// cr.accept(new StateClassVisitor(cn), 0);
 				ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
 				cr.accept(new LineNumberClassVisitor(cw), ClassReader.EXPAND_FRAMES);
 				FileOutputStream fos = new FileOutputStream(getInstrumentDir(file));
 				fos.write(cw.toByteArray());
 				fos.close();
+
+				is = new FileInputStream(getInstrumentDir(file));
+				cr = new ClassReader(is);
+				FileOutputStream fcos = new FileOutputStream(getInstrumentDir(file) + ".txt", true);
+				CheckClassAdapter.verify(cr, true, new PrintWriter(fcos));
 			} catch (Exception e) {
 				System.out.println("[Tracer Error] " + file.getAbsolutePath());
 				e.printStackTrace();
