@@ -10,11 +10,8 @@ public class LinePy {
 	private String methodName = "";
 	private int lineNum = 0;
 	private String toString = "";
-	// I dont like it, change to enum or invoke asm methods to convert to enum
-//	private String instType = "";
-//	private String varType = "";
-//	private String instSecond = "";
-	private StringBuilder storeState = new StringBuilder();
+	private String sourceLine = "";
+	private Vector<StringBuilder> storeState = new Vector<StringBuilder>();
 	private Vector<InstrPy> instructions = new Vector<InstrPy>();
 
 	public LinePy(String line) {
@@ -61,32 +58,47 @@ public class LinePy {
 		this.toString = toString;
 	}
 
-//	public String getInstType() {
-//		return instType;
-//	}
-//
-//	public void setInstType(String instType) {
-//		this.instType = instType;
-//	}
-//
-//	public String getVarType() {
-//		return varType;
-//	}
-//
-//	public void setVarType(String varType) {
-//		this.varType = varType;
-//	}
-//
-//	public String getInstSecond() {
-//		return instSecond;
-//	}
-//
-//	public void setInstSecond(String instSecond) {
-//		this.instSecond = instSecond;
-//	}
-
+	// public String getInstType() {
+	// return instType;
+	// }
+	//
+	// public void setInstType(String instType) {
+	// this.instType = instType;
+	// }
+	//
+	// public String getVarType() {
+	// return varType;
+	// }
+	//
+	// public void setVarType(String varType) {
+	// this.varType = varType;
+	// }
+	//
+	// public String getInstSecond() {
+	// return instSecond;
+	// }
+	//
+	// public void setInstSecond(String instSecond) {
+	// this.instSecond = instSecond;
+	// }
+	/**
+	 * Use a vector of states because one line of code may store multiple
+	 * objects, although it's rare.
+	 * 
+	 * @param line
+	 */
 	public void insertState(String line) {
-		storeState.append(line + "\n");
+		if (storeState.size() == 0) {
+			storeState.add(new StringBuilder());
+		}
+		StringBuilder currentObj = storeState.get(storeState.size() - 1);
+		// TODO buggy?
+		currentObj.append(line + "\n");
+
+	}
+
+	public void startNewState() {
+		storeState.add(new StringBuilder());
 	}
 
 	public Object getStoreState() {
@@ -97,4 +109,14 @@ public class LinePy {
 	public void addInstruction(InstrPy instr) {
 		instructions.add(instr);
 	}
+
+	public String getSourceLine() {
+		return sourceLine;
+	}
+
+	public void setSourceLine(String sourceLine) {
+		this.sourceLine = sourceLine;
+	}
+	
+	
 }

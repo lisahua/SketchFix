@@ -12,7 +12,8 @@ public class TestStateParser {
 	public void testParseTraceFile() {
 		String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/";
 		StateParser parser = new StateParser();
-		parser.parseState(baseDir + ".trace_state.txt", baseDir + ".tests_instrumented/");
+		String[] args = { baseDir + ".trace_state.txt", baseDir + ".tests_instrumented/" };
+		parser.parseFiles(args);
 	}
 
 }
