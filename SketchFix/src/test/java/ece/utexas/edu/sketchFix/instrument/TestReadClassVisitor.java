@@ -10,7 +10,7 @@ import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
-import ece.utexas.edu.sketchFix.instrument.visitors.LineNumberClassVisitor;
+import ece.utexas.edu.sketchFix.instrument.visitors.InstrumentClassVisitor;
 
 public class TestReadClassVisitor {
 

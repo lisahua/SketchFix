@@ -13,7 +13,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.util.CheckClassAdapter;
 
-import ece.utexas.edu.sketchFix.instrument.visitors.LineNumberClassVisitor;
+import ece.utexas.edu.sketchFix.instrument.visitors.InstrumentClassVisitor;
 import ece.utexas.edu.sketchFix.instrument.visitors.LineNumberRecorder;
 
 public class InstrumentModel {
@@ -24,6 +24,7 @@ public class InstrumentModel {
 	public InstrumentModel(String[] arg) {
 		args = new Arguments(arg);
 		LineNumberRecorder.setTraceFile(args.getTraceFile());
+		cleanUp();
 	}
 
 	public InstrumentModel instrumentCode() {
@@ -38,7 +39,7 @@ public class InstrumentModel {
 				// ClassNode cn = new ClassNode();
 				// cr.accept(new StateClassVisitor(cn), 0);
 				ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
-				cr.accept(new LineNumberClassVisitor(cw), ClassReader.EXPAND_FRAMES);
+				cr.accept(new InstrumentClassVisitor(cw), ClassReader.EXPAND_FRAMES);
 				FileOutputStream fos = new FileOutputStream(getInstrumentDir(file));
 				fos.write(cw.toByteArray());
 				fos.close();
@@ -74,5 +75,14 @@ public class InstrumentModel {
 			dir.mkdirs();
 		}
 		return new File(path);
+	}
+
+	private void cleanUp() {
+		File trace = new File(".trace.txt");
+		if (trace.exists())
+			trace.delete();
+		trace = new File(".trace_state.txt");
+		if (trace.exists())
+			trace.delete();
 	}
 }

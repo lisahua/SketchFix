@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ece.utexas.edu.sketchFix.instrument.InstrumentUtility;
+
 public class StateRecorder {
 	private static FileOutputStream writer = null;
 	private static String traceFile = "";
@@ -24,27 +26,49 @@ public class StateRecorder {
 	}
 
 	public static void _sketchFix_recordState(Object line) {
-		count++;
-		ObjectMapper mapper = new ObjectMapper();
 		if (traceFile.equals(""))
-			traceFile = ".trace_state.txt";
+			traceFile = InstrumentUtility.stateFile;
 		try {
-			String jsonInString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(line);
 			FileWriter fw = new FileWriter(traceFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			PrintWriter out = new PrintWriter(bw);
-			out.println(count  + "------------");
+			if (line instanceof String) {
+				String tmp = (String) line;
+				if (isLineNumberRecord(tmp)) {
+					out.println(tmp);
+					out.close();
+					return;
+				}
+			}
+			count++;
+			out.println(count + "------------");
+			out.flush();
+			ObjectMapper mapper = new ObjectMapper();
+			String jsonInString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(line);
 			out.println(jsonInString);
 			out.println("------------");
 			out.close();
 		} catch (Exception e) {
 			System.out.println("Cannot serialize " + count + " " + line);
 		}
+		
+	}
+
+	private static boolean isLineNumberRecord(String line) {
+		if (line.contains("/") && line.contains("-")) {
+			try {
+				 Integer.parseInt(line.substring(line.lastIndexOf("-") + 1));
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return false;
 	}
 
 	public static void _sketchFix_recordLine(String line) {
 		if (traceFile.equals(""))
-			traceFile = ".trace_state.txt";
+			traceFile = InstrumentUtility.stateFile;
 		try {
 			writer = new FileOutputStream(traceFile, true);
 			PrintWriter pw = new PrintWriter(writer);

@@ -12,8 +12,8 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
 import ece.utexas.edu.sketchFix.slicing.LineData;
+import ece.utexas.edu.sketchFix.slicing.SliceAnalyzer;
 import ece.utexas.edu.sketchFix.slicing.SliceInputCollector;
-import ece.utexas.edu.sketchFix.slicing.dynamicSlicing.SliceAnalyzer;
 
 public class TestSliceLocalizer {
 
