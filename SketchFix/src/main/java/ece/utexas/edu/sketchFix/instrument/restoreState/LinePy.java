@@ -3,15 +3,19 @@
  */
 package ece.utexas.edu.sketchFix.instrument.restoreState;
 
+import java.util.Vector;
+
 public class LinePy {
 	private String filePath = "";
 	private String methodName = "";
 	private int lineNum = 0;
 	private String toString = "";
 	// I dont like it, change to enum or invoke asm methods to convert to enum
-	private String instType = "";
-	private String varType = "";
-	private String instSecond = "";
+//	private String instType = "";
+//	private String varType = "";
+//	private String instSecond = "";
+	private StringBuilder storeState = new StringBuilder();
+	private Vector<InstrPy> instructions = new Vector<InstrPy>();
 
 	public LinePy(String line) {
 		String[] tokens = line.split("-");
@@ -57,28 +61,40 @@ public class LinePy {
 		this.toString = toString;
 	}
 
-	public String getInstType() {
-		return instType;
+//	public String getInstType() {
+//		return instType;
+//	}
+//
+//	public void setInstType(String instType) {
+//		this.instType = instType;
+//	}
+//
+//	public String getVarType() {
+//		return varType;
+//	}
+//
+//	public void setVarType(String varType) {
+//		this.varType = varType;
+//	}
+//
+//	public String getInstSecond() {
+//		return instSecond;
+//	}
+//
+//	public void setInstSecond(String instSecond) {
+//		this.instSecond = instSecond;
+//	}
+
+	public void insertState(String line) {
+		storeState.append(line + "\n");
 	}
 
-	public void setInstType(String instType) {
-		this.instType = instType;
+	public Object getStoreState() {
+		// TODO
+		return null;
 	}
 
-	public String getVarType() {
-		return varType;
+	public void addInstruction(InstrPy instr) {
+		instructions.add(instr);
 	}
-
-	public void setVarType(String varType) {
-		this.varType = varType;
-	}
-
-	public String getInstSecond() {
-		return instSecond;
-	}
-
-	public void setInstSecond(String instSecond) {
-		this.instSecond = instSecond;
-	}
-
 }
