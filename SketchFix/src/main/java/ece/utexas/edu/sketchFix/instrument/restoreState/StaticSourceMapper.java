@@ -8,33 +8,33 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.TreeMap;
 
-public class StaticTracer extends LinePyParser {
+public class StaticSourceMapper extends LinePyGenerator {
 
-	public StaticTracer(LinePyParser parser) {
+	public StaticSourceMapper(LinePyGenerator parser) {
 		super(parser);
 	}
 
-	private void parseSourceDir(File dir) throws Exception {
+	private void parseSourceDir(File dir, String baseDir) throws Exception {
 		if (!dir.exists())
 			return;
 		if (dir.isDirectory()) {
 			File[] files = dir.listFiles();
 			for (File file : files) {
-				parseSourceDir(file);
+				parseSourceDir(file, baseDir);
 			}
 		} else {
 			if (dir.getName().endsWith(".java"))
-				parseSourceFile(dir);
+				parseSourceFile(dir, baseDir);
 		}
 
 	}
 
-	private void parseSourceFile(File file) throws Exception {
-		String fileName = file.getCanonicalPath().replace(".", "/");
+	private void parseSourceFile(File file, String baseDir) throws Exception {
+		String fileName = file.getCanonicalPath().replace(baseDir, "").replace(".java", "");
 		// not in trace
 		if (!files.containsKey(fileName))
 			return;
-		TreeMap<Integer, LinePy> lines = new TreeMap<Integer, LinePy>();
+		TreeMap<Integer, LinePy> lines = files.get(fileName);
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		String line = "";
 		int index = 0;
@@ -52,7 +52,8 @@ public class StaticTracer extends LinePyParser {
 	@Override
 	public void parseFiles(String[] files) {
 		try {
-			parseSourceDir(new File(files[0]));
+			for (String s : files)
+				parseSourceDir(new File(s), s);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

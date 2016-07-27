@@ -5,6 +5,8 @@ package ece.utexas.edu.sketchFix.instrument.restoreState;
 
 import java.util.Vector;
 
+import ece.utexas.edu.sketchFix.instrument.restoreState.instrModel.InstrPy;
+
 public class LinePy {
 	private String filePath = "";
 	private String methodName = "";
@@ -13,7 +15,7 @@ public class LinePy {
 	private String sourceLine = "";
 	private Vector<StringBuilder> storeState = new Vector<StringBuilder>();
 	private Vector<InstrPy> instructions = new Vector<InstrPy>();
-
+private String prevType = "";
 	public LinePy(String line) {
 		String[] tokens = line.split("-");
 		filePath = tokens[0];
@@ -106,10 +108,41 @@ public class LinePy {
 		return null;
 	}
 
-	public void addInstruction(InstrPy instr) {
-		instructions.add(instr);
+	public String getStoreStateString() {
+		StringBuilder builder = new StringBuilder();
+		for (StringBuilder sb : storeState)
+			builder.append(sb);
+		return builder.toString();
 	}
 
+	public void addInstruction(InstrPy instr) {
+		// TODO has state
+
+		if (storeState.size() > 0) {
+			// FIXME bug if multi states
+			String sb = storeState.get(0).toString().replace("\"", "").replace("\n", "");
+			String type = instr.getInstType();
+			if (type.equals("ISTORE")) {
+				instr.setStoreState(Integer.parseInt(sb));
+			} else if (type.equals("DSTORE")) {
+				instr.setStoreState(Double.parseDouble(sb));
+			} else if (type.equals("FSTORE")) {
+				instr.setStoreState(Float.parseFloat(sb));
+			} else if (type.equals("LSTORE")) {
+				instr.setStoreState(Long.parseLong(sb));
+			} else if (type.equals("ASTORE")) {
+				instr.setStoreState(sb, prevType);
+			} else {
+				parseType(instr);
+			}
+		}
+
+		instructions.add(instr);
+
+	}
+private void parseType(InstrPy instr) {
+	
+}
 	public String getSourceLine() {
 		return sourceLine;
 	}
@@ -117,6 +150,9 @@ public class LinePy {
 	public void setSourceLine(String sourceLine) {
 		this.sourceLine = sourceLine;
 	}
-	
-	
+
+	public Vector<InstrPy> getInstructions() {
+		return instructions;
+	}
+
 }

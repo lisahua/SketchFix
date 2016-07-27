@@ -7,15 +7,15 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Vector;
 
-public abstract class LinePyParser {
+public abstract class LinePyGenerator {
 	protected Vector<LinePy> trace = new Vector<LinePy>();
-	protected HashMap<String,TreeMap<Integer, LinePy>> files = new HashMap<String,TreeMap<Integer, LinePy>>();
+	protected HashMap<String, TreeMap<Integer, LinePy>> files = new HashMap<String, TreeMap<Integer, LinePy>>();
 
-	public LinePyParser() {
+	public LinePyGenerator() {
 
 	}
 
-	public LinePyParser(LinePyParser parser) {
+	public LinePyGenerator(LinePyGenerator parser) {
 		if (parser == null)
 			return;
 		this.trace = parser.trace;
@@ -33,4 +33,16 @@ public abstract class LinePyParser {
 		this.trace = trace;
 	}
 
+	public HashMap<String, TreeMap<Integer, LinePy>> getFiles() {
+		return files;
+	}
+
+	public TreeMap<Integer, LinePy> getFileLines(String file) {
+		return files.get(file);
+
+	}
+
+	public LinePy getFileLinePy(String file, int num) {
+		return getFileLines(file).get(num);
+	}
 }

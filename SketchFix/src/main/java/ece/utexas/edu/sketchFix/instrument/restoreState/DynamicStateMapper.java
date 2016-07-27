@@ -9,8 +9,10 @@ import java.io.FileReader;
 import java.util.TreeMap;
 import java.util.Vector;
 
-public class StateParser extends LinePyParser {
+import ece.utexas.edu.sketchFix.instrument.restoreState.instrModel.InstrPy;
+import ece.utexas.edu.sketchFix.instrument.restoreState.instrModel.InstrPyBuilder;
 
+public class DynamicStateMapper extends LinePyGenerator {
 	private void parseTraceFile(String traceFile) throws Exception {
 		BufferedReader reader = new BufferedReader(new FileReader(traceFile));
 		String line = "";
@@ -39,7 +41,6 @@ public class StateParser extends LinePyParser {
 	}
 
 	private static int isLineNumberRecord(String line) {
-		// line = line.replace("\"", "");
 		if (line.contains("/") && line.contains("-")) {
 			try {
 				return Integer.parseInt(line.substring(line.lastIndexOf("-") + 1));
@@ -56,8 +57,8 @@ public class StateParser extends LinePyParser {
 	 * @param stateFile
 	 * @throws Exception
 	 */
-	private void parseStateFile(File stateFile) throws Exception {
-		String file = stateFile.getCanonicalPath().replace(".", "/");
+	private void parseStateFile(File stateFile, String baseDir) throws Exception {
+		String file = stateFile.getCanonicalPath().replace(baseDir, "").replace(".class.txt", "");
 		if (!files.containsKey(file))
 			return;
 		TreeMap<Integer, LinePy> lines = files.get(file);
@@ -68,7 +69,7 @@ public class StateParser extends LinePyParser {
 			// not an instruction
 			if (!line.startsWith("0"))
 				continue;
-			InstrPy instr = new InstrPy(line);
+			InstrPy instr = new InstrPyBuilder().buildInstr(line);
 			if (instr.getInstType().equals("LDC")) {
 				int newLineNo = isLineNumberRecord(instr.getInstSecond());
 				// not a line number line
@@ -89,17 +90,17 @@ public class StateParser extends LinePyParser {
 		files.put(file, lines);
 	}
 
-	private void parseStateDir(File dir) throws Exception {
+	private void parseStateDir(File dir, String baseDir) throws Exception {
 		if (!dir.exists())
 			return;
 		if (dir.isDirectory()) {
 			File[] files = dir.listFiles();
 			for (File file : files) {
-				parseStateDir(file);
+				parseStateDir(file, baseDir);
 			}
 		} else {
 			if (dir.getName().endsWith(".class.txt"))
-				parseStateFile(dir);
+				parseStateFile(dir, baseDir);
 		}
 
 	}
@@ -112,8 +113,8 @@ public class StateParser extends LinePyParser {
 			return;
 		try {
 			parseTraceFile(files[0]);
-			parseStateDir(new File(files[1]));
-
+			for (int i = 1; i < files.length; i++)
+				parseStateDir(new File(files[i]), files[i]);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
