@@ -15,7 +15,8 @@ public class LinePy {
 	private String sourceLine = "";
 	private Vector<StringBuilder> storeState = new Vector<StringBuilder>();
 	private Vector<InstrPy> instructions = new Vector<InstrPy>();
-private String prevType = "";
+	private String prevType = "";
+
 	public LinePy(String line) {
 		String[] tokens = line.split("-");
 		filePath = tokens[0];
@@ -95,7 +96,7 @@ private String prevType = "";
 		}
 		StringBuilder currentObj = storeState.get(storeState.size() - 1);
 		// TODO buggy?
-		currentObj.append(line + "\n");
+		currentObj.append(line );
 
 	}
 
@@ -116,13 +117,13 @@ private String prevType = "";
 	}
 
 	public void addInstruction(InstrPy instr) {
-		// TODO has state
 
 		if (storeState.size() > 0) {
 			// FIXME bug if multi states
 			String sb = storeState.get(0).toString().replace("\"", "").replace("\n", "");
 			String type = instr.getInstType();
 			if (type.equals("ISTORE")) {
+				// FIXME boolean
 				instr.setStoreState(Integer.parseInt(sb));
 			} else if (type.equals("DSTORE")) {
 				instr.setStoreState(Double.parseDouble(sb));
@@ -130,19 +131,22 @@ private String prevType = "";
 				instr.setStoreState(Float.parseFloat(sb));
 			} else if (type.equals("LSTORE")) {
 				instr.setStoreState(Long.parseLong(sb));
-			} else if (type.equals("ASTORE")) {
+			} else if (type.equals("ASTORE") || type.equals("PUTSTATIC") || type.equals("PUTFIELD")) {
 				instr.setStoreState(sb, prevType);
-			} else {
+			} else
 				parseType(instr);
-			}
 		}
-
 		instructions.add(instr);
 
 	}
-private void parseType(InstrPy instr) {
-	
-}
+
+	private void parseType(InstrPy instr) {
+		//FIXME hacky
+		if (instr.getVarType().trim().length() > prevType.length())
+			prevType = instr.getVarType();
+		// TODO has to map back to legal type name for reflection
+	}
+
 	public String getSourceLine() {
 		return sourceLine;
 	}

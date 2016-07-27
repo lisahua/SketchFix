@@ -4,8 +4,10 @@
 package ece.utexas.edu.sketchFix.instrument.visitors;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,6 +45,7 @@ public class StateRecorder {
 			count++;
 			out.println(count + "------------");
 			out.flush();
+			
 			ObjectMapper mapper = new ObjectMapper();
 			String jsonInString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(line);
 			out.println(jsonInString);

@@ -7,7 +7,16 @@ public class STOREInstrPy extends InstrPy {
 
 	public STOREInstrPy(String line) {
 		super(line);
+		if (instType.equals("ISTORE")) {
+			varType = "int";
+		} else if (instType.equals("DSTORE")) {
+			varType = "double";
+		} else if (instType.equals("FSTORE"))
+			varType = "float";
+		else if (instType.equals("LSTORE"))
+			varType = "long";
 	}
+	
 	public void setStoreState(String stateS, String varType) {
 		String instType = this.instType;
 		stateS = stateS.replace("\"", "");

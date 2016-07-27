@@ -10,7 +10,7 @@ public class InstrPyBuilder {
 		int i = tkn1.length - 1;
 		if (i < 0)
 			return null;
-		if (tkn1[i].endsWith(";")) {
+		if (tkn1[i].endsWith(";")|| tkn1[i].trim().length()==1) {
 			// special case for getfield, getstatic
 			i--;
 		}

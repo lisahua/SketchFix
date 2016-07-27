@@ -3,6 +3,9 @@
  */
 package ece.utexas.edu.sketchFix.instrument.restoreState.instrModel;
 
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class InstrPy {
@@ -23,7 +26,7 @@ public class InstrPy {
 		String[] tokens = inst.split(" ");
 		instType = tokens[0];
 		if (tokens.length > 1) {
-			instSecond = inst.substring(inst.indexOf(" ")+1);
+			instSecond = inst.substring(inst.indexOf(" ") + 1);
 		}
 		toString = line;
 	}
@@ -69,7 +72,9 @@ public class InstrPy {
 	}
 
 	public void setStoreState(String stateS, String type) {
+		type = type.replace("/", ".");
 		try {
+			
 			Class<?> cName = Class.forName(type);
 			ObjectMapper mapper = new ObjectMapper();
 			storeState = mapper.readValue(stateS, cName);

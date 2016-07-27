@@ -41,6 +41,7 @@ public class DynamicStateMapper extends LinePyGenerator {
 	}
 
 	private static int isLineNumberRecord(String line) {
+		line = line.replace("\"","");
 		if (line.contains("/") && line.contains("-")) {
 			try {
 				return Integer.parseInt(line.substring(line.lastIndexOf("-") + 1));

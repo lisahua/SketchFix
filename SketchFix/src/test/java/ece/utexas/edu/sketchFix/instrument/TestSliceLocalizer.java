@@ -1,7 +1,7 @@
 /**
  * @author Lisa Jul 20, 2016 TestSliceLocalizer.java 
  */
-package ece.utexas.edu.sketchFix.slicing.localizer;
+package ece.utexas.edu.sketchFix.instrument;
 
 import java.io.FileInputStream;
 import java.util.HashMap;

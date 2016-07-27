@@ -17,7 +17,16 @@ public class GETFIELDInstrPy extends InstrPy {
 		}
 		varType = tkn1[i + 1].trim();
 		if (varType.startsWith("L"))
-			varType.substring(1).replace(";", "");
+			varType = varType.substring(1).replace(";", "");
+		else if (varType.equals("D"))
+			varType = "double";
+		else if (varType.equals("I"))
+			varType = "int";
+		else if (varType.equals("Z"))
+			varType = "boolean";
+		else if (varType.equals("F"))
+			varType = "float";
+
 	}
 
 }

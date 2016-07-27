@@ -7,6 +7,14 @@ public class RETURNInstrPy extends InstrPy {
 
 	public RETURNInstrPy(String line) {
 		super(line);
+		if (instType.equals("ISTORE")) {
+			varType = "int";
+		} else if (instType.equals("DSTORE")) {
+			varType = "double";
+		} else if (instType.equals("FSTORE"))
+			varType = "float";
+		else if (instType.equals("LSTORE"))
+			varType = "long";
 		
 	}
 	public void setStoreState(String stateS, String varType) {
