@@ -52,8 +52,9 @@ public class StaticParserProcessor {
 			PrintWriter writer = new PrintWriter(path);
 			StaticClassVisitor classVisitor = new StaticClassVisitor(writer);
 			cu.accept(classVisitor);
-			StringBuilder sb = classVisitor.getNewFile();
-			writer.println(sb);
+			classVisitor.removeInnerClass();
+//			StringBuilder sb = classVisitor.getNewFile();
+//			writer.println(sb);
 			writer.close();
 			// copyToWorkDir(file, sb);
 		} catch (Exception e) {

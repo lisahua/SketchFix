@@ -5,7 +5,7 @@ package ece.utexas.edu.sketchFix.staticPreprocess;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.HashSet;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -15,84 +15,56 @@ import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 public class StaticClassVisitor extends ASTVisitor {
-	private HashMap<String, FieldDeclaration> fields = new HashMap<String, FieldDeclaration>();
-	private HashMap<String, MethodDeclaration> methods = new HashMap<String, MethodDeclaration>();
-	boolean isInterface = false;
-	Vector<StaticClassVisitor> innerClass = new Vector<StaticClassVisitor>();
-	TypeDeclaration clazz = null;
-	StringBuilder genFile = new StringBuilder();
+	HashMap<String, PreprocessModel> models = new HashMap<String, PreprocessModel>();
 	PrintWriter writer = null;
 
 	public StaticClassVisitor(PrintWriter writer) {
 		this.writer = writer;
 	}
 
-	public boolean visit(TypeDeclaration node) {
-		isInterface = node.isInterface();
-		if (isInterface)
-			return super.visit(node);
-		if (clazz == null) {
-			clazz = node;
-		} else {
-			// current I dont add setter/getter to inner class
-			StaticClassVisitor innerVisitor = new StaticClassVisitor(writer);
-			node.accept(innerVisitor);
-			innerClass.addElement(innerVisitor);
-
-		}
+	public boolean visit(PackageDeclaration node) {
+		writer.print(node);
 		return super.visit(node);
 	}
 
 	public boolean visit(ImportDeclaration node) {
-		writer.println(node.toString());
-		writer.flush();
+		writer.print(node);
 		return super.visit(node);
 	}
 
-	public boolean visit(PackageDeclaration node) {
-		writer.println(node.toString());
-		writer.flush();
-		return super.visit(node);
-	}
-
-	public void endVisit(TypeDeclaration node) {
+	public boolean visit(TypeDeclaration node) {
 		String nodeS = node.toString();
-		int id = nodeS.lastIndexOf("}");
-		nodeS = nodeS.substring(0, id) + naiveRewriter().toString() + "}";
-		genFile.append(nodeS);
 
-	}
-
-	public boolean visit(FieldDeclaration node) {
-		if (isInterface)
-			return super.visit(node);
-		String name = getFieldName(node);
-		fields.put(name, node);
-		return super.visit(node);
-	}
-
-	public boolean visit(MethodDeclaration node) {
-		if (isInterface)
-			return super.visit(node);
 		String name = node.getName().toString();
-		if (name.contains("get") || name.contains("set"))
-			methods.put(name, node);
+		// FIXME test it
+		if (node.isInterface()) {
+			writer.print(nodeS);
+			return super.visit(node);
+		}
+		PreprocessModel model = new PreprocessModel(name, naiveRewriter(node), new StringBuilder(node.toString()));
+		models.put(name, model);
 		return super.visit(node);
 	}
 
-	private StringBuilder naiveRewriter() {
-		for (StaticClassVisitor innerVisitor : innerClass) {
-			for (String s : innerVisitor.getFields().keySet()) {
-				fields.remove(s);
-			}
-			for (String s : innerVisitor.getMethods().keySet()) {
-				methods.remove(s);
-			}
+//	public void endVisit(TypeDeclaration node) {
+//		String name = node.getName().toString();
+//		PreprocessModel model = models.get(name);
+//		model.node.append(model.getSets + "}");
+//	}
+
+	private StringBuilder naiveRewriter(TypeDeclaration node) {
+		FieldDeclaration[] fields = node.getFields();
+		MethodDeclaration[] methods = node.getMethods();
+		HashSet<String> mNameSet = new HashSet<String>();
+		for (MethodDeclaration md : methods) {
+			String mName = md.getName().toString();
+			if (mName.contains("get") || mName.contains("set"))
+				mNameSet.add(md.getName().toString());
 		}
 
 		StringBuilder sb = new StringBuilder();
-		for (String fName : fields.keySet()) {
-			FieldDeclaration fNode = fields.get(fName);
+		for (FieldDeclaration fNode : fields) {
+			String fName = getFieldName(fNode);
 			char sChar = ';';
 			String newFName = fName;
 			if (fName.charAt(0) >= 'a' && fName.charAt(0) <= 'z') {
@@ -100,11 +72,11 @@ public class StaticClassVisitor extends ASTVisitor {
 				newFName = sChar + fName.substring(1);
 			}
 			// getter
-			if (!methods.containsKey("get" + newFName)) {
+			if (!mNameSet.contains("get" + newFName)) {
 				sb.append(createGetter("get" + newFName, fName, fNode));
 			}
 			// setter
-			if (!methods.containsKey("set" + newFName)) {
+			if (!mNameSet.contains("set" + newFName)) {
 				if (!fNode.toString().contains(" final ")) {
 					sb.append(createSetter("set" + newFName, fName, fNode));
 				}
@@ -112,6 +84,14 @@ public class StaticClassVisitor extends ASTVisitor {
 
 		}
 		return sb;
+	}
+
+	private String getFieldName(FieldDeclaration field) {
+		String frag = field.fragments().toString().replace("[", "").replace("]", "");
+		if (frag.contains("="))
+			frag = frag.substring(0, frag.indexOf("=")).trim();
+		String[] token = frag.split(" ");
+		return token[token.length - 1];
 	}
 
 	private String createGetter(String funcName, String fName, FieldDeclaration field) {
@@ -125,23 +105,21 @@ public class StaticClassVisitor extends ASTVisitor {
 				+ fName + ";\n}\n\n  ";
 	}
 
-	private String getFieldName(FieldDeclaration field) {
-		String frag = field.fragments().toString().replace("[", "").replace("]", "");
-		if (frag.contains("="))
-			frag = frag.substring(0, frag.indexOf("=")).trim();
-		String[] token = frag.split(" ");
-		return token[token.length - 1];
+	public void removeInnerClass() {
+		HashSet<String> iClass = new HashSet<String>();
+		for (String cName: models.keySet()) {
+			for (String c2: models.keySet()) {
+				if (cName.equals(c2)) continue;
+				if(models.get(cName).removeInner(models.get(c2))) {
+					iClass.add(c2);
+				}
+			}
+		}
+		for (String cName: models.keySet()) {
+			if (!iClass.contains(cName)) {
+				writer.print(models.get(cName).node);
+			}
+		}
 	}
 
-	public HashMap<String, FieldDeclaration> getFields() {
-		return fields;
-	}
-
-	public HashMap<String, MethodDeclaration> getMethods() {
-		return methods;
-	}
-
-	public StringBuilder getNewFile() {
-		return genFile;
-	}
 }
