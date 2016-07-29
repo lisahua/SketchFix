@@ -14,7 +14,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.util.CheckClassAdapter;
 
 import ece.utexas.edu.sketchFix.instrument.visitors.InstrumentClassVisitor;
-import ece.utexas.edu.sketchFix.instrument.visitors.LineNumberRecorder;
 
 public class InstrumentModel {
 	private Arguments args;
@@ -23,7 +22,7 @@ public class InstrumentModel {
 
 	public InstrumentModel(String[] arg) {
 		args = new Arguments(arg);
-		LineNumberRecorder.setTraceFile(args.getTraceFile());
+//		LineNumberRecorder.setTraceFile(args.getTraceFile());
 		cleanUp();
 	}
 
