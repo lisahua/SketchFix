@@ -59,7 +59,7 @@ public class StaticParserProcessor {
 			PrintWriter writer = new PrintWriter(path);
 			// StaticClassVisitor classVisitor = new StaticClassVisitor(writer,
 			// plain);
-			AtomicClassVisitor classVisitor = new AtomicClassVisitor(file, writer);
+			PreprocessClassRewriter classVisitor = new PreprocessClassRewriter(file, writer);
 			// cu.accept(classVisitor);
 
 			writer.close();

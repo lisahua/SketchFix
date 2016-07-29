@@ -28,14 +28,14 @@ import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
 
-public class AtomicClassVisitor {
+public class PreprocessClassRewriter {
 	ASTRewrite rewriter = null;
 	Document document = null;
 	AST ast = null;
 	PrintWriter writer = null;
 	final String paraName = "__tmp__";
 
-	public AtomicClassVisitor(File file, PrintWriter writer) {
+	public PreprocessClassRewriter(File file, PrintWriter writer) {
 		this.writer = writer;
 		try {
 			document = new Document(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
