@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -17,9 +18,12 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 public class StaticClassVisitor extends ASTVisitor {
 	HashMap<String, PreprocessModel> models = new HashMap<String, PreprocessModel>();
 	PrintWriter writer = null;
+	HashSet<TypeDeclaration> inners = new HashSet<TypeDeclaration>();
+	StringBuilder plain = null;
 
-	public StaticClassVisitor(PrintWriter writer) {
+	public StaticClassVisitor(PrintWriter writer, StringBuilder plain) {
 		this.writer = writer;
+		this.plain = plain;
 	}
 
 	public boolean visit(PackageDeclaration node) {
@@ -33,24 +37,21 @@ public class StaticClassVisitor extends ASTVisitor {
 	}
 
 	public boolean visit(TypeDeclaration node) {
-		String nodeS = node.toString();
-
-		String name = node.getName().toString();
 		// FIXME test it
+	
+		
 		if (node.isInterface()) {
-			writer.print(nodeS);
 			return super.visit(node);
 		}
-		PreprocessModel model = new PreprocessModel(name, naiveRewriter(node), new StringBuilder(node.toString()));
+		if (!(node.getParent() instanceof CompilationUnit)) {
+			inners.add(node);
+		}
+		String name = node.getName().toString();
+		PreprocessModel model = new PreprocessModel(name, naiveRewriter(node), new StringBuilder(node.toString()),plain);
 		models.put(name, model);
 		return super.visit(node);
 	}
 
-//	public void endVisit(TypeDeclaration node) {
-//		String name = node.getName().toString();
-//		PreprocessModel model = models.get(name);
-//		model.node.append(model.getSets + "}");
-//	}
 
 	private StringBuilder naiveRewriter(TypeDeclaration node) {
 		FieldDeclaration[] fields = node.getFields();
@@ -95,31 +96,41 @@ public class StaticClassVisitor extends ASTVisitor {
 	}
 
 	private String createGetter(String funcName, String fName, FieldDeclaration field) {
+if (field.modifiers().contains("static"))
+		return "public static " + field.getType() + "  " + funcName + "() { \n\t return " + fName + ";\n}\n\n";
+else 
+	return "public " + field.getType() + "  " + funcName + "() { \n\t return " + fName + ";\n}\n\n";
 
-		return "public " + field.getType() + "  " + funcName + "() { \n\t return " + fName + ";\n}\n\n";
+	
 	}
 
 	private String createSetter(String funcName, String fName, FieldDeclaration field) {
-
-		return "public void " + funcName + " (" + field.getType() + " " + fName + ") {\n\t  this." + fName + " = "
+		if (field.modifiers().contains("static"))
+		return "public static void " + funcName + " (" + field.getType() + " " + fName + ") {\n\t  this." + fName + " = "
 				+ fName + ";\n}\n\n  ";
+		else 
+		return "public void " + funcName + " (" + field.getType() + " " + fName + ") {\n\t  this." + fName + " = "
+		+ fName + ";\n}\n\n  ";
 	}
 
 	public void removeInnerClass() {
 		HashSet<String> iClass = new HashSet<String>();
-		for (String cName: models.keySet()) {
-			for (String c2: models.keySet()) {
-				if (cName.equals(c2)) continue;
-				if(models.get(cName).removeInner(models.get(c2))) {
+		for (String cName : models.keySet()) {
+			for (String c2 : models.keySet()) {
+				if (cName.equals(c2))
+					continue;
+				if (models.get(cName).removeInner(models.get(c2))) {
 					iClass.add(c2);
 				}
 			}
 		}
-		for (String cName: models.keySet()) {
+		for (String cName : models.keySet()) {
 			if (!iClass.contains(cName)) {
 				writer.print(models.get(cName).node);
 			}
 		}
 	}
-
+private void createGetter() {
+	
+}
 }

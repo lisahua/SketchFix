@@ -41,6 +41,11 @@
 			<artifactId>org.eclipse.jdt.core</artifactId>
 			<version>3.7.1</version>
 		</dependency>
+	<!--  <dependency>
+<groupId>org.eclipse.jdt</groupId>
+<artifactId>ui</artifactId>
+<version>3.3.0-v20070607-0010</version>
+</dependency> -->
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>

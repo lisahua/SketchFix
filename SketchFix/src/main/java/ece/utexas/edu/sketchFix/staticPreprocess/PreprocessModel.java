@@ -5,14 +5,17 @@ package ece.utexas.edu.sketchFix.staticPreprocess;
 
 import java.util.Stack;
 
-import org.eclipse.jdt.core.dom.TypeDeclaration;
-
 public class PreprocessModel {
 
-	public PreprocessModel(String name, StringBuilder naiveRewriter, StringBuilder stringBuilder) {
+	public PreprocessModel(String name, StringBuilder naiveRewriter, StringBuilder stringBuilder, StringBuilder plain) {
 		className = name;
 		getSets = naiveRewriter;
-		node = stringBuilder;
+		if (stringBuilder.toString().contains("class " + className + " "))
+			node = stringBuilder;
+		else
+			reconstructTD(plain);
+		node = new StringBuilder(node.substring(0, node.lastIndexOf("}"))).append(getSets).append("}");
+
 	}
 
 	StringBuilder getSets;
@@ -20,7 +23,7 @@ public class PreprocessModel {
 	String className;
 
 	public boolean removeInner(PreprocessModel inner) {
-		String head = "class " + inner.className+" ";
+		String head = "class " + inner.className + " ";
 
 		int index = node.indexOf(head);
 		if (index < 1)
@@ -28,7 +31,8 @@ public class PreprocessModel {
 
 		String first = node.substring(0, index);
 		String second = node.substring(index);
-		int i = first.lastIndexOf("}");
+		int i = Math.max(first.lastIndexOf("}"), first.lastIndexOf(";"));
+		i = Math.max(i, first.lastIndexOf("{"));
 
 		first = first.substring(0, i + 1);
 		Stack<Character> paren = new Stack<Character>();
@@ -50,4 +54,16 @@ public class PreprocessModel {
 		return true;
 	}
 
+	public String toString() {
+		return node.toString();
+	}
+
+	private void reconstructTD(StringBuilder sb) {
+		String head = "class " + className + " ";
+		String first = sb.substring(0, sb.indexOf(head));
+		int i = Math.max(first.lastIndexOf(";"),first.lastIndexOf("/"));
+		i = Math.max(i, first.lastIndexOf("//"));
+		node = new StringBuilder(sb.substring(i + 1));
+
+	}
 }
