@@ -52,7 +52,7 @@ public class StateRecorder {
 			out.println("------------");
 			out.close();
 		} catch (Exception e) {
-			System.out.println("Cannot serialize " + count + " " + line);
+//			System.out.println("[Known Issue] Cannot serialize " + count + " " + line);
 		}
 		
 	}

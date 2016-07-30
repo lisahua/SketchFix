@@ -6,13 +6,17 @@ package ece.utexas.edu.sketchFix.staticPreprocess;
 public class Argument {
 	private String srcDir = "";
 	private String workDir = "";
+	private String ignorePathFile = "";
 
 	public Argument(String[] args) {
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("--srcDir")) {
+			if (args[i].equals("--srcDir"))
 				srcDir = args[++i];
-			} else if (args[i].equals("--workDir"))
+			else if (args[i].equals("--workDir"))
 				workDir = args[++i];
+			else if (args[i].equals("--ignorePathFile"))
+				ignorePathFile = args[++i];
+
 		}
 	}
 
@@ -30,6 +34,14 @@ public class Argument {
 
 	public void setWorkDir(String workDir) {
 		this.workDir = workDir;
+	}
+
+	public String getIgnorePathFile() {
+		return ignorePathFile;
+	}
+
+	public void setIgnorePathFile(String ignorePathFile) {
+		this.ignorePathFile = ignorePathFile;
 	}
 
 }

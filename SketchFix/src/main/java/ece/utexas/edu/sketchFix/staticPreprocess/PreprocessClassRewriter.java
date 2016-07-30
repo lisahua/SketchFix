@@ -34,8 +34,13 @@ public class PreprocessClassRewriter {
 	AST ast = null;
 	PrintWriter writer = null;
 	final String paraName = "__tmp__";
+	SuperPrecessModel sChecker = null;
 
-	public PreprocessClassRewriter(File file, PrintWriter writer) {
+	public PreprocessClassRewriter(SuperPrecessModel superCheck) {
+		this.sChecker = superCheck;
+	}
+
+	public void process(File file, PrintWriter writer) {
 		this.writer = writer;
 		try {
 			document = new Document(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
@@ -47,9 +52,18 @@ public class PreprocessClassRewriter {
 		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 		AST ast = cu.getAST();
 		rewriter = ASTRewrite.create(ast);
-		TypeDeclaration td = (TypeDeclaration) cu.types().get(0);
-		if (!visit(td))
+
+		TypeDeclaration tNode = (TypeDeclaration) cu.types().get(0);
+		if (!visit(tNode)) {
 			writer.println(document.get());
+		}
+		// for (Object td : cu.types()) {
+		// TypeDeclaration tNode = (TypeDeclaration) td;
+		// if (!visit(tNode)) {
+		// writer.println(document.get());
+		// break;
+		// }
+		// }
 	}
 
 	private boolean visit(TypeDeclaration node) {
@@ -77,6 +91,7 @@ public class PreprocessClassRewriter {
 		HashMap<String, String> getReturnTypes = new HashMap<String, String>();
 		HashMap<String, String> setReturnTypes = new HashMap<String, String>();
 		for (FieldDeclaration fNode : fields) {
+			String type = fNode.getType().toString();
 			String fName = getFieldName(fNode);
 			char sChar = ';';
 			String newFName = fName;
@@ -84,13 +99,16 @@ public class PreprocessClassRewriter {
 				sChar = (char) (fName.charAt(0) - 'a' + 'A');
 				newFName = sChar + fName.substring(1);
 			}
+			String cName = node.getName().toString();
 			// getter
-			if (!mNameSet.contains("get" + newFName)) {
+			if (!mNameSet.contains("get" + newFName) && !sChecker.cannotAdd(type, "get" + newFName)
+					&& !sChecker.ignored(cName, "get" + newFName)) {
 				createGetter(node, "get" + newFName, fName, fNode);
 				getReturnTypes.put(newFName, fNode.getType().toString());
 			}
 			// setter
-			if (!mNameSet.contains("set" + newFName)) {
+			if (!mNameSet.contains("set" + newFName) && !sChecker.cannotAdd(type, "set" + newFName)
+					&& !sChecker.ignored(cName, "set" + newFName)) {
 				if (!fNode.toString().contains("final")) {
 					createSetter(node, "set" + newFName, fName, fNode);
 					setReturnTypes.put(newFName, fNode.getType().toString());

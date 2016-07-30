@@ -75,7 +75,7 @@ public void setDependPath(Path dependPath) {
 
 		
 		if (java.executeJava() != 0) {
-			throw new BuildException("Error instrumenting classes. See messages above.");
+//			throw new BuildException("Error instrumenting classes. See messages above.");
 		}
 	}
 }

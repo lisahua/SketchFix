@@ -14,7 +14,7 @@ public class PreprocessTask extends Task {
 	String srcDir = "";
 	String workDir = "";
 	Path buildpath = null;
-	
+	String ignorePathFile="";
 	
 	public Path getBuildpath() {
 		return buildpath;
@@ -36,6 +36,14 @@ public class PreprocessTask extends Task {
 		return workDir;
 	}
 
+	public String getIgnorePathFile() {
+		return ignorePathFile;
+	}
+
+	public void setIgnorePathFile(String ignorePathFile) {
+		this.ignorePathFile = ignorePathFile;
+	}
+
 	public void setWorkDir(String workDir) {
 		if (workDir != null && !workDir.equals(""))
 			this.workDir = workDir;
@@ -50,9 +58,13 @@ public class PreprocessTask extends Task {
 		java.createArg().setValue(srcDir);
 		java.createArg().setValue("--workDir");
 		java.createArg().setValue(workDir);
+		java.createArg().setValue("--ignorePathFile");
+		java.createArg().setValue(ignorePathFile);
+		
 		java.setClasspath(buildpath);
 
 		if (java.executeJava() != 0) {
+			
 			throw new BuildException("Error copy classes. See messages above.");
 		}
 	}

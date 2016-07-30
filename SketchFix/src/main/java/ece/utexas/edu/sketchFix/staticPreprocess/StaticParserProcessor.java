@@ -11,13 +11,14 @@ import java.io.PrintWriter;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class StaticParserProcessor {
 	Argument arg = null;
+	SuperPrecessModel superChecker =null;
 
 	public StaticParserProcessor(String[] args) {
 		arg = new Argument(args);
+		superChecker = new SuperPrecessModel(arg.getIgnorePathFile());
 	}
 
 	public void getNameInDir(String dirPath) {
@@ -57,63 +58,16 @@ public class StaticParserProcessor {
 				plain.append(line + "\n");
 			reader.close();
 			PrintWriter writer = new PrintWriter(path);
-			// StaticClassVisitor classVisitor = new StaticClassVisitor(writer,
-			// plain);
-			PreprocessClassRewriter classVisitor = new PreprocessClassRewriter(file, writer);
-			// cu.accept(classVisitor);
-
+			PreprocessClassRewriter classVisitor = new PreprocessClassRewriter(superChecker);
+			classVisitor.process(file, writer);
 			writer.close();
-			// classVisitor.removeInnerClass();
-			// StringBuilder sb = classVisitor.getNewFile();
-			// writer.println(sb);
-			writer.close();
-			// copyToWorkDir(file, sb);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	// private void copyToWorkDir(File origin, StringBuilder sb) throws
-	// Exception {
-	//// String path = origin.getAbsolutePath().replace(arg.getSrcDir(),
-	// arg.getWorkDir());
-	//// File dir = new File(path.substring(0, path.lastIndexOf("/")));
-	//// if (!dir.exists()) {
-	//// dir.mkdirs();
-	//// }
-	//
-	// String line = "";
-	// BufferedReader reader = new BufferedReader(new FileReader(origin));
-	//// PrintWriter writer = new PrintWriter(path);
-	// LinkedList<String> lastLines = new LinkedList<String>();
-	// int MAX = 3;
-	// while ((line = reader.readLine()) != null) {
-	// if (line.trim().length() > 0)
-	// lastLines.add(line);
-	// if (lastLines.size() > MAX) {
-	// writer.println(lastLines.poll());
-	// }
-	// }
-	// reader.close();
-	// while (!lastLines.isEmpty()) {
-	// line = lastLines.pollLast();
-	// if (line.trim().contains("}")) {
-	// line = line.trim();
-	// if (line.indexOf("}") > 0) {
-	// writer.println(line.substring(0, line.indexOf("}")));
-	// }
-	// break;
-	// }
-	// }
-	// while (!lastLines.isEmpty()) {
-	// writer.println(lastLines.poll());
-	// }
-	// writer.println(sb);
-	// writer.println("}");
-	// writer.close();
-	// }
-
 	public void process() {
+		superChecker.getNameInDir(arg.getSrcDir());
 		getNameInDir(arg.getSrcDir());
 	}
 

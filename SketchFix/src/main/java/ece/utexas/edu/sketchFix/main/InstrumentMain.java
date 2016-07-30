@@ -9,8 +9,8 @@ public class InstrumentMain {
 			new InstrumentModel(args).instrumentCode();
 			
 		} catch (Throwable throwable) {
-			System.err.println(String.format("Failed while instrumenting code: %s", throwable.getMessage()));
-			throwable.printStackTrace();
+//			System.err.println(String.format("Failed while instrumenting code: %s", throwable.getMessage()));
+//			throwable.printStackTrace();
 		}
 		return 0;
 	}

@@ -49,7 +49,7 @@ public class InstrumentModel {
 				CheckClassAdapter.verify(cr, true, new PrintWriter(fcos));
 			} catch (Exception e) {
 				System.out.println("[Tracer Error] " + file.getAbsolutePath());
-				e.printStackTrace();
+//				e.printStackTrace();
 			}
 		}
 		return this;
