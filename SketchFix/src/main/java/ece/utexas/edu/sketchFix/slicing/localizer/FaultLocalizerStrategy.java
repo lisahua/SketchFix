@@ -9,14 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.LineData;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
 public abstract class FaultLocalizerStrategy {
 
 	public abstract List<LineData> locateFaultyLines(String[] negTraces, String[] posTPath);
-	
+
 	public abstract List<MethodData> locateFaultyMethods(String[] negTraces, String[] posTPath);
+
+	public abstract Vector<MethodData> locateFaultyMethods(Vector<LinePy> trace);
 
 	protected Vector<String> readFile(String path) {
 		Vector<String> trace = new Vector<String>();

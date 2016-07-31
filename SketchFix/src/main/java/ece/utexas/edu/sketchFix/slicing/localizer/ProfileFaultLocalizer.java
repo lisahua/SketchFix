@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.LineData;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
@@ -61,6 +62,12 @@ public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 
 	@Override
 	public List<MethodData> locateFaultyMethods(String[] negTraces, String[] posTPath) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Vector<MethodData> locateFaultyMethods(Vector<LinePy> trace) {
 		// TODO Auto-generated method stub
 		return null;
 	}

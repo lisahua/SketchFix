@@ -18,11 +18,12 @@ public class RepairProcessor {
 	}
 
 	public void process() {
-		faultLocalize();
-		 parseTrace();
+
+		Vector<LinePy> trace = parseTrace();
+			faultLocalize(trace);
 	}
 
-	private void parseTrace() {
+	private Vector<LinePy> parseTrace() {
 		String[] dirs = argument.classDir.split(",");
 
 		String[] dyArg = new String[dirs.length + 1];
@@ -37,13 +38,15 @@ public class RepairProcessor {
 		staticParser.parseFiles(arg);
 
 		Vector<LinePy> trace = staticParser.getTrace();
+		return trace;
 	}
 
-	private void faultLocalize() {
+	private void faultLocalize(Vector<LinePy> trace) {
 		SliceInputCollector locateProcessor = new SliceInputCollector();
 		//set localizer here, I use default textual now
 		String[] tokens = argument.traceFile.split(",");
 		locateProcessor.locateMethods(tokens, null);
+		locateProcessor.locateMethods(trace);
 
 	}
 }
