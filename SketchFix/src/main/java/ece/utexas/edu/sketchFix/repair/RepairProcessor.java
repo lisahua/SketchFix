@@ -20,7 +20,7 @@ public class RepairProcessor {
 	public void process() {
 
 		Vector<LinePy> trace = parseTrace();
-			faultLocalize(trace);
+		faultLocalize(trace);
 	}
 
 	private Vector<LinePy> parseTrace() {
@@ -43,9 +43,9 @@ public class RepairProcessor {
 
 	private void faultLocalize(Vector<LinePy> trace) {
 		SliceInputCollector locateProcessor = new SliceInputCollector();
-		//set localizer here, I use default textual now
-		String[] tokens = argument.traceFile.split(",");
-		locateProcessor.locateMethods(tokens, null);
+		// set localizer here, I use default textual now
+//		String[] tokens = argument.traceFile.split(",");
+//		locateProcessor.locateMethods(tokens, null);
 		locateProcessor.locateMethods(trace);
 
 	}

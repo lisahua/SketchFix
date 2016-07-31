@@ -99,8 +99,8 @@ public class MethodData implements Comparable<MethodData> {
 	}
 
 	public double namingSimilarity(MethodData data) {
-		String[] name1 = executeSingleName(className.toLowerCase().replace("test", ""));
-		String[] name2 = executeSingleName(data.className.toLowerCase().replace("test", ""));
+		String[] name1 = executeSingleName(key.replace("test", "").replace("Test", ""));
+		String[] name2 = executeSingleName(data.key.replace("test", "").replace("Test", ""));
 		int distance = minDistance(name1, name2);
 		return distance / Math.max(name1.length, name2.length);
 	}
@@ -119,7 +119,7 @@ public class MethodData implements Comparable<MethodData> {
 		if (allUpperCase(name)) {
 			tokens = name.split("_");
 		} else {
-			tokens = name.split("(?=[A-Z][^A-Z])|_");
+			tokens = name.split("(?=[A-Z][^A-Z])|_|-|/");
 		}
 
 		return tokens;
@@ -161,5 +161,9 @@ public class MethodData implements Comparable<MethodData> {
 		}
 
 		return dp[len1][len2];
+	}
+
+	public String toString() {
+		return key;
 	}
 }

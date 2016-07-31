@@ -34,11 +34,12 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 
 	private Vector<MethodData> textPrioritize(Vector<LinePy> trace) {
 		// FIXME may be buggy
-		MethodData lastData = methodMap.get(methodOrder.peek());
+		MethodData mdata = methodMap.get(methodOrder.peek());
 		MethodComparator comp = null;
-		if (lastData.isTestMethod()) {
-			comp = new MethodComparator(lastData);
-		}
+		if (mdata.isTestMethod()) {
+			comp = new MethodComparator(mdata);
+		} 
+
 		// Prioritize last lines
 		Vector<MethodData> list = new Vector<MethodData>();
 
@@ -77,6 +78,7 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 
 		@Override
 		public int compare(MethodData o1, MethodData o2) {
+			//FIXME haven't fully tested
 			if (o1.namingSimilarity(data) < o2.namingSimilarity(data))
 				return 0;
 			else

@@ -37,6 +37,7 @@ public class DynamicStateMapper extends LinePyGenerator {
 				currentLine.insertState(line);
 			}
 		}
+		trace.add(currentLine);
 		reader.close();
 	}
 
