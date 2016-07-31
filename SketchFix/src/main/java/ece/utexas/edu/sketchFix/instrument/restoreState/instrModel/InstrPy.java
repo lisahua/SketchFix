@@ -3,11 +3,6 @@
  */
 package ece.utexas.edu.sketchFix.instrument.restoreState.instrModel;
 
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class InstrPy {
 	private String toString = "";
 	// I dont like it, change to enum or invoke asm methods to convert to enum
@@ -15,6 +10,7 @@ public class InstrPy {
 	String varType = "";
 	String instSecond = "";
 	Object storeState = null;
+	String stateS = "";
 
 	public InstrPy(String line) {
 		String[] tkn1 = line.split(":");
@@ -73,14 +69,14 @@ public class InstrPy {
 
 	public void setStoreState(String stateS, String type) {
 		type = type.replace("/", ".");
-		try {
-			
-			Class<?> cName = Class.forName(type);
-			ObjectMapper mapper = new ObjectMapper();
-			storeState = mapper.readValue(stateS, cName);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		// try {
+		// Class<?> cName = Class.forName(type);
+		// ObjectMapper mapper = new ObjectMapper();
+		// storeState = mapper.readValue(stateS, cName);
+		this.stateS = stateS;
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
 	}
 
 	public void setStoreState(Object state) {

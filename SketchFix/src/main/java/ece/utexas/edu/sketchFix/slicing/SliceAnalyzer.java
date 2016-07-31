@@ -21,6 +21,7 @@ import br.usp.each.saeg.asm.defuse.Local;
 import br.usp.each.saeg.asm.defuse.ObjectField;
 import br.usp.each.saeg.asm.defuse.Value;
 import br.usp.each.saeg.asm.defuse.Variable;
+import ece.utexas.edu.sketchFix.slicing.localizer.model.LineData;
 
 public class SliceAnalyzer {
 	HashMap<String, Vector<LineData>> methodMap = new HashMap<String, Vector<LineData>>();

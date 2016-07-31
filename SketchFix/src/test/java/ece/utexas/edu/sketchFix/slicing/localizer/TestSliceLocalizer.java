@@ -1,7 +1,7 @@
 /**
  * @author Lisa Jul 20, 2016 TestSliceLocalizer.java 
  */
-package ece.utexas.edu.sketchFix.instrument;
+package ece.utexas.edu.sketchFix.slicing.localizer;
 
 import java.io.FileInputStream;
 import java.util.HashMap;
@@ -11,9 +11,9 @@ import java.util.Vector;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
-import ece.utexas.edu.sketchFix.slicing.LineData;
 import ece.utexas.edu.sketchFix.slicing.SliceAnalyzer;
 import ece.utexas.edu.sketchFix.slicing.SliceInputCollector;
+import ece.utexas.edu.sketchFix.slicing.localizer.model.LineData;
 
 public class TestSliceLocalizer {
 

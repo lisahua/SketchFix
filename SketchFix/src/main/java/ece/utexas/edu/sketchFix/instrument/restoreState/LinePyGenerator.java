@@ -24,7 +24,6 @@ public abstract class LinePyGenerator {
 	}
 
 	public abstract void parseFiles(String[] files);
-
 	public Vector<LinePy> getTrace() {
 		return trace;
 	}

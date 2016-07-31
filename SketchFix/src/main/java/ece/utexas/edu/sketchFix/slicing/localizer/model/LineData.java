@@ -1,7 +1,7 @@
 /**
  d * @author Lisa Jul 19, 2016 LineData.java 
  */
-package ece.utexas.edu.sketchFix.slicing;
+package ece.utexas.edu.sketchFix.slicing.localizer.model;
 
 public class LineData implements Comparable<LineData> {
 	String file;

@@ -19,20 +19,6 @@ public class TestStateParser {
 		dynamicParser.parseFiles(args);
 
 		String file = "";
-		// for (LinePy line : dynamicParser.getTrace()) {
-		// String filePath = line.getFilePath();
-		// LinePy staticInfo = dynamicParser.getFileLinePy(line.getFilePath(),
-		// line.getLineNum());
-		// if (file.equals(filePath)) {
-		// if (staticInfo.getInstructions().size()==0)
-		// System.out.println(staticInfo.getLineNum() + "\t" + "[Error]");
-		// } else {
-		// file = filePath;
-		// System.out.println(filePath);
-		// System.out.println(staticInfo.getLineNum() + "\t" +
-		// staticInfo.getInstructions());
-		// }
-		// }
 
 		StaticSourceMapper staticParser = new StaticSourceMapper(dynamicParser);
 		String[] arg= {baseDir+"source/", baseDir+"tests/"};

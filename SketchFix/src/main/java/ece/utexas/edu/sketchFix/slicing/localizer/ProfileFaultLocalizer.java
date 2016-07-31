@@ -9,7 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-import ece.utexas.edu.sketchFix.slicing.LineData;
+import ece.utexas.edu.sketchFix.slicing.localizer.model.LineData;
+import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
 public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 
@@ -56,6 +57,12 @@ public class ProfileFaultLocalizer extends FaultLocalizerStrategy {
 		Collections.sort(suspiciousLoc);
 
 		return suspiciousLoc;
+	}
+
+	@Override
+	public List<MethodData> locateFaultyMethods(String[] negTraces, String[] posTPath) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
