@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import ece.utexas.edu.sketchFix.main.RepairMain;
 
-public class TestTextualLocalizer {
+public class TestRepairProcessor {
 	@Test
 	public void main() {
 		// String[] arg = {

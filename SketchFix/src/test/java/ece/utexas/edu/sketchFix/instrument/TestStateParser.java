@@ -3,8 +3,6 @@
  */
 package ece.utexas.edu.sketchFix.instrument;
 
-import org.junit.Test;
-
 import ece.utexas.edu.sketchFix.instrument.restoreState.DynamicStateMapper;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.StaticSourceMapper;

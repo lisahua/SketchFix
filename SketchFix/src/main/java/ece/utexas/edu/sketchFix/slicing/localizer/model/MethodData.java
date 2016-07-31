@@ -3,7 +3,10 @@
  */
 package ece.utexas.edu.sketchFix.slicing.localizer.model;
 
-import java.util.TreeSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 
@@ -14,7 +17,7 @@ public class MethodData implements Comparable<MethodData> {
 	String methodName = "";
 	String key = "";
 	int count;
-	TreeSet<Integer> touchLines = new TreeSet<Integer>();
+	TreeMap<Integer, LinePy> touchLines = new TreeMap<Integer, LinePy>();
 	boolean isTestMethod = false;
 
 	public MethodData(String line) {
@@ -53,7 +56,7 @@ public class MethodData implements Comparable<MethodData> {
 	}
 
 	public MethodData setLinePy(LinePy oneLine) {
-		touchLines.add(oneLine.getLineNum());
+		touchLines.put(oneLine.getLineNum(), oneLine);
 		insertCount();
 		return this;
 	}
@@ -82,11 +85,19 @@ public class MethodData implements Comparable<MethodData> {
 		this.count = count;
 	}
 
-	public TreeSet<Integer> getTouchLines() {
+	public TreeMap<Integer, LinePy> getTouchLines() {
 		return touchLines;
 	}
 
-	public void setTouchLines(TreeSet<Integer> touchLines) {
+	public List<LinePy> getTouchLinesList() {
+		List<LinePy> lines = new ArrayList<LinePy>();
+		for (Map.Entry<Integer, LinePy> entry : touchLines.entrySet()) {
+			lines.add(entry.getValue());
+		}
+		return lines;
+	}
+
+	public void setTouchLines(TreeMap<Integer, LinePy> touchLines) {
 		this.touchLines = touchLines;
 	}
 
