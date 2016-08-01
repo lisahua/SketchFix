@@ -60,11 +60,11 @@ public class ASTTransformer {
 			return;
 		List<LinePy> lines = method.getTouchLinesList();
 		List<Statement> statements = (List<Statement>) currentMtd.getBody().statements();
-		matchLinePyStatementNode(lines, statements);
+		List<ASTLinePy> astLines  = matchLinePyStatementNode(lines, statements);
 
 	}
 
-	private void matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {
+	private List<ASTLinePy>  matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {
 		List<ASTLinePy> astLines = new ArrayList<ASTLinePy>();
 		boolean[] stmtMark = new boolean[statements.size()];
 		boolean[] lineMark = new boolean[lines.size()];
@@ -98,5 +98,10 @@ public class ASTTransformer {
 				break;
 
 		}
+		return astLines;
+	}
+	
+	private void parseStatements(List<ASTLinePy> astLines, FieldDeclaration[] fields) {
+		
 	}
 }

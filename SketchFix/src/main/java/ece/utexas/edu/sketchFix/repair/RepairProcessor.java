@@ -13,7 +13,7 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.StaticSourceMapper;
 import ece.utexas.edu.sketchFix.slicing.SliceInputCollector;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.SketchSourceTransformer;
-import ece.utexas.edu.sketchFix.staticTransform.SketchTransformer;
+import ece.utexas.edu.sketchFix.staticTransform.AbstractSketchTransformer;
 
 public class RepairProcessor {
 	Argument argument = null;
@@ -29,7 +29,7 @@ public class RepairProcessor {
 		//localize faults
 		List<MethodData> locations = faultLocalize(trace);
 		//transform to sketch front end
-		SketchTransformer sourceTransform = new SketchSourceTransformer();
+		AbstractSketchTransformer sourceTransform = new SketchSourceTransformer();
 		sourceTransform.transform(generator, locations);
 		//transform sketch assertion
 		//map repair back

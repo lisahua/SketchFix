@@ -10,7 +10,7 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
-public class SketchSourceTransformer extends SketchTransformer {
+public class SketchSourceTransformer extends AbstractSketchTransformer {
 
 	@Override
 	public void transform(LinePyGenerator utility, List<MethodData> locations) {
