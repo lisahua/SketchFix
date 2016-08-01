@@ -3,33 +3,52 @@
  */
 package ece.utexas.edu.sketchFix.staticTransform;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.ReturnStatement;
-import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
-import org.eclipse.jdt.core.dom.WhileStatement;
+
+import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.StatementAdapter;
+import sketch.compiler.ast.core.Function;
+import sketch.compiler.ast.core.Function.FunctionCreator;
+import sketch.compiler.ast.core.Parameter;
+import sketch.compiler.ast.core.stmts.Statement;
+import sketch.compiler.ast.core.stmts.StmtBlock;
 
 public class SketchSourceGenerator {
 
-	public void generate(TypeDeclaration clazz, MethodDeclaration method, List<ASTLinePy> astLines, FieldDeclaration[] fields) {
+	public void generate(TypeDeclaration clazz, MethodDeclaration method, List<ASTLinePy> astLines,
+			FieldDeclaration[] fields) {
+
 		Type returnType = method.getReturnType2();
-	for (ASTLinePy line: astLines) {
-		Statement stmt = line.statement;
-		if (stmt instanceof VariableDeclarationStatement) {
-			
-		} else if (stmt instanceof IfStatement) {
-			
-		} else if (stmt instanceof ReturnStatement) {
-			
-		} else if (stmt instanceof WhileStatement) {
-			
+		List<Statement> body = new ArrayList<Statement>();
+		for (ASTLinePy line : astLines) {
+			org.eclipse.jdt.core.dom.Statement stmt = line.statement;
+			body.add((Statement) StatementAdapter.getInstance().transform(stmt));
 		}
+
+		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
+		StmtBlock block = new StmtBlock(AbstractASTAdapter.getContext(), body);
+		creator.body(block);
+		creator.name(method.getName().toString());
+		List<Parameter> param = new ArrayList<Parameter>();
+		
+		// TODO mann harderst part
+		creator.params(param);
+		Function function = creator.create();
+
 	}
+	
+	private void generateType() {
+		
 	}
+	
+	private void generateParam() {
+		
+	}
+	
 }

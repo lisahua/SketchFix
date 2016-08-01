@@ -10,13 +10,17 @@ import sketch.compiler.ast.core.FENode;
 public abstract class AbstractASTAdapter {
 
 	/**
-	 * 
+	 * Transform a ASTNode to Sketch Node
 	 * @param node
 	 * @return
 	 */
 	public abstract Object transform(ASTNode node);
 
-	public FENode getContext() {
+	public static FENode getContext() {
 		return null;
+	}
+
+	public static String getNextName() {
+		return "";
 	}
 }

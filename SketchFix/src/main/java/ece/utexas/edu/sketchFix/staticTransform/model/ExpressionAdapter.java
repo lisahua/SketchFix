@@ -20,6 +20,12 @@ import sketch.compiler.ast.core.typs.Type;
 
 public class ExpressionAdapter extends AbstractASTAdapter {
 
+	private static ExpressionAdapter adapter = new ExpressionAdapter();
+
+	public static ExpressionAdapter getInstance() {
+		return adapter;
+	}
+
 	@Override
 	public Object transform(ASTNode node) {
 		org.eclipse.jdt.core.dom.Expression expr = (org.eclipse.jdt.core.dom.Expression) node;
@@ -46,9 +52,9 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 		} else if (expr instanceof MethodInvocation) {
 			MethodInvocation mtdInvoke = (MethodInvocation) expr;
-			
+
 		} else if (expr instanceof ConditionalExpression) {
-			
+
 		}
 		return null;
 	}
