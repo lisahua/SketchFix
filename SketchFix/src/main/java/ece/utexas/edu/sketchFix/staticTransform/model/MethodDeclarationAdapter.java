@@ -42,6 +42,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		stmtAdapter = new StatementAdapter(this);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object transform(ASTNode node) {
 		MethodDeclaration method = (MethodDeclaration) node;
@@ -52,15 +53,20 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 		List<Parameter> param = generateParam(method);
 		creator.params(param);
-		
+
 		List<Statement> body = new ArrayList<Statement>();
 		for (ASTLinePy line : astLines) {
 			org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
-			body.add((Statement) stmtAdapter.transform(stmt));
+			Object obj = stmtAdapter.transform(stmt);
+			if (obj instanceof Statement)
+				body.add((Statement) obj);
+			else
+				body.addAll((List<Statement>) obj);
 		}
 
 		StmtBlock block = new StmtBlock(getMethodContext(), body);
 		creator.body(block);
+	
 
 		// TODO add repair here
 		Function function = creator.create();

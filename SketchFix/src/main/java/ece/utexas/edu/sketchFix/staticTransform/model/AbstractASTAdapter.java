@@ -21,6 +21,8 @@ public abstract class AbstractASTAdapter {
 	private static ExprVar rtnObj;
 	private static FENode packageNode = null;
 	private static FENode methodNode = null;
+	private static final String nextName = "_tmp";
+	private static int nextNameCount = 0;
 
 	/**
 	 * Transform a ASTNode to Sketch Node
@@ -46,7 +48,7 @@ public abstract class AbstractASTAdapter {
 	}
 
 	public static String getNextName() {
-		return "";
+		return nextName + (nextNameCount++);
 	}
 
 	public static ExprVar getThisObj() {

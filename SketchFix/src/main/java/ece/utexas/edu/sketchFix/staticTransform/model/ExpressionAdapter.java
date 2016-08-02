@@ -8,19 +8,25 @@ import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.NullLiteral;
+import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 
 import sketch.compiler.ast.core.exprs.ExprBinary;
+import sketch.compiler.ast.core.exprs.ExprConstInt;
 import sketch.compiler.ast.core.exprs.ExprField;
 import sketch.compiler.ast.core.exprs.ExprFunCall;
 import sketch.compiler.ast.core.exprs.ExprNamedParam;
 import sketch.compiler.ast.core.exprs.ExprNew;
+import sketch.compiler.ast.core.exprs.ExprNullPtr;
 import sketch.compiler.ast.core.exprs.ExprVar;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.StmtAssign;
@@ -67,12 +73,13 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
 			List<Type> typeArg = new ArrayList<Type>();
 			List<Expression> expArg = new ArrayList<Expression>();
+			expArg.add(invoker);
 			for (org.eclipse.jdt.core.dom.Expression argExp : arg) {
 				Expression exp = (Expression) transform(argExp);
 				typeArg.add(resolveType(exp));
 				expArg.add(exp);
 			}
-			AbstractASTAdapter.registerMethods(mtdInvoke.getName().toString(), invokerType, typeArg);
+			StructDefAdapter.insertMethod(mtdInvoke.getName().toString(), invokerType, typeArg);
 			ExprFunCall expCall = new ExprFunCall(method.getMethodContext(), mtdInvoke.getName().toString(), expArg);
 			return expCall;
 		} else if (expr instanceof InfixExpression) {
@@ -93,6 +100,25 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			return new StmtAssign(method.getMethodContext(), left, right);
 		} else if (expr instanceof VariableDeclarationExpression) {
 			// TODO no idea
+		} else if (expr instanceof NullLiteral) {
+			return new ExprNullPtr();
+		} else if (expr instanceof NumberLiteral) {
+			String num = ((NumberLiteral) expr).getToken();
+			try {
+				//FIXME I know it's bug
+				int number = Integer.parseInt(num);
+				return new ExprConstInt(method.getMethodContext(),number);
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else if (expr instanceof BooleanLiteral) {
+			BooleanLiteral bool = (BooleanLiteral) expr;
+		boolean value =	bool.booleanValue();
+		if (value) return new ExprConstInt(method.getMethodContext(),1);
+		else new ExprConstInt(method.getMethodContext(),0);
+		} else if (expr instanceof ParenthesizedExpression) {
+			ParenthesizedExpression paren = (ParenthesizedExpression) expr;
+			return transform(paren.getExpression());
 		}
 		return null;
 	}

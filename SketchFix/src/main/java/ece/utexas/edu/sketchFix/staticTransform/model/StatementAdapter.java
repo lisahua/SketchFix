@@ -16,16 +16,16 @@ import org.eclipse.jdt.core.dom.WhileStatement;
 
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
+import sketch.compiler.ast.core.stmts.StmtAssign;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.stmts.StmtIfThen;
-import sketch.compiler.ast.core.stmts.StmtReturn;
 import sketch.compiler.ast.core.stmts.StmtVarDecl;
 import sketch.compiler.ast.core.stmts.StmtWhile;
 import sketch.compiler.ast.core.typs.Type;
 
 public class StatementAdapter extends AbstractASTAdapter {
 	MethodDeclarationAdapter method;
-	ExpressionAdapter exprAdapter ;
+	ExpressionAdapter exprAdapter;
 
 	public StatementAdapter(MethodDeclarationAdapter node) {
 		method = node;
@@ -66,9 +66,13 @@ public class StatementAdapter extends AbstractASTAdapter {
 			return skIfStmt;
 		} else if (stmt instanceof ReturnStatement) {
 			ReturnStatement rtnStmt = (ReturnStatement) stmt;
-			StmtReturn skRtnStmt = new StmtReturn(method.getMethodContext(),
-					(Expression) exprAdapter.transform(rtnStmt.getExpression()));
-			return skRtnStmt;
+			Expression right = (Expression) exprAdapter.transform(rtnStmt.getExpression());
+			Expression left = AbstractASTAdapter.getRtnObj();
+			StmtAssign assign = new 	StmtAssign(method.getMethodContext(),left,right);
+//			StmtReturn skRtnStmt = new StmtReturn(method.getMethodContext(),
+//					(Expression) exprAdapter.transform(rtnStmt.getExpression()));
+//			return skRtnStmt;
+			return assign;
 		} else if (stmt instanceof WhileStatement) {
 			WhileStatement whileStmt = (WhileStatement) stmt;
 			StmtWhile skWhile = new StmtWhile(method.getMethodContext(),
