@@ -12,8 +12,9 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 
 public class ASTLinePy {
 
-	List<LinePy> linePyList = new ArrayList<LinePy>();
-	Statement statement;
+	private List<LinePy> linePyList = new ArrayList<LinePy>();
+	private org.eclipse.jdt.core.dom.Statement statement;
+	
 
 	public ASTLinePy(LinePy linePy, Statement stmt) {
 		linePyList.add(linePy);
@@ -23,4 +24,22 @@ public class ASTLinePy {
 	public void addLinePy(LinePy linePy) {
 		linePyList.add(linePy);
 	}
+
+	public List<LinePy> getLinePyList() {
+		return linePyList;
+	}
+
+	public void setLinePyList(List<LinePy> linePyList) {
+		this.linePyList = linePyList;
+	}
+
+	public org.eclipse.jdt.core.dom.Statement getStatement() {
+		return statement;
+	}
+
+	public void setStatement(org.eclipse.jdt.core.dom.Statement statement) {
+		this.statement = statement;
+	}
+	
+	
 }
