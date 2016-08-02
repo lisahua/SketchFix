@@ -61,7 +61,8 @@ public class ASTTransformer {
 		List<LinePy> lines = method.getTouchLinesList();
 		List<Statement> statements = (List<Statement>) currentMtd.getBody().statements();
 		List<ASTLinePy> astLines  = matchLinePyStatementNode(lines, statements);
-
+		SketchSourceGenerator sketchGenerator = new SketchSourceGenerator();
+		sketchGenerator.generate(type, currentMtd, astLines, fields);
 	}
 
 	private List<ASTLinePy>  matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {

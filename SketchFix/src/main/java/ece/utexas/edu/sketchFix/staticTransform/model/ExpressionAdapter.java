@@ -48,13 +48,13 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			for (org.eclipse.jdt.core.dom.Expression e : param) {
 				skParam.add((ExprNamedParam) transform(e));
 			}
-			skExpr = new ExprNew(getContext(), (Type) TypeAdapter.getInstance().transform(type), skParam, false);
+			skExpr = new ExprNew(method.getMethodContext(), (Type) TypeAdapter.getInstance().transform(type), skParam, false);
 			return skExpr;
 		} else if (expr instanceof FieldAccess) {
 			FieldAccess jField = (FieldAccess) expr;
 			org.eclipse.jdt.core.dom.Expression exp = jField.getExpression();
 			skExpr = (sketch.compiler.ast.core.exprs.Expression) transform(exp);
-			ExprField field = new ExprField(getContext(), skExpr, jField.getName().toString(), false);
+			ExprField field = new ExprField(method.getMethodContext(), skExpr, jField.getName().toString(), false);
 
 			return field;
 		} else if (expr instanceof ThisExpression) {
@@ -73,24 +73,24 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 				expArg.add(exp);
 			}
 			AbstractASTAdapter.registerMethods(mtdInvoke.getName().toString(), invokerType, typeArg);
-			ExprFunCall expCall = new ExprFunCall(getContext(), mtdInvoke.getName().toString(), expArg);
+			ExprFunCall expCall = new ExprFunCall(method.getMethodContext(), mtdInvoke.getName().toString(), expArg);
 			return expCall;
 		} else if (expr instanceof InfixExpression) {
 			// InfixExpression -->ExprBinary
 			InfixExpression condExpr = (InfixExpression) expr;
 			Expression left = (Expression) transform(condExpr.getLeftOperand());
 			Expression right = (Expression) transform(condExpr.getRightOperand());
-			ExprBinary exprBin = new ExprBinary(getContext(), resolveOperator(condExpr.getOperator()), left, right);
+			ExprBinary exprBin = new ExprBinary(method.getMethodContext(), resolveOperator(condExpr.getOperator()), left, right);
 			return exprBin;
 		} else if (expr instanceof Name) {
 			// VariableDeclarationExpression --> ExprVar
 			Name varDecl = (Name) expr;
-			return new ExprVar(getContext(), varDecl.getFullyQualifiedName());
+			return new ExprVar(method.getMethodContext(), varDecl.getFullyQualifiedName());
 		} else if (expr instanceof Assignment) {
 			Assignment assign = (Assignment) expr;
 			Expression left = (Expression) transform(assign.getLeftHandSide());
 			Expression right = (Expression) transform(assign.getRightHandSide());
-			return new StmtAssign(getContext(), left, right);
+			return new StmtAssign(method.getMethodContext(), left, right);
 		} else if (expr instanceof VariableDeclarationExpression) {
 			// TODO no idea
 		}

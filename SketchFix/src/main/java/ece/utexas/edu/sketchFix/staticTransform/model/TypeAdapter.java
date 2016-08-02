@@ -6,6 +6,7 @@ package ece.utexas.edu.sketchFix.staticTransform.model;
 import java.util.HashMap;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import sketch.compiler.ast.core.typs.Type;
 import sketch.compiler.ast.cuda.typs.CudaMemoryType;
@@ -26,12 +27,18 @@ public class TypeAdapter extends AbstractASTAdapter {
 	 * @return Type in Sketch Front End
 	 */
 	public Object transform(ASTNode node) {
-		org.eclipse.jdt.core.dom.Type jType = (org.eclipse.jdt.core.dom.Type) node;
-		sketch.compiler.ast.core.typs.Type sType = new sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.LOCAL,
-				jType.toString(), false);
+		String name = node.toString();
+		if (node instanceof org.eclipse.jdt.core.dom.Type) {
+			org.eclipse.jdt.core.dom.Type jType = (org.eclipse.jdt.core.dom.Type) node;
+			name = node.toString();
+		} else if (node instanceof TypeDeclaration) {
+			name = ((TypeDeclaration) node).getName().toString();
+		}
+		sketch.compiler.ast.core.typs.Type sType = new sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.UNDEFINED,
+				name, false);
 		if (typeMap.containsKey(sType.toString()))
 			return sType;
-		// StructDefAdapter.insertStruct(sType.toString());
+		 StructDefAdapter.insertStruct(sType.toString());
 		typeMap.put(sType.toString(), sType);
 		return sType;
 	}

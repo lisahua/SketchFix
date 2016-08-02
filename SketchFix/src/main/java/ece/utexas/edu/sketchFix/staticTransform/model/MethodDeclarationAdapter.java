@@ -15,10 +15,10 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
+import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
-import sketch.compiler.ast.core.exprs.ExprField;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.Type;
@@ -31,6 +31,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private HashMap<String, Type> varType = new HashMap<String, Type>();
 	private HashMap<String, Type> usedFieldType = new HashMap<String, Type>();
 	private StatementAdapter stmtAdapter;
+	private FENode methodNode;
+	private Type rtnType;
 
 	public MethodDeclarationAdapter(TypeDeclaration clazz, FieldDeclaration[] fields, List<ASTLinePy> astLines) {
 		this.clazz = clazz;
@@ -44,18 +46,22 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	public Object transform(ASTNode node) {
 		MethodDeclaration method = (MethodDeclaration) node;
 
+		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
+		creator.name(method.getName().toString());
+		methodNode = creator.create();
+
+		List<Parameter> param = generateParam(method);
+		creator.params(param);
+		
 		List<Statement> body = new ArrayList<Statement>();
 		for (ASTLinePy line : astLines) {
 			org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
 			body.add((Statement) stmtAdapter.transform(stmt));
 		}
 
-		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
-		StmtBlock block = new StmtBlock(AbstractASTAdapter.getContext(), body);
+		StmtBlock block = new StmtBlock(getMethodContext(), body);
 		creator.body(block);
-		creator.name(method.getName().toString());
-		List<Parameter> param = generateParam(method);
-		creator.params(param);
+
 		// TODO add repair here
 		Function function = creator.create();
 
@@ -68,16 +74,17 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		List<SingleVariableDeclaration> parameters = method.parameters();
 
 		List<Parameter> param = new ArrayList<Parameter>();
-		Parameter thisParam = new Parameter(getContext(),
-				(Type) TypeAdapter.getInstance().transform(clazz.getTypes()[0]), AbstractASTAdapter.thisClass);
-		Parameter rtnParam = new Parameter(getContext(), (Type) TypeAdapter.getInstance().transform(returnType),
-				AbstractASTAdapter.returnObj);
+
+		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getInstance().transform(clazz),
+				AbstractASTAdapter.thisClass);
+		rtnType = (Type) TypeAdapter.getInstance().transform(returnType);
+		Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
 		param.add(thisParam);
 		param.add(rtnParam);
 		varType.put(thisParam.getName(), thisParam.getType());
 		varType.put(rtnParam.getName(), rtnParam.getType());
 		for (SingleVariableDeclaration para : parameters) {
-			Parameter p = new Parameter(getContext(), (Type) TypeAdapter.getInstance().transform(para.getType()),
+			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getInstance().transform(para.getType()),
 					para.getName().toString());
 			varType.put(p.getName(), p.getType());
 			param.add(p);
@@ -110,8 +117,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		String name = clazz.getName().toString();
 		if (type.equals(name)) {
 			return fieldType.get(field);
-		}else {
-			//TODO recursive check type
+		} else {
+			// TODO recursive check type
 		}
 		return null;
 	}
@@ -121,8 +128,14 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 			return varType.get(var);
 		else if (fieldType.containsKey(var))
 			return fieldType.get(var);
-
+		else if (var.equals(AbstractASTAdapter.thisClass))
+			return TypeAdapter.getType(clazz.getName().toString());
+		else if (var.equals(AbstractASTAdapter.returnObj))
+			return rtnType;
 		return null;
 	}
 
+	public FENode getMethodContext() {
+		return methodNode;
+	}
 }
