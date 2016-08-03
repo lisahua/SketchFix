@@ -8,35 +8,48 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.typs.StructDef;
 import sketch.compiler.ast.core.typs.StructDef.TStructCreator;
 import sketch.compiler.ast.core.typs.Type;
+import sketch.util.datastructures.HashmapList;
 
-public class StructDefAdapter {
+public class StructDefGenerator {
 	private static HashMap<String, StructDef> structDefMap = new HashMap<String, StructDef>();
 	private static HashMap<String, Function> methodMap = new HashMap<String, Function>();
 	private static HashSet<String> structMap = new HashSet<String>();
-
-	// public static void insertField(String type, String field) {
-	// HashSet<String> fields = (structFieldMap.containsKey(type)) ?
-	// structFieldMap.get(type) : new HashSet<String>();
-	// fields.add(field);
-	// structFieldMap.put(type, fields);
-	// }
 
 	public static void insertStruct(String type) {
 		structMap.add(type);
 	}
 
-	public static void createStructs() {
-
+	public static List<StructDef> createStructs() {
+		List<StructDef> structs = new ArrayList<StructDef>();
+		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
+		for (String sName : structMap) {
+			if (structDefMap.containsKey(sName)) {
+				structs.add(structDefMap.get(sName));
+			} else {
+				creator.name(sName);
+				List<String> names = new ArrayList<String>();
+				List<Type> types = new ArrayList<Type>();
+				HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
+				creator.annotations(annotations);
+				creator.fields(names, types);
+				structs.add(creator.create());
+			}
+		}
+		return structs;
 	}
 
-	public static void createMethods() {
-
+	public static List<Function> createMethods() {
+		List<Function> methods = new ArrayList<Function>();
+		for (Function func : methodMap.values())
+			methods.add(func);
+		return methods;
 	}
 
 	/**
@@ -55,8 +68,27 @@ public class StructDefAdapter {
 		for (Type ty : typeArg)
 			param.add(new Parameter(AbstractASTAdapter.getContext(), ty, AbstractASTAdapter.getNextName()));
 		creator.params(param);
+
 		Function function = creator.create();
 		methodMap.put(name, function);
+	}
+
+	public static void insertParamterToMethod(String name, Parameter para) {
+		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
+		creator.name(name);
+		// creator.params(param);
+		List<Parameter> param = methodMap.get(name).getParams();
+		List<Parameter> newParam  = new ArrayList<Parameter>();
+		newParam.addAll(param);
+		newParam.add(para);
+		creator.params(newParam);
+
+		Function function = creator.create();
+		methodMap.put(name, function);
+	}
+
+	public static Function getMethod(String name) {
+		return methodMap.get(name);
 	}
 
 	/**
@@ -74,8 +106,11 @@ public class StructDefAdapter {
 		creator.name(type);
 		List<String> names = new ArrayList<String>();
 		List<Type> types = new ArrayList<Type>();
+		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
 		names.add(name);
+		types.add(fieldT);
 		creator.fields(names, types);
+		creator.annotations(annotations);
 		structDefMap.put(type, creator.create());
 	}
 }

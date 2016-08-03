@@ -12,7 +12,10 @@ import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.exprs.ExprConstInt;
+import sketch.compiler.ast.core.exprs.ExprNullPtr;
 import sketch.compiler.ast.core.exprs.ExprVar;
+import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.typs.Type;
 
 public abstract class AbstractASTAdapter {
@@ -22,8 +25,9 @@ public abstract class AbstractASTAdapter {
 	private static ExprVar rtnObj;
 	private static FENode packageNode = null;
 	private static FENode methodNode = null;
-	private static final String nextName = "_tmp";
+	public static final String nextName = "_tmp";
 	private static int nextNameCount = 0;
+	public static final String pkgName = "sketchFix";
 
 	/**
 	 * Transform a ASTNode to Sketch Node
@@ -82,4 +86,10 @@ public abstract class AbstractASTAdapter {
 		return new FEContext();
 	}
 
+	public static Expression getDefaultValue(String type) {
+		if (type.equals("int"))
+			return new ExprConstInt(getContextMethod(), 0);
+		else
+			return new ExprNullPtr();
+	}
 }

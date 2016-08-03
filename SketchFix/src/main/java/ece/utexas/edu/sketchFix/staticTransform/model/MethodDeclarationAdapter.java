@@ -121,7 +121,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 		String name = clazz.getName().toString();
 		if (type.equals(name)) {
-			StructDefAdapter.insertField(type, field, fieldType.get(field));
+			StructDefGenerator.insertField(type, field, fieldType.get(field));
 			return fieldType.get(field);
 		} else {
 			// TODO recursive check type

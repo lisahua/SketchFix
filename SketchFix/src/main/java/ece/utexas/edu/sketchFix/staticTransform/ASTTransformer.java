@@ -6,8 +6,6 @@ package ece.utexas.edu.sketchFix.staticTransform;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.AST;
@@ -21,6 +19,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
+import sketch.compiler.ast.core.Program;
 
 public class ASTTransformer {
 
@@ -60,13 +59,13 @@ public class ASTTransformer {
 			return;
 		List<LinePy> lines = method.getTouchLinesList();
 		List<Statement> statements = (List<Statement>) currentMtd.getBody().statements();
-		List<ASTLinePy> astLines  = matchLinePyStatementNode(lines, statements);
+		List<ASTLinePy> astLines = matchLinePyStatementNode(lines, statements);
 		SketchSourceGenerator sketchGenerator = new SketchSourceGenerator();
-		sketchGenerator.generate(type, currentMtd, astLines, fields, cu.imports());
-		
+		Program prog = sketchGenerator.generate(type, currentMtd, astLines, fields, cu.imports());
+		prog.accept(new SimpleSketchFilePrinter("tmp.txt"));
 	}
 
-	private List<ASTLinePy>  matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {
+	private List<ASTLinePy> matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {
 		List<ASTLinePy> astLines = new ArrayList<ASTLinePy>();
 		boolean[] stmtMark = new boolean[statements.size()];
 		boolean[] lineMark = new boolean[lines.size()];
@@ -102,8 +101,8 @@ public class ASTTransformer {
 		}
 		return astLines;
 	}
-	
+
 	private void parseStatements(List<ASTLinePy> astLines, FieldDeclaration[] fields) {
-		
+
 	}
 }

@@ -56,7 +56,8 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			for (org.eclipse.jdt.core.dom.Expression e : param) {
 				skParam.add((ExprNamedParam) transform(e));
 			}
-			skExpr = new ExprNew(method.getMethodContext(), (Type) TypeAdapter.getInstance().transform(type), skParam, false);
+			skExpr = new ExprNew(method.getMethodContext(), (Type) TypeAdapter.getInstance().transform(type), skParam,
+					false);
 			return skExpr;
 		} else if (expr instanceof FieldAccess) {
 			FieldAccess jField = (FieldAccess) expr;
@@ -81,7 +82,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 				typeArg.add(resolveType(exp));
 				expArg.add(exp);
 			}
-			StructDefAdapter.insertMethod(mtdInvoke.getName().toString(), invokerType, typeArg);
+			StructDefGenerator.insertMethod(mtdInvoke.getName().toString(), invokerType, typeArg);
 			ExprFunCall expCall = new ExprFunCall(method.getMethodContext(), mtdInvoke.getName().toString(), expArg);
 			return expCall;
 		} else if (expr instanceof InfixExpression) {
@@ -89,7 +90,8 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			InfixExpression condExpr = (InfixExpression) expr;
 			Expression left = (Expression) transform(condExpr.getLeftOperand());
 			Expression right = (Expression) transform(condExpr.getRightOperand());
-			ExprBinary exprBin = new ExprBinary(method.getMethodContext(), resolveOperator(condExpr.getOperator()), left, right);
+			ExprBinary exprBin = new ExprBinary(method.getMethodContext(), resolveOperator(condExpr.getOperator()),
+					left, right);
 			return exprBin;
 		} else if (expr instanceof Name) {
 			// VariableDeclarationExpression --> ExprVar
@@ -107,26 +109,28 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (expr instanceof NumberLiteral) {
 			String num = ((NumberLiteral) expr).getToken();
 			try {
-				//FIXME I know it's bug
+				// FIXME I know it's bug
 				int number = Integer.parseInt(num);
-				return new ExprConstInt(method.getMethodContext(),number);
-			}catch (Exception e) {
+				return new ExprConstInt(method.getMethodContext(), number);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else if (expr instanceof BooleanLiteral) {
 			BooleanLiteral bool = (BooleanLiteral) expr;
-		boolean value =	bool.booleanValue();
-		if (value) return new ExprConstInt(method.getMethodContext(),1);
-		else new ExprConstInt(method.getMethodContext(),0);
+			boolean value = bool.booleanValue();
+			if (value)
+				return new ExprConstInt(method.getMethodContext(), 1);
+			else
+				new ExprConstInt(method.getMethodContext(), 0);
 		} else if (expr instanceof ParenthesizedExpression) {
 			ParenthesizedExpression paren = (ParenthesizedExpression) expr;
 			return transform(paren.getExpression());
 		} else if (expr instanceof CastExpression) {
 			CastExpression castExp = (CastExpression) expr;
-			//TODO no idea
+			// TODO no idea
 		} else if (expr instanceof ArrayAccess) {
-			//TODO not fully support by sketch
-			
+			// TODO not fully support by sketch
+
 		}
 		return null;
 	}
