@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
+import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.InfixExpression;
@@ -119,6 +121,12 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (expr instanceof ParenthesizedExpression) {
 			ParenthesizedExpression paren = (ParenthesizedExpression) expr;
 			return transform(paren.getExpression());
+		} else if (expr instanceof CastExpression) {
+			CastExpression castExp = (CastExpression) expr;
+			//TODO no idea
+		} else if (expr instanceof ArrayAccess) {
+			//TODO not fully support by sketch
+			
 		}
 		return null;
 	}

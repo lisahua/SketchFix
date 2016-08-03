@@ -11,34 +11,26 @@ import java.util.List;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
+import sketch.compiler.ast.core.typs.StructDef;
+import sketch.compiler.ast.core.typs.StructDef.TStructCreator;
 import sketch.compiler.ast.core.typs.Type;
 
 public class StructDefAdapter {
-	private static HashMap<String, HashSet<String>> structFieldMap = new HashMap<String, HashSet<String>>();
+	private static HashMap<String, StructDef> structDefMap = new HashMap<String, StructDef>();
 	private static HashMap<String, Function> methodMap = new HashMap<String, Function>();
-	 private static HashSet<String> structMap = new HashSet<String>();
+	private static HashSet<String> structMap = new HashSet<String>();
 
-	/**
-	 * Only register when it is used
-	 * 
-	 * @param type
-	 * @param field
-	 */
-	public static void insertField(String type, String field) {
-		HashSet<String> fields = (structFieldMap.containsKey(type)) ? structFieldMap.get(type) : new HashSet<String>();
-		fields.add(field);
-		structFieldMap.put(type, fields);
+	// public static void insertField(String type, String field) {
+	// HashSet<String> fields = (structFieldMap.containsKey(type)) ?
+	// structFieldMap.get(type) : new HashSet<String>();
+	// fields.add(field);
+	// structFieldMap.put(type, fields);
+	// }
+
+	public static void insertStruct(String type) {
+		structMap.add(type);
 	}
 
-	/**
-	 * Only register when it is used
-	 * 
-	 * @param type
-	 * @param field
-	 */
-	// public static void insertStruct(String type) {
-	// structMap.add(type);
-	// }
 	public static void createStructs() {
 
 	}
@@ -47,6 +39,12 @@ public class StructDefAdapter {
 
 	}
 
+	/**
+	 * Only register when it is used
+	 * 
+	 * @param type
+	 * @param field
+	 */
 	public static void insertMethod(String name, Type invokerType, List<Type> typeArg) {
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
 		creator.name(name);
@@ -61,4 +59,23 @@ public class StructDefAdapter {
 		methodMap.put(name, function);
 	}
 
+	/**
+	 * Only register when it is used
+	 * 
+	 * @param type
+	 * @param field
+	 */
+	public static void insertField(String type, String name, Type fieldT) {
+		TStructCreator creator;
+		if (structDefMap.containsKey(type))
+			creator = new TStructCreator(structDefMap.get(type));
+		else
+			creator = new TStructCreator(AbstractASTAdapter.getContext2());
+		creator.name(type);
+		List<String> names = new ArrayList<String>();
+		List<Type> types = new ArrayList<Type>();
+		names.add(name);
+		creator.fields(names, types);
+		structDefMap.put(type, creator.create());
+	}
 }

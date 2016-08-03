@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 
+import sketch.compiler.ast.core.FEContext;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;
@@ -75,6 +76,10 @@ public abstract class AbstractASTAdapter {
 		// creator.params(param);
 		// TODO add repair here
 		Function function = creator.create();
+	}
+
+	public static FEContext getContext2() {
+		return new FEContext();
 	}
 
 }

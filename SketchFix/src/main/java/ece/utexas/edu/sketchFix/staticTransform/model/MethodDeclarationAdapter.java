@@ -66,7 +66,6 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 		StmtBlock block = new StmtBlock(getMethodContext(), body);
 		creator.body(block);
-	
 
 		// TODO add repair here
 		Function function = creator.create();
@@ -102,7 +101,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private void parseField() {
 		for (FieldDeclaration field : fields) {
 			org.eclipse.jdt.core.dom.Type jType = field.getType();
-			Type sType = (Type) TypeAdapter.getInstance().transform(jType);
+			Type sType = (Type) TypeAdapter.getInstance().recordField(jType);
 			List<VariableDeclarationFragment> list = field.fragments();
 			for (VariableDeclarationFragment frag : list) {
 				fieldType.put(frag.getName().getIdentifier(), sType);
@@ -119,9 +118,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	}
 
 	public Type getFieldTypeOf(String type, String field) {
-		StructDefAdapter.insertField(type, field);
+
 		String name = clazz.getName().toString();
 		if (type.equals(name)) {
+			StructDefAdapter.insertField(type, field, fieldType.get(field));
 			return fieldType.get(field);
 		} else {
 			// TODO recursive check type

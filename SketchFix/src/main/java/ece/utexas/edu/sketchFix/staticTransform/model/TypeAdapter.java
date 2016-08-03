@@ -38,7 +38,19 @@ public class TypeAdapter extends AbstractASTAdapter {
 				name, false);
 		if (typeMap.containsKey(sType.toString()))
 			return sType;
-//		 StructDefAdapter.insertStruct(sType.toString());
+		 StructDefAdapter.insertStruct(sType.toString());
+		typeMap.put(sType.toString(), sType);
+		return sType;
+	}
+	
+	
+	public Type recordField(org.eclipse.jdt.core.dom.Type node) {
+		String name = node.toString();
+		name = node.toString();
+		Type sType = new sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.UNDEFINED,
+				name, false);
+		if (typeMap.containsKey(sType.toString()))
+			return sType;
 		typeMap.put(sType.toString(), sType);
 		return sType;
 	}
