@@ -10,4 +10,5 @@ public class LocalizerUtility {
 	
 //FOR DEBUG
 	public static final String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/source/";
+	public static final String testDir = "/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/tests/";
 }

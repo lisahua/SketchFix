@@ -23,6 +23,7 @@ import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 
 import sketch.compiler.ast.core.exprs.ExprBinary;
+import sketch.compiler.ast.core.exprs.ExprConstFloat;
 import sketch.compiler.ast.core.exprs.ExprConstInt;
 import sketch.compiler.ast.core.exprs.ExprField;
 import sketch.compiler.ast.core.exprs.ExprFunCall;
@@ -72,11 +73,14 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			// MethodInvocation --> ExprFunCall
 			MethodInvocation mtdInvoke = (MethodInvocation) expr;
 			Expression invoker = (Expression) transform(mtdInvoke.getExpression());
-			Type invokerType = resolveType(invoker);
+			Type invokerType = null;
+			if (invoker != null)
+				invokerType = resolveType(invoker);
 			List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
 			List<Type> typeArg = new ArrayList<Type>();
 			List<Expression> expArg = new ArrayList<Expression>();
-			expArg.add(invoker);
+			if (invoker != null)
+				expArg.add(invoker);
 			for (org.eclipse.jdt.core.dom.Expression argExp : arg) {
 				Expression exp = (Expression) transform(argExp);
 				typeArg.add(resolveType(exp));
@@ -112,12 +116,18 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (expr instanceof NumberLiteral) {
 			String num = ((NumberLiteral) expr).getToken();
 			try {
-				// FIXME I know it's bug
-				int number = Integer.parseInt(num);
-				return new ExprConstInt(method.getMethodContext(), number);
+				if (!num.contains(".")) {
+					// FIXME I know it's bug
+					int number = Integer.parseInt(num);
+					return new ExprConstInt(method.getMethodContext(), number);
+				} else {
+					double number = Double.parseDouble(num);
+					return new ExprConstFloat(method.getMethodContext(), number);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
 		} else if (expr instanceof BooleanLiteral) {
 			BooleanLiteral bool = (BooleanLiteral) expr;
 			boolean value = bool.booleanValue();

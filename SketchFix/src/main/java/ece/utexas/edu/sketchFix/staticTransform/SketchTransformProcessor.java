@@ -7,18 +7,27 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
-@Deprecated
+
 public class SketchTransformProcessor {
 
-	public void process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod) {
-		AbstractSketchTransformer transformer = new SketchSourceTransformer();
-		transformer.transform(generator, locations);
+	public void process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod,
+			String outputFile) {
+		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
+		assertTran.transform(testMethod, generator, locations);
+
+	
 		
 		
+		AbstractSketchTransformer sourceTran = new SketchSourceTransformer();
+		sourceTran.transform(locations.get(0), generator, locations);
+		sourceTran.writeToFile(outputFile);
 		// transform sketch assertion
-		transformer = new SketchAssertTransformer(testMethod);
-		transformer.transform(generator, locations);
-		transformer.writeToFile("tmp.txt");
+		
+		
+		assertTran.setMethods(sourceTran.getMethods());
+		assertTran.setStructs(sourceTran.getStructs());
+		
+		assertTran.writeToFile(outputFile+"2");
 	}
 
 }

@@ -22,6 +22,8 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.StructDefGenerator;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Function;
@@ -32,7 +34,7 @@ import sketch.compiler.ast.core.typs.StructDef;
 
 public abstract class AbstractSketchTransformer {
 
-	public abstract void transform(LinePyGenerator utility, List<MethodData> locations);
+	public abstract void transform(MethodData method, LinePyGenerator utility, List<MethodData> locations);
 
 	protected List<MethodData> locations;
 	protected CompilationUnit cu;
@@ -43,21 +45,13 @@ public abstract class AbstractSketchTransformer {
 	protected List<Function> methods = new ArrayList<Function>();
 	protected List<StructDef> structs = new ArrayList<StructDef>();
 
-	public static void process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod,
-			String outputFile) {
-		SketchSourceTransformer transformer = new SketchSourceTransformer();
-		transformer.transform(generator, locations);
-		// transform sketch assertion
-		SketchAssertTransformer assertTransformer = new SketchAssertTransformer(testMethod);
-		assertTransformer.transform(generator, locations);
-		assertTransformer.writeToFile(outputFile);
-	}
-
 	public void staticTransform(MethodData method, List<MethodData> locations) {
 		this.locations = locations;
 		File code = new File(method.getClassFullPath() + ".java");
 		if (!code.exists()) {
 			code = new File(LocalizerUtility.baseDir + method.getClassFullPath() + ".java");
+			if (!code.exists())
+				code = new File(LocalizerUtility.testDir + method.getClassFullPath() + ".java");
 			if (!code.exists())
 				return;
 		}
@@ -67,6 +61,13 @@ public abstract class AbstractSketchTransformer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(type, type.getFields(), astLines);
+		Function function = (Function) mtdDecl.transform(currentMtd);
+		// TODO create structDef correspondingly
+		methods.addAll(StructDefGenerator.createMethods(locations));
+		methods.add(function);
+		structs.addAll(StructDefGenerator.createStructs());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -80,7 +81,7 @@ public abstract class AbstractSketchTransformer {
 		type = (TypeDeclaration) cu.types().get(0);
 		MethodDeclaration[] methods = type.getMethods();
 		// FieldDeclaration[] fields = type.getFields();
-		MethodDeclaration currentMtd = null;
+		currentMtd = null;
 		for (MethodDeclaration mtd : methods) {
 			if (mtd.getName().toString().equals(method.getMethodName())) {
 				currentMtd = mtd;
@@ -92,10 +93,7 @@ public abstract class AbstractSketchTransformer {
 		List<LinePy> lines = method.getTouchLinesList();
 		List<Statement> statements = (List<Statement>) currentMtd.getBody().statements();
 		astLines = matchLinePyStatementNode(lines, statements);
-		// SketchSourceGenerator sketchGenerator = new SketchSourceGenerator();
-		// Program prog = sketchGenerator.generate(type, currentMtd, astLines,
-		// fields, cu.imports(),locations);
-		// prog.accept(new SimpleSketchFilePrinter("tmp.txt"));
+	
 	}
 
 	private List<ASTLinePy> matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {
@@ -134,6 +132,28 @@ public abstract class AbstractSketchTransformer {
 		}
 		return astLines;
 	}
+	// protected Program generate() {
+	// MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(type,
+	// type.getFields(), astLines);
+	// Function function = (Function) mtdDecl.transform(currentMtd);
+	// // TODO create structDef correspondingly
+	// methods.addAll(StructDefGenerator.createMethods(locations));
+	// methods.add(function);
+	// structs.addAll(StructDefGenerator.createStructs());
+	// Program empty = Program.emptyProgram();
+	// sketch.compiler.ast.core.Package pkg = new
+	// sketch.compiler.ast.core.Package(empty, AbstractASTAdapter.pkgName,
+	// structs, new ArrayList<FieldDecl>(), methods, new
+	// ArrayList<StmtSpAssert>());
+	// List<sketch.compiler.ast.core.Package> pkgList = new
+	// ArrayList<sketch.compiler.ast.core.Package>();
+	// pkgList.add(pkg);
+	//
+	// ProgramCreator progCreator = new ProgramCreator(empty, pkgList, new
+	// HashSet<Directive>());
+	// return progCreator.create();
+	//
+	// }
 
 	public void writeToFile(String path) {
 		Program empty = Program.emptyProgram();
@@ -150,4 +170,21 @@ public abstract class AbstractSketchTransformer {
 			e.printStackTrace();
 		}
 	}
+
+	public List<Function> getMethods() {
+		return methods;
+	}
+
+	public void setMethods(List<Function> methods) {
+		this.methods.addAll(methods);
+	}
+
+	public List<StructDef> getStructs() {
+		return structs;
+	}
+
+	public void setStructs(List<StructDef> structs) {
+		this.structs.addAll(structs);
+	}
+
 }
