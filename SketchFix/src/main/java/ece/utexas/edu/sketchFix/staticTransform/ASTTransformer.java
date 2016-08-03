@@ -22,8 +22,9 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import sketch.compiler.ast.core.Program;
 
 public class ASTTransformer {
-
-	public void staticTransform(MethodData method) {
+private List<MethodData> locations;
+	public void staticTransform(MethodData method,List<MethodData> locations) {
+		this.locations = locations;
 		File code = new File(method.getClassFullPath() + ".java");
 		if (!code.exists()) {
 			code = new File(LocalizerUtility.baseDir + method.getClassFullPath() + ".java");
@@ -61,7 +62,7 @@ public class ASTTransformer {
 		List<Statement> statements = (List<Statement>) currentMtd.getBody().statements();
 		List<ASTLinePy> astLines = matchLinePyStatementNode(lines, statements);
 		SketchSourceGenerator sketchGenerator = new SketchSourceGenerator();
-		Program prog = sketchGenerator.generate(type, currentMtd, astLines, fields, cu.imports());
+		Program prog = sketchGenerator.generate(type, currentMtd, astLines, fields, cu.imports(),locations);
 		prog.accept(new SimpleSketchFilePrinter("tmp.txt"));
 	}
 

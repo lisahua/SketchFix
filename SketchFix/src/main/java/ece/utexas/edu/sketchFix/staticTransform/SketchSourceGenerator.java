@@ -11,6 +11,7 @@ import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.StructDefGenerator;
@@ -25,11 +26,11 @@ import sketch.compiler.ast.core.typs.StructDef;
 public class SketchSourceGenerator {
 
 	public Program generate(TypeDeclaration clazz, MethodDeclaration method, List<ASTLinePy> astLines,
-			FieldDeclaration[] fields, List<?> imports) {
+			FieldDeclaration[] fields, List<?> imports,List<MethodData> locations) {
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(clazz, fields, astLines);
 		Function function = (Function) mtdDecl.transform(method);
 		// TODO create structDef correspondingly
-		List<Function> methods = StructDefGenerator.createMethods();
+		List<Function> methods = StructDefGenerator.createMethods(locations);
 		methods.add(function);
 		List<StructDef> structs = StructDefGenerator.createStructs();
 		Program empty = Program.emptyProgram();

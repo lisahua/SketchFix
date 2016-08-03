@@ -8,10 +8,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
+import sketch.compiler.ast.core.stmts.Statement;
+import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.StructDef;
 import sketch.compiler.ast.core.typs.StructDef.TStructCreator;
 import sketch.compiler.ast.core.typs.Type;
@@ -45,7 +48,7 @@ public class StructDefGenerator {
 		return structs;
 	}
 
-	public static List<Function> createMethods() {
+	public static List<Function> createMethods(List<MethodData> locations) {
 		List<Function> methods = new ArrayList<Function>();
 		for (Function func : methodMap.values())
 			methods.add(func);
@@ -68,7 +71,9 @@ public class StructDefGenerator {
 		for (Type ty : typeArg)
 			param.add(new Parameter(AbstractASTAdapter.getContext(), ty, AbstractASTAdapter.getNextName()));
 		creator.params(param);
-
+		List<Statement> body = new ArrayList<Statement>();
+		StmtBlock block = new StmtBlock(AbstractASTAdapter.getContext(), body);
+		creator.body(block);
 		Function function = creator.create();
 		methodMap.put(name, function);
 	}
@@ -78,11 +83,13 @@ public class StructDefGenerator {
 		creator.name(name);
 		// creator.params(param);
 		List<Parameter> param = methodMap.get(name).getParams();
-		List<Parameter> newParam  = new ArrayList<Parameter>();
+		List<Parameter> newParam = new ArrayList<Parameter>();
 		newParam.addAll(param);
 		newParam.add(para);
 		creator.params(newParam);
-
+		List<Statement> body = new ArrayList<Statement>();
+		StmtBlock block = new StmtBlock(AbstractASTAdapter.getContext(), body);
+		creator.body(block);
 		Function function = creator.create();
 		methodMap.put(name, function);
 	}

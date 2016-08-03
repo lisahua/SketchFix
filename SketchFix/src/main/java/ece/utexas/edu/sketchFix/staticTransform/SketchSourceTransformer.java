@@ -17,16 +17,16 @@ public class SketchSourceTransformer extends AbstractSketchTransformer {
 		// know which method to transform, know which lines should be
 		// transformed.
 		for (MethodData method : locations) {
-			createRepairCandidate(method, utility.getFileLines(method.getClassFullPath()));
+			createRepairCandidate(method, utility.getFileLines(method.getClassFullPath()),locations);
 		}
 
 	}
 
-	private void createRepairCandidate(MethodData location, TreeMap<Integer, LinePy> lines) {
+	private void createRepairCandidate(MethodData location, TreeMap<Integer, LinePy> lines,List<MethodData> locations) {
 		if (lines == null || location == null)
 			return;
 		ASTTransformer astTransform = new ASTTransformer();
-		astTransform.staticTransform(location);
+		astTransform.staticTransform(location,locations);
 	}
 
 }
