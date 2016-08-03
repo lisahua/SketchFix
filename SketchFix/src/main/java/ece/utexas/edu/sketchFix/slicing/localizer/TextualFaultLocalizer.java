@@ -18,10 +18,6 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 	HashMap<String, MethodData> methodMap = new HashMap<String, MethodData>();
 	Stack<String> methodOrder = new Stack<String>();
 
-	public TextualFaultLocalizer() {
-
-	}
-
 	@Override
 	public List<LineData> locateFaultyLines(String[] negTraces, String[] posTPath) {
 		return null;
@@ -38,7 +34,8 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 		MethodComparator comp = null;
 		if (mdata.isTestMethod()) {
 			comp = new MethodComparator(mdata);
-		} 
+			testMethod = mdata;
+		}
 
 		// Prioritize last lines
 		Vector<MethodData> list = new Vector<MethodData>();
@@ -69,6 +66,7 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 		return textPrioritize(trace);
 	}
 
+
 	class MethodComparator implements Comparator<MethodData> {
 		MethodData data = null;
 
@@ -78,7 +76,7 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 
 		@Override
 		public int compare(MethodData o1, MethodData o2) {
-			//FIXME haven't fully tested
+			// FIXME haven't fully tested
 			if (o1.namingSimilarity(data) < o2.namingSimilarity(data))
 				return 0;
 			else

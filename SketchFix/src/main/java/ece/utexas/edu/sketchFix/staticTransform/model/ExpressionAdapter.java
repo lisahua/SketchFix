@@ -84,6 +84,9 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			}
 			StructDefGenerator.insertMethod(mtdInvoke.getName().toString(), invokerType, typeArg);
 			ExprFunCall expCall = new ExprFunCall(method.getMethodContext(), mtdInvoke.getName().toString(), expArg);
+			if (isJunitAsserts(expCall))
+				return resolveJUnitAsserts(expCall);
+
 			return expCall;
 		} else if (expr instanceof InfixExpression) {
 			// InfixExpression -->ExprBinary
@@ -177,5 +180,42 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			return ExprBinary.BINOP_SUB;
 		// TODO
 		return 0;
+	}
+
+	private Object resolveJUnitAsserts(ExprFunCall call) {
+		String name = call.getName();
+		List<Expression> param = call.getParams();
+		if (name.equals("assertEquals")) {
+			if (param.size() < 2)
+				return null;
+			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0), param.get(1));
+		} else if (name.equals("assertNull")) {
+			if (param.size() == 0)
+				return null;
+			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0), new ExprNullPtr());
+		} else if (name.equals("assertNotNull")) {
+			if (param.size() == 0)
+				return null;
+			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_NEQ, param.get(0), new ExprNullPtr());
+		} else if (name.equals("assertFalse")) {
+			if (param.size() == 0)
+				return null;
+			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0),
+					new ExprConstInt(method.getMethodContext(), 0));
+		} else if (name.equals("assertTrue")) {
+			if (param.size() == 0)
+				return null;
+			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0),
+					new ExprConstInt(method.getMethodContext(), 1));
+		}
+		return null;
+	}
+
+	private boolean isJunitAsserts(ExprFunCall call) {
+		// FIXME, maybe buggy?
+		if (call.getName().contains("assert")) {
+			return true;
+		}
+		return false;
 	}
 }

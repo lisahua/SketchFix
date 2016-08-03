@@ -8,18 +8,19 @@ import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
-import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.exprs.ExprFunCall;
 import sketch.compiler.ast.core.exprs.ExprVar;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
+import sketch.compiler.ast.core.stmts.StmtAssert;
 import sketch.compiler.ast.core.stmts.StmtAssign;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.stmts.StmtExpr;
@@ -117,6 +118,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 					skList.addAll((List<Statement>) transform(one));
 			}
 			return new StmtBlock(method.getMethodContext(), skList);
+		} else if (stmt instanceof ExpressionStatement) {
+			ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+			org.eclipse.jdt.core.dom.Expression expr = exprStmt.getExpression();
+			Expression sExpr = (Expression) exprAdapter.transform(expr);
+			return new StmtAssert(method.getMethodContext(), sExpr, false);
 		}
 		// TODO more stmts such as for stmt
 

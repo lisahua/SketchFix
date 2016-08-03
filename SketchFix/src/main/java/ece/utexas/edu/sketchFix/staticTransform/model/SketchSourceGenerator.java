@@ -1,7 +1,7 @@
 /**
  * @author Lisa Jul 31, 2016 SketchSourceGenerator.java 
  */
-package ece.utexas.edu.sketchFix.staticTransform;
+package ece.utexas.edu.sketchFix.staticTransform.model;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,9 +12,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
-import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
-import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
-import ece.utexas.edu.sketchFix.staticTransform.model.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Function;
@@ -23,6 +21,7 @@ import sketch.compiler.ast.core.Program.ProgramCreator;
 import sketch.compiler.ast.core.stmts.StmtSpAssert;
 import sketch.compiler.ast.core.typs.StructDef;
 
+@Deprecated
 public class SketchSourceGenerator {
 
 	public Program generate(TypeDeclaration clazz, MethodDeclaration method, List<ASTLinePy> astLines,

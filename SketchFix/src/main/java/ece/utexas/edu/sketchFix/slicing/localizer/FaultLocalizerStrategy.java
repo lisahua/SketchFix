@@ -14,12 +14,17 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.LineData;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
 public abstract class FaultLocalizerStrategy {
+	protected MethodData testMethod;
 
 	public abstract List<LineData> locateFaultyLines(String[] negTraces, String[] posTPath);
 
 	public abstract List<MethodData> locateFaultyMethods(String[] negTraces, String[] posTPath);
 
 	public abstract Vector<MethodData> locateFaultyMethods(Vector<LinePy> trace);
+
+	public MethodData getTestMethod() {
+		return testMethod;
+	}
 
 	protected Vector<String> readFile(String path) {
 		Vector<String> trace = new Vector<String>();

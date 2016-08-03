@@ -12,27 +12,26 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.instrument.restoreState.StaticSourceMapper;
 import ece.utexas.edu.sketchFix.slicing.SliceInputCollector;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
-import ece.utexas.edu.sketchFix.staticTransform.SketchSourceTransformer;
 import ece.utexas.edu.sketchFix.staticTransform.AbstractSketchTransformer;
 
 public class RepairProcessor {
 	Argument argument = null;
+	private MethodData testMethod;
 
 	public RepairProcessor(String[] args) {
 		argument = new Argument(args);
 	}
 
 	public void process() {
-		//parse source code, trace, and state
+		// parse source code, trace, and state
 		LinePyGenerator generator = parseTrace();
 		Vector<LinePy> trace = generator.getTrace();
-		//localize faults
+		// localize faults
 		List<MethodData> locations = faultLocalize(trace);
-		//transform to sketch front end
-		AbstractSketchTransformer sourceTransform = new SketchSourceTransformer();
-		sourceTransform.transform(generator, locations);
-		//transform sketch assertion
-		//map repair back
+		// transform to sketch front end
+		AbstractSketchTransformer.process(generator, locations, testMethod,"tmp.txt");
+		
+		// map repair back
 
 	}
 
@@ -57,6 +56,7 @@ public class RepairProcessor {
 	private List<MethodData> faultLocalize(Vector<LinePy> trace) {
 		SliceInputCollector locateProcessor = new SliceInputCollector();
 		List<MethodData> locations = locateProcessor.locateMethods(trace);
+		testMethod = locateProcessor.getTestMethod();
 		return locations;
 	}
 }
