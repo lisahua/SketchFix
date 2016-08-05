@@ -1,7 +1,7 @@
 /**
  * @author Lisa Aug 1, 2016 StructDefAdapter.java 
  */
-package ece.utexas.edu.sketchFix.staticTransform.model;
+package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
+import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;

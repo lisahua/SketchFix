@@ -1,7 +1,7 @@
 /**
  * @author Lisa Aug 1, 2016 StatementAdapter.java 
  */
-package ece.utexas.edu.sketchFix.staticTransform.model;
+package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +15,12 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
+import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
+import ece.utexas.edu.sketchFix.staticTransform.model.expr.ExpressionAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
+import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.exprs.ExprFunCall;
 import sketch.compiler.ast.core.exprs.ExprVar;
@@ -33,10 +39,15 @@ import sketch.compiler.ast.core.typs.Type;
 public class StatementAdapter extends AbstractASTAdapter {
 	MethodDeclarationAdapter method;
 	ExpressionAdapter exprAdapter;
+	List<Statement> stmtList = new ArrayList<Statement>();
 
 	public StatementAdapter(MethodDeclarationAdapter node) {
 		method = node;
-		exprAdapter = new ExpressionAdapter(method);
+		exprAdapter = new ExpressionAdapter(this);
+	}
+
+	public void insertStmt(Statement stmt) {
+		stmtList.add(stmt);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -127,6 +138,31 @@ public class StatementAdapter extends AbstractASTAdapter {
 		// TODO more stmts such as for stmt
 
 		return null;
+	}
+
+	public FENode getMethodContext() {
+		return method.getMethodContext();
+	}
+
+	public MethodWrapper getMethodModel(String invokerType, String string) {
+		return method.getMethodModel(invokerType, string);
+	}
+
+	public Type getMethodReturnType(String type, String name) {
+		return method.getMethodReturnType(type, name);
+	}
+
+	public void insertUseMethod(String type, String name) {
+		method.insertUseMethod(type, name);
+
+	}
+
+	public Type getFieldTypeOf(String type, String field) {
+		return method.getFieldTypeOf(type, field);
+	}
+
+	public Type getVarType(String name) {
+		return method.getVarType(name);
 	}
 
 }

@@ -4,8 +4,10 @@
 package ece.utexas.edu.sketchFix.staticTransform.model;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 public class MethodWrapper {
 
@@ -15,9 +17,15 @@ public class MethodWrapper {
 	HashMap<String, String> paramType = new HashMap<String, String>();
 
 	public MethodWrapper(MethodDeclaration methodNode) {
-		
+		methodName = methodNode.getName().toString();
+		returnType = (methodNode.getReturnType2() == null) ? "void" : methodNode.getReturnType2().toString();
+		@SuppressWarnings("unchecked")
+		List<SingleVariableDeclaration> params = methodNode.parameters();
+		for (SingleVariableDeclaration para : params) {
+			paramType.put(para.getName().toString(), para.getType().toString());
+		}
 	}
-	
+
 	public void addParam(String name, String type) {
 		paramType.put(name, type);
 	}
@@ -49,6 +57,5 @@ public class MethodWrapper {
 	public void setReturnType(String returnType) {
 		this.returnType = returnType;
 	}
-	
-	
+
 }

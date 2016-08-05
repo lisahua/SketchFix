@@ -1,13 +1,15 @@
 /**
  * @author Lisa Aug 1, 2016 TypeAdapter.java 
  */
-package ece.utexas.edu.sketchFix.staticTransform.model;
+package ece.utexas.edu.sketchFix.staticTransform.model.type;
 
 import java.util.HashMap;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
 import sketch.compiler.ast.core.typs.Type;
 import sketch.compiler.ast.cuda.typs.CudaMemoryType;
 

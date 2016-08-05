@@ -1,7 +1,7 @@
 /**
  * @author Lisa Aug 3, 2016 TypeResolver.java 
  */
-package ece.utexas.edu.sketchFix.staticTransform.model;
+package ece.utexas.edu.sketchFix.staticTransform.model.type;
 
 import java.io.File;
 import java.util.HashMap;
@@ -16,6 +16,8 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
+import ece.utexas.edu.sketchFix.staticTransform.model.FieldWrapper;
+import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 
 public class TypeResolver {
 
@@ -68,6 +70,23 @@ public class TypeResolver {
 			return methodMap.get(type).get(method).getReturnType();
 		}
 		return "";
+	}
+
+	public MethodWrapper getMethodWrapper(String type, String method) {
+		if (!methodMap.containsKey(type)) {
+			if (importFiles.containsKey(type)) {
+				try {
+					parseFile(importFiles.get(type));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		if (methodMap.containsKey(type)) {
+			return methodMap.get(type).get(method);
+		}
+		//TODO if it is inherited from parents, check trace
+		return null;
 	}
 
 	private void parseFile(File code) throws Exception {

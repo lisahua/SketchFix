@@ -1,7 +1,7 @@
 /**
  * @author Lisa Aug 1, 2016 ExpressionAdapter.java 
  */
-package ece.utexas.edu.sketchFix.staticTransform.model;
+package ece.utexas.edu.sketchFix.staticTransform.model.expr;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,9 @@ import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 
+import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.ast.core.exprs.ExprBinary;
 import sketch.compiler.ast.core.exprs.ExprConstFloat;
 import sketch.compiler.ast.core.exprs.ExprConstInt;
@@ -37,10 +40,11 @@ import sketch.compiler.ast.core.typs.Type;
 
 public class ExpressionAdapter extends AbstractASTAdapter {
 
-	private MethodDeclarationAdapter method;
-
-	public ExpressionAdapter(MethodDeclarationAdapter method) {
-		this.method = method;
+	protected StatementAdapter stmtAdapter;
+	 protected MethodInvocationExprAdapter invokeAdapter;
+	public ExpressionAdapter(StatementAdapter method) {
+		this.stmtAdapter = method;
+		invokeAdapter = new MethodInvocationExprAdapter(stmtAdapter);
 	}
 
 	@Override
@@ -57,58 +61,38 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			for (org.eclipse.jdt.core.dom.Expression e : param) {
 				skParam.add((ExprNamedParam) transform(e));
 			}
-			skExpr = new ExprNew(method.getMethodContext(), (Type) TypeAdapter.getInstance().transform(type), skParam,
+			skExpr = new ExprNew(stmtAdapter.getMethodContext(), (Type) TypeAdapter.getInstance().transform(type), skParam,
 					false);
 			return skExpr;
 		} else if (expr instanceof FieldAccess) {
 			FieldAccess jField = (FieldAccess) expr;
 			org.eclipse.jdt.core.dom.Expression exp = jField.getExpression();
 			skExpr = (sketch.compiler.ast.core.exprs.Expression) transform(exp);
-			ExprField field = new ExprField(method.getMethodContext(), skExpr, jField.getName().toString(), false);
+			ExprField field = new ExprField(stmtAdapter.getMethodContext(), skExpr, jField.getName().toString(), false);
 
 			return field;
 		} else if (expr instanceof ThisExpression) {
 			return AbstractASTAdapter.getThisObj();
 		} else if (expr instanceof MethodInvocation) {
 			// MethodInvocation --> ExprFunCall
-			MethodInvocation mtdInvoke = (MethodInvocation) expr;
-			Expression invoker = (Expression) transform(mtdInvoke.getExpression());
-			Type invokerType = null;
-			if (invoker != null)
-				invokerType = resolveType(invoker);
-			List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
-			List<Type> typeArg = new ArrayList<Type>();
-			List<Expression> expArg = new ArrayList<Expression>();
-			if (invoker != null)
-				expArg.add(invoker);
-			for (org.eclipse.jdt.core.dom.Expression argExp : arg) {
-				Expression exp = (Expression) transform(argExp);
-				typeArg.add(resolveType(exp));
-				expArg.add(exp);
-			}
-			StructDefGenerator.insertMethod(mtdInvoke.getName().toString(), invokerType, typeArg);
-			ExprFunCall expCall = new ExprFunCall(method.getMethodContext(), mtdInvoke.getName().toString(), expArg);
-			if (isJunitAsserts(expCall))
-				return resolveJUnitAsserts(expCall);
-
-			return expCall;
+			return invokeAdapter.transform(expr);
 		} else if (expr instanceof InfixExpression) {
 			// InfixExpression -->ExprBinary
 			InfixExpression condExpr = (InfixExpression) expr;
 			Expression left = (Expression) transform(condExpr.getLeftOperand());
 			Expression right = (Expression) transform(condExpr.getRightOperand());
-			ExprBinary exprBin = new ExprBinary(method.getMethodContext(), resolveOperator(condExpr.getOperator()),
+			ExprBinary exprBin = new ExprBinary(stmtAdapter.getMethodContext(), resolveOperator(condExpr.getOperator()),
 					left, right);
 			return exprBin;
 		} else if (expr instanceof Name) {
 			// VariableDeclarationExpression --> ExprVar
 			Name varDecl = (Name) expr;
-			return new ExprVar(method.getMethodContext(), varDecl.getFullyQualifiedName());
+			return new ExprVar(stmtAdapter.getMethodContext(), varDecl.getFullyQualifiedName());
 		} else if (expr instanceof Assignment) {
 			Assignment assign = (Assignment) expr;
 			Expression left = (Expression) transform(assign.getLeftHandSide());
 			Expression right = (Expression) transform(assign.getRightHandSide());
-			return new StmtAssign(method.getMethodContext(), left, right);
+			return new StmtAssign(stmtAdapter.getMethodContext(), left, right);
 		} else if (expr instanceof VariableDeclarationExpression) {
 			// TODO no idea
 		} else if (expr instanceof NullLiteral) {
@@ -119,10 +103,10 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 				if (!num.contains(".")) {
 					// FIXME I know it's bug
 					int number = Integer.parseInt(num);
-					return new ExprConstInt(method.getMethodContext(), number);
+					return new ExprConstInt(stmtAdapter.getMethodContext(), number);
 				} else {
 					double number = Double.parseDouble(num);
-					return new ExprConstFloat(method.getMethodContext(), number);
+					return new ExprConstFloat(stmtAdapter.getMethodContext(), number);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -132,9 +116,9 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			BooleanLiteral bool = (BooleanLiteral) expr;
 			boolean value = bool.booleanValue();
 			if (value)
-				return new ExprConstInt(method.getMethodContext(), 1);
+				return new ExprConstInt(stmtAdapter.getMethodContext(), 1);
 			else
-				new ExprConstInt(method.getMethodContext(), 0);
+				new ExprConstInt(stmtAdapter.getMethodContext(), 0);
 		} else if (expr instanceof ParenthesizedExpression) {
 			ParenthesizedExpression paren = (ParenthesizedExpression) expr;
 			return transform(paren.getExpression());
@@ -148,24 +132,25 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		return null;
 	}
 
-	public Type resolveType(Expression expr) {
-		if (expr instanceof ExprNew) {
-			return ((ExprNew) expr).getTypeToConstruct();
-		} else if (expr instanceof ExprField) {
-			ExprField fAccess = (ExprField) expr;
-			Expression left = fAccess.getLeft();
-			Type invoker = resolveType(left);
-			return method.getFieldTypeOf(invoker.toString(), fAccess.getName());
-		} else if (expr instanceof ExprFunCall) {
-			ExprFunCall funCall = (ExprFunCall) expr;
-			// TODO
-		} else if (expr instanceof ExprBinary) {
-			// TODO
-		} else if (expr instanceof ExprVar) {
-			return method.getVarType(((ExprVar) expr).getName());
-		}
-		return null;
-	}
+//	public Type resolveType(Expression expr) {
+//		if (expr instanceof ExprNew) {
+//			return ((ExprNew) expr).getTypeToConstruct();
+//		} else if (expr instanceof ExprField) {
+//			ExprField fAccess = (ExprField) expr;
+//			Expression left = fAccess.getLeft();
+//			Type invoker = resolveType(left);
+//			return stmtAdapter.getFieldTypeOf(invoker.toString(), fAccess.getName());
+//		} else if (expr instanceof ExprFunCall) {
+//			ExprFunCall funCall = (ExprFunCall) expr;
+//			Type type = resolveType(funCall.getParams().get(0));
+//			// TODO
+//		} else if (expr instanceof ExprBinary) {
+//			// TODO
+//		} else if (expr instanceof ExprVar) {
+//			return stmtAdapter.getVarType(((ExprVar) expr).getName());
+//		}
+//		return null;
+//	}
 
 	private int resolveOperator(InfixExpression.Operator op) {
 		if (op == InfixExpression.Operator.AND)
@@ -192,40 +177,6 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		return 0;
 	}
 
-	private Object resolveJUnitAsserts(ExprFunCall call) {
-		String name = call.getName();
-		List<Expression> param = call.getParams();
-		if (name.equals("assertEquals")) {
-			if (param.size() < 2)
-				return null;
-			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0), param.get(1));
-		} else if (name.equals("assertNull")) {
-			if (param.size() == 0)
-				return null;
-			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0), new ExprNullPtr());
-		} else if (name.equals("assertNotNull")) {
-			if (param.size() == 0)
-				return null;
-			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_NEQ, param.get(0), new ExprNullPtr());
-		} else if (name.equals("assertFalse")) {
-			if (param.size() == 0)
-				return null;
-			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0),
-					new ExprConstInt(method.getMethodContext(), 0));
-		} else if (name.equals("assertTrue")) {
-			if (param.size() == 0)
-				return null;
-			return new ExprBinary(method.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0),
-					new ExprConstInt(method.getMethodContext(), 1));
-		}
-		return null;
-	}
+	
 
-	private boolean isJunitAsserts(ExprFunCall call) {
-		// FIXME, maybe buggy?
-		if (call.getName().contains("assert")) {
-			return true;
-		}
-		return false;
-	}
 }

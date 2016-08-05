@@ -27,7 +27,12 @@ public class SketchSourceTransformer extends AbstractSketchTransformer {
 			List<MethodData> locations) {
 		if (lines == null || location == null)
 			return;
-		staticTransform(location, locations);
+		try {
+			staticTransform(location, locations);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

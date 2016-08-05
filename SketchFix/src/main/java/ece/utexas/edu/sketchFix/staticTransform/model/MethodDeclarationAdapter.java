@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -15,6 +16,11 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FunctionCreator;
@@ -25,20 +31,25 @@ import sketch.compiler.ast.core.typs.Type;
 
 public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeDeclaration clazz;
-	private FieldDeclaration[] fields;
+	// private FieldDeclaration[] fields;
 	private List<ASTLinePy> astLines;
-	private HashMap<String, Type> fieldType = new HashMap<String, Type>();
+	// private HashMap<String, Type> fieldType = new HashMap<String, Type>();
 	private HashMap<String, Type> varType = new HashMap<String, Type>();
-	private HashMap<String, Type> usedFieldType = new HashMap<String, Type>();
+	// private HashMap<String, Type> usedFieldType = new HashMap<String,
+	// Type>();
 	private StatementAdapter stmtAdapter;
 	private FENode methodNode;
 	private Type rtnType;
+	private TypeResolver typeResolver;
+	private TypeUsageRecorder useRecorder = new TypeUsageRecorder();
 
-	public MethodDeclarationAdapter(TypeDeclaration clazz, FieldDeclaration[] fields, List<ASTLinePy> astLines) {
-		this.clazz = clazz;
-		this.fields = fields;
+	@SuppressWarnings("unchecked")
+	public MethodDeclarationAdapter(CompilationUnit cu, List<ASTLinePy> astLines) {
+		// TypeDeclaration clazz, FieldDeclaration[] fields,
+		this.clazz = (TypeDeclaration) cu.types().get(0);
+		// this.fields = clazz.getFields();
 		this.astLines = astLines;
-		parseField();
+		typeResolver = new TypeResolver(cu.imports());
 		stmtAdapter = new StatementAdapter(this);
 	}
 
@@ -97,32 +108,32 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		return param;
 	}
 
-	@SuppressWarnings("unchecked")
-	private void parseField() {
-		for (FieldDeclaration field : fields) {
-			org.eclipse.jdt.core.dom.Type jType = field.getType();
-			Type sType = (Type) TypeAdapter.getInstance().recordField(jType);
-			List<VariableDeclarationFragment> list = field.fragments();
-			for (VariableDeclarationFragment frag : list) {
-				fieldType.put(frag.getName().getIdentifier(), sType);
-			}
-		}
-	}
+	// @SuppressWarnings("unchecked")
+	// private void parseField() {
+	// for (FieldDeclaration field : fields) {
+	// org.eclipse.jdt.core.dom.Type jType = field.getType();
+	// Type sType = (Type) TypeAdapter.getInstance().recordField(jType);
+	// List<VariableDeclarationFragment> list = field.fragments();
+	// for (VariableDeclarationFragment frag : list) {
+	// fieldType.put(frag.getName().getIdentifier(), sType);
+	// }
+	// }
+	// }
 
 	public void insertVarDecl(String name, Type type) {
 		varType.put(name, type);
 	}
 
-	public void insertUsedField(String name, Type type) {
-		usedFieldType.put(name, type);
-	}
+	// public void insertUsedField(String name, Type type) {
+	// usedFieldType.put(name, type);
+	// }
 
 	public Type getFieldTypeOf(String type, String field) {
-
+		String fType = typeResolver.getFieldType(type, field);
 		String name = clazz.getName().toString();
 		if (type.equals(name)) {
-			StructDefGenerator.insertField(type, field, fieldType.get(field));
-			return fieldType.get(field);
+			StructDefGenerator.insertField(type, field, TypeAdapter.getType(fType));
+			return TypeAdapter.getType(fType);
 		} else {
 			// TODO recursive check type
 		}
@@ -132,16 +143,38 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	public Type getVarType(String var) {
 		if (varType.containsKey(var))
 			return varType.get(var);
-		else if (fieldType.containsKey(var))
-			return fieldType.get(var);
+
 		else if (var.equals(AbstractASTAdapter.thisClass))
 			return TypeAdapter.getType(clazz.getName().toString());
 		else if (var.equals(AbstractASTAdapter.returnObj))
 			return rtnType;
-		return null;
+
+		String fType = typeResolver.getFieldType(clazz.getName().toString(), var);
+		return TypeAdapter.getType(fType);
+	}
+
+	public Type getMethodReturnType(String type, String method) {
+		String rtnType = typeResolver.getMethodReturnType(type, method);
+		return TypeAdapter.getType(rtnType);
+	}
+
+	public MethodWrapper getMethodModel(String type, String method) {
+		return typeResolver.getMethodWrapper(type, method);
 	}
 
 	public FENode getMethodContext() {
 		return methodNode;
+	}
+
+	public void insertUseField(String type, String field) {
+		useRecorder.insertField(type, field);
+	}
+
+	public void insertUseMethod(String type, String method) {
+		useRecorder.insertMethod(type, method);
+	}
+
+	public String getCurrentClassType() {
+		return clazz.getName().toString();
 	}
 }

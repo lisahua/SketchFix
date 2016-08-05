@@ -20,7 +20,12 @@ public class SketchAssertTransformer extends AbstractSketchTransformer {
 		// know which method to transform, know which lines should be
 		// transformed.
 		// for (MethodData method : locations) {
-		staticTransform(method, locations);
+		try {
+			staticTransform(method, locations);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// }
 
 	}

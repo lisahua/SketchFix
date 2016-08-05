@@ -23,7 +23,8 @@ import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
-import ece.utexas.edu.sketchFix.staticTransform.model.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Function;
@@ -45,7 +46,7 @@ public abstract class AbstractSketchTransformer {
 	protected List<Function> methods = new ArrayList<Function>();
 	protected List<StructDef> structs = new ArrayList<StructDef>();
 
-	public void staticTransform(MethodData method, List<MethodData> locations) {
+	public void staticTransform(MethodData method, List<MethodData> locations)throws Exception {
 		this.locations = locations;
 		File code = new File(method.getClassFullPath() + ".java");
 		if (!code.exists()) {
@@ -55,14 +56,10 @@ public abstract class AbstractSketchTransformer {
 			if (!code.exists())
 				return;
 		}
-		try {
+	
 			parseFile(code, method);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(type, type.getFields(), astLines);
+		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, astLines);
 		Function function = (Function) mtdDecl.transform(currentMtd);
 		// TODO create structDef correspondingly
 		methods.addAll(StructDefGenerator.createMethods(locations));
@@ -78,6 +75,7 @@ public abstract class AbstractSketchTransformer {
 		parser.setSource(fileString.toCharArray());
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		cu = (CompilationUnit) parser.createAST(null);
+		
 		type = (TypeDeclaration) cu.types().get(0);
 		MethodDeclaration[] methods = type.getMethods();
 		// FieldDeclaration[] fields = type.getFields();
