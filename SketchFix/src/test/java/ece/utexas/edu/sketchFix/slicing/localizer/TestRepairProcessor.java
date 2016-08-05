@@ -3,13 +3,11 @@
  */
 package ece.utexas.edu.sketchFix.slicing.localizer;
 
-import org.junit.Test;
-
 import ece.utexas.edu.sketchFix.main.RepairMain;
 
 public class TestRepairProcessor {
-	@Test
-	public void main() {
+
+	public static void main(String[] args) {
 		// String[] arg = {
 		// "org.jfree.chart.renderer.category.junit.AbstractCategoryItemRendererTests",
 		// "test2947660" };

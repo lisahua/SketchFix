@@ -132,25 +132,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		return null;
 	}
 
-//	public Type resolveType(Expression expr) {
-//		if (expr instanceof ExprNew) {
-//			return ((ExprNew) expr).getTypeToConstruct();
-//		} else if (expr instanceof ExprField) {
-//			ExprField fAccess = (ExprField) expr;
-//			Expression left = fAccess.getLeft();
-//			Type invoker = resolveType(left);
-//			return stmtAdapter.getFieldTypeOf(invoker.toString(), fAccess.getName());
-//		} else if (expr instanceof ExprFunCall) {
-//			ExprFunCall funCall = (ExprFunCall) expr;
-//			Type type = resolveType(funCall.getParams().get(0));
-//			// TODO
-//		} else if (expr instanceof ExprBinary) {
-//			// TODO
-//		} else if (expr instanceof ExprVar) {
-//			return stmtAdapter.getVarType(((ExprVar) expr).getName());
-//		}
-//		return null;
-//	}
+
 
 	private int resolveOperator(InfixExpression.Operator op) {
 		if (op == InfixExpression.Operator.AND)

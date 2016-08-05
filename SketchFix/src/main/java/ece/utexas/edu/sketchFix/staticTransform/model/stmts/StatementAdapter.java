@@ -40,10 +40,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 	MethodDeclarationAdapter method;
 	ExpressionAdapter exprAdapter;
 	List<Statement> stmtList = new ArrayList<Statement>();
+	private VarDeclStmtAdapter varDeclAdapter;
 
 	public StatementAdapter(MethodDeclarationAdapter node) {
 		method = node;
 		exprAdapter = new ExpressionAdapter(this);
+		varDeclAdapter = new VarDeclStmtAdapter(node);
 	}
 
 	public void insertStmt(Statement stmt) {
@@ -55,46 +57,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 	public Object transform(ASTNode node) {
 		org.eclipse.jdt.core.dom.Statement stmt = (org.eclipse.jdt.core.dom.Statement) node;
 		if (stmt instanceof VariableDeclarationStatement) {
-			VariableDeclarationStatement vds = (VariableDeclarationStatement) stmt;
-			org.eclipse.jdt.core.dom.Type jType = vds.getType();
-			Type sType = (Type) TypeAdapter.getInstance().transform(jType);
-			List<VariableDeclarationFragment> list = vds.fragments();
-			List<Type> types = new ArrayList<Type>();
-			List<String> names = new ArrayList<String>();
-			List<Expression> inits = new ArrayList<Expression>();
-			types.add(sType);
-
-			for (VariableDeclarationFragment frag : list) {
-				String name = frag.getName().getIdentifier();
-				method.insertVarDecl(name, sType);
-				names.add(name);
-				org.eclipse.jdt.core.dom.Expression init = frag.getInitializer();
-				inits.add((Expression) exprAdapter.transform(init));
-			}
-			List<Statement> stmts = new ArrayList<Statement>();
-			StmtVarDecl sketchStmt = new StmtVarDecl(method.getMethodContext(), types, names, inits);
-
-			List<Expression> expList = new ArrayList<Expression>();
-			for (int i = 0; i < inits.size(); i++) {
-				Expression init = inits.get(i);
-				if (init instanceof ExprFunCall) {
-					ExprFunCall call = (ExprFunCall) init;
-					List<Expression> expArg = call.getParams();
-					expList.addAll(expArg);
-					expList.add(new ExprVar(method.getMethodContext(), names.get(i)));
-					ExprFunCall expCall = new ExprFunCall(method.getMethodContext(), call.getName(), expList);
-					expArg = new ArrayList<Expression>();
-					expArg.add(AbstractASTAdapter.getDefaultValue(sType.toString()));
-					stmts.add(new StmtVarDecl(method.getMethodContext(), types, names, expArg));
-					stmts.add(new StmtExpr(method.getMethodContext(), expCall));
-					Parameter newParam = new Parameter(method.getMethodContext(), sType, names.get(i));
-					StructDefGenerator.insertParamterToMethod(expCall.getName(), newParam);
-				}
-			}
-
-			if (stmts.size() == 0)
-				stmts.add(sketchStmt);
-			return stmts;
+			return varDeclAdapter.transform(stmt);
 		} else if (stmt instanceof IfStatement) {
 			IfStatement ifStmt = (IfStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression exp = ifStmt.getExpression();
