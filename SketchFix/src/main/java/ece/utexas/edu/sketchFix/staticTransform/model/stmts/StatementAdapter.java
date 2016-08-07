@@ -21,12 +21,8 @@ import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.expr.ExpressionAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.ast.core.FENode;
-import sketch.compiler.ast.core.Parameter;
-import sketch.compiler.ast.core.exprs.ExprFunCall;
-import sketch.compiler.ast.core.exprs.ExprVar;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
-import sketch.compiler.ast.core.stmts.StmtAssert;
 import sketch.compiler.ast.core.stmts.StmtAssign;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.stmts.StmtExpr;
@@ -40,31 +36,60 @@ public class StatementAdapter extends AbstractASTAdapter {
 	MethodDeclarationAdapter method;
 	ExpressionAdapter exprAdapter;
 	List<Statement> stmtList = new ArrayList<Statement>();
-	private VarDeclStmtAdapter varDeclAdapter;
 
 	public StatementAdapter(MethodDeclarationAdapter node) {
 		method = node;
 		exprAdapter = new ExpressionAdapter(this);
-		varDeclAdapter = new VarDeclStmtAdapter(node);
 	}
 
 	public void insertStmt(Statement stmt) {
 		stmtList.add(stmt);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "unused" })
 	@Override
 	public Object transform(ASTNode node) {
 		org.eclipse.jdt.core.dom.Statement stmt = (org.eclipse.jdt.core.dom.Statement) node;
+		stmtList.clear();
 		if (stmt instanceof VariableDeclarationStatement) {
-			return varDeclAdapter.transform(stmt);
+			VariableDeclarationStatement vds = (VariableDeclarationStatement) node;
+			org.eclipse.jdt.core.dom.Type jType = vds.getType();
+			Type sType = TypeAdapter.getType(jType.toString());
+			List<VariableDeclarationFragment> list = vds.fragments();
+			List<Type> types = new ArrayList<Type>();
+			List<String> names = new ArrayList<String>();
+			List<Expression> inits = new ArrayList<Expression>();
+			types.add(sType);
+			for (VariableDeclarationFragment frag : list) {
+				String name = frag.getName().getIdentifier();
+				method.insertVarDecl(name, sType);
+				names.add(name);
+				org.eclipse.jdt.core.dom.Expression init = frag.getInitializer();
+				inits.add((Expression) exprAdapter.transform(init));
+			}
+			
+			stmtList.add( new StmtVarDecl(method.getMethodContext(), types, names, inits));
+			return stmtList;
 		} else if (stmt instanceof IfStatement) {
 			IfStatement ifStmt = (IfStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression exp = ifStmt.getExpression();
 			org.eclipse.jdt.core.dom.Statement thenStmt = ifStmt.getThenStatement();
 			org.eclipse.jdt.core.dom.Statement elseStmt = ifStmt.getElseStatement();
+			Object then =  transform(thenStmt);
+			Statement thenStatement=null ;
+			if (then!=null&& (then instanceof List<?>)) {
+				thenStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) then);
+			} else if (thenStatement !=null) 
+				thenStatement= (Statement) then;
+			Object elseSt =  transform(elseStmt);
+			Statement elseStatement=null ;
+			if (elseSt!=null&& (elseSt instanceof List<?>)) {
+				elseStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) elseSt);
+			} else if (thenStatement !=null) 
+				elseStatement= (Statement) elseSt;
+			
 			StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), (Expression) exprAdapter.transform(exp),
-					(Statement) transform(thenStmt), (Statement) transform(elseStmt));
+					thenStatement, elseStatement);
 			return skIfStmt;
 		} else if (stmt instanceof ReturnStatement) {
 			ReturnStatement rtnStmt = (ReturnStatement) stmt;
@@ -96,11 +121,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 			ExpressionStatement exprStmt = (ExpressionStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression expr = exprStmt.getExpression();
 			Expression sExpr = (Expression) exprAdapter.transform(expr);
-			return new StmtAssert(method.getMethodContext(), sExpr, false);
+//			if (sExpr != null)
+//				return new StmtExpr(method.getMethodContext(), sExpr);
 		}
 		// TODO more stmts such as for stmt
 
-		return null;
+		return stmtList;
 	}
 
 	public FENode getMethodContext() {
@@ -128,4 +154,28 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return method.getVarType(name);
 	}
 
+	public void insertVarDecl(String name, Type type) {
+		method.insertVarDecl(name, type);
+	}
+
+	public String getLastInsertVarName(String type) {
+		for (int i = stmtList.size() - 1; i > -1; i--) {
+			if (stmtList.get(i) instanceof StmtVarDecl) {
+				StmtVarDecl varDecl = (StmtVarDecl) stmtList.get(i);
+				if (varDecl.getType(0).toString().equals(type))
+					return varDecl.getName(0);
+			}
+		}
+		return "";
+	}
+	
+	public String getLastInsertVarName() {
+		for (int i = stmtList.size() - 1; i > -1; i--) {
+			if (stmtList.get(i) instanceof StmtVarDecl) {
+				StmtVarDecl varDecl = (StmtVarDecl) stmtList.get(i);
+					return varDecl.getName(0);
+			}
+		}
+		return "";
+	}
 }

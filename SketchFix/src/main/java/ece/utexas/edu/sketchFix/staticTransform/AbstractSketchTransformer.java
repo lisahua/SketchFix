@@ -24,7 +24,6 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
-import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Function;
@@ -46,7 +45,7 @@ public abstract class AbstractSketchTransformer {
 	protected List<Function> methods = new ArrayList<Function>();
 	protected List<StructDef> structs = new ArrayList<StructDef>();
 
-	public void staticTransform(MethodData method, List<MethodData> locations)throws Exception {
+	public void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
 		File code = new File(method.getClassFullPath() + ".java");
 		if (!code.exists()) {
@@ -56,15 +55,16 @@ public abstract class AbstractSketchTransformer {
 			if (!code.exists())
 				return;
 		}
-	
-			parseFile(code, method);
+
+		parseFile(code, method);
 
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, astLines);
 		Function function = (Function) mtdDecl.transform(currentMtd);
+		StructDefGenerator generator = new StructDefGenerator(mtdDecl.getUseRecorder(), mtdDecl.getTypeResolver());
 		// TODO create structDef correspondingly
-		methods.addAll(StructDefGenerator.createMethods(locations));
+		methods.addAll(generator.getMethodMap());
 		methods.add(function);
-		structs.addAll(StructDefGenerator.createStructs());
+		structs.addAll(generator.getStructDefMap());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -75,7 +75,7 @@ public abstract class AbstractSketchTransformer {
 		parser.setSource(fileString.toCharArray());
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		cu = (CompilationUnit) parser.createAST(null);
-		
+
 		type = (TypeDeclaration) cu.types().get(0);
 		MethodDeclaration[] methods = type.getMethods();
 		// FieldDeclaration[] fields = type.getFields();
@@ -91,7 +91,7 @@ public abstract class AbstractSketchTransformer {
 		List<LinePy> lines = method.getTouchLinesList();
 		List<Statement> statements = (List<Statement>) currentMtd.getBody().statements();
 		astLines = matchLinePyStatementNode(lines, statements);
-	
+
 	}
 
 	private List<ASTLinePy> matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {
@@ -173,16 +173,18 @@ public abstract class AbstractSketchTransformer {
 		return methods;
 	}
 
-	public void setMethods(List<Function> methods) {
-		this.methods.addAll(methods);
-	}
-
 	public List<StructDef> getStructs() {
 		return structs;
 	}
 
-	public void setStructs(List<StructDef> structs) {
-		this.structs.addAll(structs);
+	public void setMethods(List<Function> methods2) {
+		methods.addAll(methods2);
+
+	}
+
+	public void setStructs(List<StructDef> structs2) {
+		structs.addAll(structs2);
+
 	}
 
 }

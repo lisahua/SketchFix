@@ -14,7 +14,7 @@ public class SketchTransformProcessor {
 			String outputFile) {
 		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
 		assertTran.transform(testMethod, generator, locations);
-
+		assertTran.writeToFile(outputFile+"2");
 	
 		
 		

@@ -21,22 +21,23 @@ import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 
 public class TypeResolver {
 
-	HashMap<String, File> importFiles = new HashMap<String, File>();
+	HashMap<String, String> importFiles = new HashMap<String,String>();
 	HashMap<String, FieldWrapper> fieldMap = new HashMap<String, FieldWrapper>();
 	HashMap<String, HashMap<String, MethodWrapper>> methodMap = new HashMap<String, HashMap<String, MethodWrapper>>();
 
 	public TypeResolver(List<ImportDeclaration> imports) {
 		for (ImportDeclaration iDecl : imports) {
-			String path = iDecl.toString().replace(".", "/") + ".java";
+			String path = iDecl.getName().toString().replace(".", "/") + ".java";
 			File code = new File(path);
 			if (!code.exists()) {
 				code = new File(LocalizerUtility.baseDir + path);
 				if (!code.exists())
 					code = new File(LocalizerUtility.testDir + path);
 				if (!code.exists())
-					return;
+					continue;
 			}
-			importFiles.put(iDecl.getName().toString(), code);
+			String filePath = iDecl.getName().toString();
+			importFiles.put(filePath.substring(filePath.lastIndexOf(".")+1), code.getAbsolutePath());
 		}
 	}
 
@@ -44,7 +45,7 @@ public class TypeResolver {
 		if (!fieldMap.containsKey(type)) {
 			if (importFiles.containsKey(type)) {
 				try {
-					parseFile(importFiles.get(type));
+					parseFile(new File(importFiles.get(type)));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -60,7 +61,7 @@ public class TypeResolver {
 		if (!methodMap.containsKey(type)) {
 			if (importFiles.containsKey(type)) {
 				try {
-					parseFile(importFiles.get(type));
+					parseFile(new File(importFiles.get(type)));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -76,7 +77,7 @@ public class TypeResolver {
 		if (!methodMap.containsKey(type)) {
 			if (importFiles.containsKey(type)) {
 				try {
-					parseFile(importFiles.get(type));
+					parseFile(new File(importFiles.get(type)));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -100,7 +101,7 @@ public class TypeResolver {
 		// FieldDeclaration[] fields = type.getFields();
 		HashMap<String, MethodWrapper> mtdMap = new HashMap<String, MethodWrapper>();
 		for (MethodDeclaration mtd : type.getMethods()) {
-			mtdMap.put(mtd.getName().toString(), new MethodWrapper(mtd));
+			mtdMap.put(mtd.getName().toString(), new MethodWrapper(type.getName().toString(),mtd));
 		}
 		methodMap.put(type.getName().toString(), mtdMap);
 		fieldMap.put(type.getName().toString(), new FieldWrapper(type));

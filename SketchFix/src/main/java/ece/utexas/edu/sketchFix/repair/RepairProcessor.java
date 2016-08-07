@@ -26,8 +26,10 @@ public class RepairProcessor {
 		// parse source code, trace, and state
 		LinePyGenerator generator = parseTrace();
 		Vector<LinePy> trace = generator.getTrace();
+		System.out.println(trace.lastElement());
 		// localize faults
 		List<MethodData> locations = faultLocalize(trace);
+		System.out.println(locations.get(locations.size()-1));
 		// transform to sketch front end
 		new SketchTransformProcessor().process(generator, locations, testMethod,"tmp.txt");
 		

@@ -9,15 +9,12 @@ import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
-import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
@@ -69,7 +66,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		for (ASTLinePy line : astLines) {
 			org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
 			Object obj = stmtAdapter.transform(stmt);
-			if (obj instanceof Statement)
+			if (obj==null) continue;
+ 			if (obj instanceof Statement)
 				body.add((Statement) obj);
 			else
 				body.addAll((List<Statement>) obj);
@@ -91,16 +89,16 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 		List<Parameter> param = new ArrayList<Parameter>();
 
-		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getInstance().transform(clazz),
+		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(clazz.toString()),
 				AbstractASTAdapter.thisClass);
-		rtnType = (Type) TypeAdapter.getInstance().transform(returnType);
+		rtnType = (Type) TypeAdapter.getType(returnType.toString());
 		Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
 		param.add(thisParam);
 		param.add(rtnParam);
 		varType.put(thisParam.getName(), thisParam.getType());
 		varType.put(rtnParam.getName(), rtnParam.getType());
 		for (SingleVariableDeclaration para : parameters) {
-			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getInstance().transform(para.getType()),
+			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(para.getType().toString()),
 					para.getName().toString());
 			varType.put(p.getName(), p.getType());
 			param.add(p);
@@ -132,7 +130,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		String fType = typeResolver.getFieldType(type, field);
 		String name = clazz.getName().toString();
 		if (type.equals(name)) {
-			StructDefGenerator.insertField(type, field, TypeAdapter.getType(fType));
+			useRecorder.insertField(type,field);
 			return TypeAdapter.getType(fType);
 		} else {
 			// TODO recursive check type
@@ -177,4 +175,13 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	public String getCurrentClassType() {
 		return clazz.getName().toString();
 	}
+
+	public TypeUsageRecorder getUseRecorder() {
+		return useRecorder;
+	}
+
+	public TypeResolver getTypeResolver() {
+		return typeResolver;
+	}
+	
 }

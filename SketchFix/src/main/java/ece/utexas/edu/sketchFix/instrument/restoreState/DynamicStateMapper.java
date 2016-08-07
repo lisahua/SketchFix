@@ -38,6 +38,9 @@ public class DynamicStateMapper extends LinePyGenerator {
 			}
 		}
 		trace.add(currentLine);
+		TreeMap<Integer, LinePy> map = (files.containsKey(currentLine.getFilePath())) ? files.get(currentLine.getFilePath())
+				: new TreeMap<Integer, LinePy>();
+		map.put(currentLine.getLineNum(), currentLine);
 		reader.close();
 	}
 

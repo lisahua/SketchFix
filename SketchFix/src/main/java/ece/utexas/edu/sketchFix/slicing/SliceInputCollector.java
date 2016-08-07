@@ -3,7 +3,6 @@
  */
 package ece.utexas.edu.sketchFix.slicing;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
@@ -39,8 +38,12 @@ public class SliceInputCollector {
 	public List<MethodData> locateMethods(Vector<LinePy> trace) {
 		return localizer.locateFaultyMethods(trace);
 	}
-	
+
 	public MethodData getTestMethod() {
 		return localizer.getTestMethod();
+	}
+
+	public List<MethodData> getAllTestAssertions() {
+		return localizer.getAllTestAssertions();
 	}
 }

@@ -15,6 +15,7 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
 public abstract class FaultLocalizerStrategy {
 	protected MethodData testMethod;
+	protected List<MethodData> allTestMethods;
 
 	public abstract List<LineData> locateFaultyLines(String[] negTraces, String[] posTPath);
 
@@ -24,6 +25,10 @@ public abstract class FaultLocalizerStrategy {
 
 	public MethodData getTestMethod() {
 		return testMethod;
+	}
+
+	public List<MethodData> getAllTestAssertions() {
+		return allTestMethods;
 	}
 
 	protected Vector<String> readFile(String path) {

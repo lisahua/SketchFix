@@ -44,6 +44,7 @@ public class StaticSourceMapper extends LinePyGenerator {
 				LinePy item = lines.get(index);
 				item.setSourceLine(line);
 			}
+			
 		}
 		reader.close();
 		files.put(fileName, lines);

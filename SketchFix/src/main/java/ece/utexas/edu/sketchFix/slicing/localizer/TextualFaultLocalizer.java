@@ -52,6 +52,7 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 
 	@Override
 	public Vector<MethodData> locateFaultyMethods(Vector<LinePy> trace) {
+//		System.out.println(trace.lastElement());
 		for (LinePy oneLine : trace) {
 			String key = oneLine.getFilePath() + "-" + oneLine.getMethodName();
 			MethodData data = (methodMap.containsKey(key)) ? methodMap.get(key) : new MethodData(key);

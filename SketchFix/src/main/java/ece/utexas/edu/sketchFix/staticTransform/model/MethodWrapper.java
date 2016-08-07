@@ -16,7 +16,8 @@ public class MethodWrapper {
 	String returnType;
 	HashMap<String, String> paramType = new HashMap<String, String>();
 
-	public MethodWrapper(MethodDeclaration methodNode) {
+	public MethodWrapper(String string, MethodDeclaration methodNode) {
+		className = string;
 		methodName = methodNode.getName().toString();
 		returnType = (methodNode.getReturnType2() == null) ? "void" : methodNode.getReturnType2().toString();
 		@SuppressWarnings("unchecked")
@@ -30,6 +31,10 @@ public class MethodWrapper {
 		paramType.put(name, type);
 	}
 
+	public void updateParam(int id, String type) {
+		
+	}
+	
 	public String getParamType(String name) {
 		return paramType.get(name);
 	}
@@ -56,6 +61,10 @@ public class MethodWrapper {
 
 	public void setReturnType(String returnType) {
 		this.returnType = returnType;
+	}
+
+	public HashMap<String, String> getParamType() {
+		return paramType;
 	}
 
 }
