@@ -6,8 +6,10 @@ package ece.utexas.edu.sketchFix.staticTransform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.AST;
@@ -24,13 +26,21 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.Directive;
+import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Function;
+import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Program.ProgramCreator;
+import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.stmts.StmtSpAssert;
 import sketch.compiler.ast.core.typs.StructDef;
+import sketch.compiler.ast.core.typs.Type;
+import sketch.compiler.ast.core.typs.StructDef.TStructCreator;
+import sketch.util.datastructures.HashmapList;
 
 public abstract class AbstractSketchTransformer {
 
@@ -185,6 +195,65 @@ public abstract class AbstractSketchTransformer {
 	public void setStructs(List<StructDef> structs2) {
 		structs.addAll(structs2);
 
+	}
+
+	public void mergeAnotherTransformer(AbstractSketchTransformer transformer) {
+		HashMap<String, StructDef> curStruct = new HashMap<String, StructDef>();
+		HashMap<String, Function> curMtd = new HashMap<String, Function>();
+
+		for (StructDef strct : structs)
+			curStruct.put(strct.getName(), strct);
+		for (Function func : methods)
+			curMtd.put(func.getName(), func);
+
+		for (StructDef strct : transformer.getStructs()) {
+			if (curStruct.containsKey(strct.getName())) {
+				mergeTwoStructs(strct, curStruct.get(strct.getName()));
+			}
+		}
+		for (Function func : transformer.getMethods()) {
+			if (curMtd.containsKey(func.getName())) {
+				mergeTwoMethod(func, curMtd.get(func.getName()));
+			}
+		}
+
+	}
+
+	private void mergeTwoStructs(StructDef one, StructDef two) {
+		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
+		creator.name(one.getName());
+		List<String> names = new ArrayList<String>();
+		List<Type> types = new ArrayList<Type>();
+		for (Map.Entry<String, Type> entry : one.getFieldTypMap()) {
+			names.add(entry.getKey());
+			types.add(entry.getValue());
+		}
+		for (Map.Entry<String, Type> entry : two.getFieldTypMap()) {
+			names.add(entry.getKey());
+			types.add(entry.getValue());
+		}
+		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
+		creator.annotations(annotations);
+		creator.fields(names, types);
+		for (int i = 0; i < structs.size(); i++) {
+			if (structs.get(i).getName().equals(one.getName())) {
+				structs.remove(i);
+				break;
+			}
+		}
+		structs.add(creator.create());
+	}
+
+	private void mergeTwoMethod(Function one, Function two) {
+		if (one.getBody().toString().length() < two.getBody().toString().length())
+			return;
+		for (int i = 0; i < methods.size(); i++) {
+			if (methods.get(i).getName().equals(one.getName())) {
+				methods.remove(i);
+				break;
+			}
+		}
+		methods.add(one);
 	}
 
 }

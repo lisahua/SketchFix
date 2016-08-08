@@ -12,15 +12,16 @@ public class SketchTransformProcessor {
 
 	public void process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod,
 			String outputFile) {
-//		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
-//		assertTran.transform(testMethod, generator, locations);
+		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
+		assertTran.transform(testMethod, generator, locations);
 //		assertTran.writeToFile(outputFile+"2");
 	
 		
 		
 		AbstractSketchTransformer sourceTran = new SketchSourceTransformer();
 		sourceTran.transform(locations.get(0), generator, locations);
-		sourceTran.writeToFile(outputFile);
+		assertTran.mergeAnotherTransformer(sourceTran);
+		assertTran.writeToFile(outputFile);
 		// transform sketch assertion
 		
 
