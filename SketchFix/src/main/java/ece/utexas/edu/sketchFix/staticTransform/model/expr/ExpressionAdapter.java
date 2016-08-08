@@ -4,6 +4,7 @@
 package ece.utexas.edu.sketchFix.staticTransform.model.expr;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -52,6 +53,7 @@ import sketch.compiler.ast.core.typs.TypePrimitive;
 public class ExpressionAdapter extends AbstractASTAdapter {
 
 	protected StatementAdapter stmtAdapter;
+	private HashMap<String, Type> arrayTypes = new HashMap<String, Type>();
 
 	public ExpressionAdapter(StatementAdapter method) {
 		this.stmtAdapter = method;
@@ -71,8 +73,8 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			for (org.eclipse.jdt.core.dom.Expression e : param) {
 				skParam.add((ExprNamedParam) transform(e));
 			}
-			skExpr = new ExprNew(stmtAdapter.getMethodContext(), (Type) TypeAdapter.getType(type.toString()),
-					skParam, false);
+			skExpr = new ExprNew(stmtAdapter.getMethodContext(), (Type) TypeAdapter.getType(type.toString()), skParam,
+					false);
 			return skExpr;
 		} else if (expr instanceof FieldAccess) {
 			FieldAccess jField = (FieldAccess) expr;
@@ -148,13 +150,16 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 		} else if (expr instanceof CharacterLiteral) {
 			CharacterLiteral charOrString = (CharacterLiteral) expr;
-
+			// TODO char expression
 		} else if (expr instanceof StringLiteral) {
 			String strName = getNextName();
+
 			StringLiteral string = (StringLiteral) expr;
 			String value = string.getLiteralValue();
-			ExprConstInt len = new ExprConstInt(stmtAdapter.getMethodContext(), value.length() );
+			ExprConstInt len = new ExprConstInt(stmtAdapter.getMethodContext(), value.length());
 			TypeArray array = new TypeArray(TypePrimitive.chartype, len);
+			stmtAdapter.insertVarDecl(strName, array);
+			TypeAdapter.insertArrayType(array.toString(), array);
 			List<Expression> initEle = new ArrayList<Expression>();
 			for (char c : value.toCharArray())
 				initEle.add(ExprConstChar.create(c));
@@ -196,13 +201,12 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
 		List<Expression> expArg = new ArrayList<Expression>();
 
-		for (org.eclipse.jdt.core.dom.Expression argExp : arg) {
-			Expression exp = (Expression) transform(argExp);
+		for (int i = 0; i < arg.size(); i++) {
+			Expression exp = (Expression) transform(arg.get(i));
 			if (exp != null)
 				expArg.add(exp);
-			else {
+			else
 				expArg.add(new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName()));
-			}
 		}
 
 		ExprFunCall expCall = new ExprFunCall(stmtAdapter.getMethodContext(), mtdInvoke.getName().toString(), expArg);
@@ -227,16 +231,20 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		if (invoker != null)
 			expArg.add(invoker);
 
-		for (org.eclipse.jdt.core.dom.Expression argExp : arg) {
-			Expression exp = (Expression) transform(argExp);
-			if (exp != null)
+		for (int i = 0; i < arg.size(); i++) {
+			Expression exp = (Expression) transform(arg.get(i));
+			if (exp != null) {
 				expArg.add(exp);
+				if (mtdModel != null && resolveType(exp) != null)
+					stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), i, resolveType(exp).toString());
+			}
 		}
 		if (mtdModel != null) {
 			Type type = TypeAdapter.getType(mtdModel.getReturnType());
 			if (type != null) {
 				stmtAdapter.insertStmt(initNewObject(type));
 				expArg.add(new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName()));
+				stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), 10, type.toString());
 			}
 		}
 
@@ -315,7 +323,17 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			// TODO
 		} else if (expr instanceof ExprVar) {
 			return stmtAdapter.getVarType(((ExprVar) expr).getName());
+		} else if (expr instanceof ExprArrayInit) {
+			return arrayTypes.get(expr.toString());
+
+		} else if (expr instanceof ExprConstFloat) {
+			return TypePrimitive.floattype;
+		}else if (expr instanceof ExprConstInt) {
+			return TypePrimitive.int32type;
+		} else if (expr instanceof ExprConstChar) {
+			return TypePrimitive.chartype;
 		}
 		return null;
 	}
+
 }

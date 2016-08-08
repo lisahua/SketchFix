@@ -3,6 +3,7 @@
  */
 package ece.utexas.edu.sketchFix.staticTransform.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class MethodWrapper {
 	String methodName;
 	String returnType;
 	HashMap<String, String> paramType = new HashMap<String, String>();
+	List<String> paramList = new ArrayList<String>();
 
 	public MethodWrapper(String string, MethodDeclaration methodNode) {
 		className = string;
@@ -27,14 +29,17 @@ public class MethodWrapper {
 		}
 	}
 
-	public void addParam(String name, String type) {
-		paramType.put(name, type);
+	public MethodWrapper(String className, String methodName) {
+		this.className = className;
+		this.methodName = methodName;
 	}
 
 	public void updateParam(int id, String type) {
-		
+		if (id < paramList.size())
+			paramList.remove(id);
+		paramList.add(id, type);
 	}
-	
+
 	public String getParamType(String name) {
 		return paramType.get(name);
 	}
@@ -65,6 +70,10 @@ public class MethodWrapper {
 
 	public HashMap<String, String> getParamType() {
 		return paramType;
+	}
+
+	public List<String> getParamList() {
+		return paramList;
 	}
 
 }

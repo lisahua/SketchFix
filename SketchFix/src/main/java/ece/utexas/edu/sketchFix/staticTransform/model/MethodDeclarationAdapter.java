@@ -46,7 +46,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
 		this.astLines = astLines;
-		typeResolver = new TypeResolver(cu.imports());
+		typeResolver = new TypeResolver(cu.imports(),clazz);
 		stmtAdapter = new StatementAdapter(this);
 	}
 
@@ -66,8 +66,9 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		for (ASTLinePy line : astLines) {
 			org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
 			Object obj = stmtAdapter.transform(stmt);
-			if (obj==null) continue;
- 			if (obj instanceof Statement)
+			if (obj == null)
+				continue;
+			if (obj instanceof Statement)
 				body.add((Statement) obj);
 			else
 				body.addAll((List<Statement>) obj);
@@ -88,15 +89,19 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		List<SingleVariableDeclaration> parameters = method.parameters();
 
 		List<Parameter> param = new ArrayList<Parameter>();
+		if (isTestMethod(method.getName().toString()))
+			return param;
 
-		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(clazz.toString()),
+		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(clazz.getName().toString()),
 				AbstractASTAdapter.thisClass);
-		rtnType = (Type) TypeAdapter.getType(returnType.toString());
-		Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
 		param.add(thisParam);
-		param.add(rtnParam);
-		varType.put(thisParam.getName(), thisParam.getType());
-		varType.put(rtnParam.getName(), rtnParam.getType());
+		rtnType = (Type) TypeAdapter.getType(returnType.toString());
+		if (rtnType != null) {
+			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
+			param.add(rtnParam);
+			varType.put(rtnParam.getName(), rtnParam.getType());
+		}
+
 		for (SingleVariableDeclaration para : parameters) {
 			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(para.getType().toString()),
 					para.getName().toString());
@@ -130,7 +135,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		String fType = typeResolver.getFieldType(type, field);
 		String name = clazz.getName().toString();
 		if (type.equals(name)) {
-			useRecorder.insertField(type,field);
+			useRecorder.insertField(type, field);
 			return TypeAdapter.getType(fType);
 		} else {
 			// TODO recursive check type
@@ -183,5 +188,12 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	public TypeResolver getTypeResolver() {
 		return typeResolver;
 	}
-	
+
+	public void updateParaType(String classType, String method, int id, String type) {
+		typeResolver.updateParaType(classType, method, id, type);
+	}
+
+	private boolean isTestMethod(String name) {
+		return name.toLowerCase().contains("test");
+	}
 }

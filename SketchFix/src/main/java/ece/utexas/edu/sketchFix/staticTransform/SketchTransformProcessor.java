@@ -12,9 +12,9 @@ public class SketchTransformProcessor {
 
 	public void process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod,
 			String outputFile) {
-		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
-		assertTran.transform(testMethod, generator, locations);
-		assertTran.writeToFile(outputFile+"2");
+//		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
+//		assertTran.transform(testMethod, generator, locations);
+//		assertTran.writeToFile(outputFile+"2");
 	
 		
 		
@@ -23,11 +23,7 @@ public class SketchTransformProcessor {
 		sourceTran.writeToFile(outputFile);
 		// transform sketch assertion
 		
-		
-		assertTran.setMethods(sourceTran.getMethods());
-		assertTran.setStructs(sourceTran.getStructs());
-		
-		assertTran.writeToFile(outputFile+"2");
+
 	}
 
 }

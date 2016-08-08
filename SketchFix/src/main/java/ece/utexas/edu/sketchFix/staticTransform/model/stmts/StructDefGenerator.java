@@ -49,9 +49,10 @@ public class StructDefGenerator {
 		}
 	}
 
-
-
 	private void initStructDef(String typeName, HashSet<String> fields) {
+		if (typeName.contains("int") || typeName.contains("["))
+			return;
+
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
 		creator.name(typeName);
 		List<String> names = new ArrayList<String>();
@@ -77,9 +78,10 @@ public class StructDefGenerator {
 		List<Parameter> param = new ArrayList<Parameter>();
 		param.add(
 				new Parameter(methodNode.getOrigin(), TypeAdapter.getType(wrap.getClassName()), (paraBase + count++)));
-		for (String name : wrap.getParamType().keySet())
-			param.add(new Parameter(methodNode.getOrigin(), TypeAdapter.getType(wrap.getParamType(name)),
-					(paraBase + count++)));
+
+		for (String name : wrap.getParamList())
+			param.add(new Parameter(methodNode.getOrigin(), TypeAdapter.getType(name), (paraBase + count++)));
+
 		if (!wrap.getReturnType().equals("void"))
 			param.add(new Parameter(methodNode.getOrigin(), TypeAdapter.getType(wrap.getReturnType()),
 					(paraBase + count++)));
@@ -91,13 +93,9 @@ public class StructDefGenerator {
 		methodMap.add(creator.create());
 	}
 
-
-
 	public HashSet<StructDef> getStructDefMap() {
 		return structDefMap;
 	}
-
-
 
 	public HashSet<Function> getMethodMap() {
 		return methodMap;

@@ -4,6 +4,7 @@
 package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -25,7 +26,6 @@ import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtAssign;
 import sketch.compiler.ast.core.stmts.StmtBlock;
-import sketch.compiler.ast.core.stmts.StmtExpr;
 import sketch.compiler.ast.core.stmts.StmtIfThen;
 import sketch.compiler.ast.core.stmts.StmtReturn;
 import sketch.compiler.ast.core.stmts.StmtVarDecl;
@@ -67,27 +67,28 @@ public class StatementAdapter extends AbstractASTAdapter {
 				org.eclipse.jdt.core.dom.Expression init = frag.getInitializer();
 				inits.add((Expression) exprAdapter.transform(init));
 			}
-			
-			stmtList.add( new StmtVarDecl(method.getMethodContext(), types, names, inits));
+
+			stmtList.add(new StmtVarDecl(method.getMethodContext(), types, names, inits));
 			return stmtList;
 		} else if (stmt instanceof IfStatement) {
 			IfStatement ifStmt = (IfStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression exp = ifStmt.getExpression();
 			org.eclipse.jdt.core.dom.Statement thenStmt = ifStmt.getThenStatement();
 			org.eclipse.jdt.core.dom.Statement elseStmt = ifStmt.getElseStatement();
-			Object then =  transform(thenStmt);
-			Statement thenStatement=null ;
-			if (then!=null&& (then instanceof List<?>)) {
-				thenStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) then);
-			} else if (thenStatement !=null) 
-				thenStatement= (Statement) then;
-			Object elseSt =  transform(elseStmt);
-			Statement elseStatement=null ;
-			if (elseSt!=null&& (elseSt instanceof List<?>)) {
+			Object then = transform(thenStmt);
+			Statement thenStatement = null;
+			if (then != null && (then instanceof Statement)) {
+				thenStatement = (Statement) then;
+				} else if (then != null)
+					thenStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) then);
+				
+			Object elseSt = transform(elseStmt);
+			Statement elseStatement = null;
+			if (elseSt != null && (elseSt instanceof Statement)) {
+				elseStatement = (Statement) elseSt;
+			} else if (elseSt != null)
 				elseStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) elseSt);
-			} else if (thenStatement !=null) 
-				elseStatement= (Statement) elseSt;
-			
+
 			StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), (Expression) exprAdapter.transform(exp),
 					thenStatement, elseStatement);
 			return skIfStmt;
@@ -96,10 +97,9 @@ public class StatementAdapter extends AbstractASTAdapter {
 			Expression right = (Expression) exprAdapter.transform(rtnStmt.getExpression());
 			Expression left = AbstractASTAdapter.getRtnObj();
 			StmtAssign assign = new StmtAssign(method.getMethodContext(), left, right);
-			List<Statement> stmts = new ArrayList<Statement>();
-			stmts.add(assign);
-			stmts.add(new StmtReturn(method.getMethodContext(), null));
-			return stmts;
+			stmtList.add(assign);
+			stmtList.add(new StmtReturn(method.getMethodContext(), null));
+			return stmtList;
 		} else if (stmt instanceof WhileStatement) {
 			WhileStatement whileStmt = (WhileStatement) stmt;
 			StmtWhile skWhile = new StmtWhile(method.getMethodContext(),
@@ -121,8 +121,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 			ExpressionStatement exprStmt = (ExpressionStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression expr = exprStmt.getExpression();
 			Expression sExpr = (Expression) exprAdapter.transform(expr);
-//			if (sExpr != null)
-//				return new StmtExpr(method.getMethodContext(), sExpr);
+			// if (sExpr != null)
+			// return new StmtExpr(method.getMethodContext(), sExpr);
 		}
 		// TODO more stmts such as for stmt
 
@@ -168,14 +168,18 @@ public class StatementAdapter extends AbstractASTAdapter {
 		}
 		return "";
 	}
-	
+
 	public String getLastInsertVarName() {
 		for (int i = stmtList.size() - 1; i > -1; i--) {
 			if (stmtList.get(i) instanceof StmtVarDecl) {
 				StmtVarDecl varDecl = (StmtVarDecl) stmtList.get(i);
-					return varDecl.getName(0);
+				return varDecl.getName(0);
 			}
 		}
 		return "";
+	}
+
+	public void updateParaType(String classType, String methodName, int id, String type) {
+		method.updateParaType(classType, methodName, id, type);
 	}
 }

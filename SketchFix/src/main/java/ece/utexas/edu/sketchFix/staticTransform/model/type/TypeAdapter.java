@@ -22,40 +22,43 @@ public class TypeAdapter {
 		return instance;
 	}
 
-//	@Override
+	// @Override
 	/**
 	 * 
 	 * @param node
 	 *            Type in jdt
 	 * @return Type in Sketch Front End
 	 */
-//	public Object transform(ASTNode node) {
-//		String name = node.toString();
-//		if (node instanceof org.eclipse.jdt.core.dom.Type) {
-//			// org.eclipse.jdt.core.dom.Type jType =
-//			// (org.eclipse.jdt.core.dom.Type) node;
-//			name = node.toString();
-//		} else if (node instanceof TypeDeclaration) {
-//			name = ((TypeDeclaration) node).getName().toString();
-//		}
-//		sketch.compiler.ast.core.typs.Type sType = new sketch.compiler.ast.core.typs.TypeStructRef(
-//				CudaMemoryType.UNDEFINED, name, false);
-//		if (typeMap.containsKey(sType.toString()))
-//			return sType;
-////		StructDefGenerator.insertStruct(sType.toString());
-//		typeMap.put(sType.toString(), sType);
-//		return sType;
-//	}
+	// public Object transform(ASTNode node) {
+	// String name = node.toString();
+	// if (node instanceof org.eclipse.jdt.core.dom.Type) {
+	// // org.eclipse.jdt.core.dom.Type jType =
+	// // (org.eclipse.jdt.core.dom.Type) node;
+	// name = node.toString();
+	// } else if (node instanceof TypeDeclaration) {
+	// name = ((TypeDeclaration) node).getName().toString();
+	// }
+	// sketch.compiler.ast.core.typs.Type sType = new
+	// sketch.compiler.ast.core.typs.TypeStructRef(
+	// CudaMemoryType.UNDEFINED, name, false);
+	// if (typeMap.containsKey(sType.toString()))
+	// return sType;
+	//// StructDefGenerator.insertStruct(sType.toString());
+	// typeMap.put(sType.toString(), sType);
+	// return sType;
+	// }
 
-//	private Type recordField(org.eclipse.jdt.core.dom.Type node) {
-//		String name = node.toString();
-//		name = node.toString();
-//		Type sType = new sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.UNDEFINED, name, false);
-//		if (typeMap.containsKey(sType.toString()))
-//			return sType;
-//		typeMap.put(sType.toString(), sType);
-//		return sType;
-//	}
+	// private Type recordField(org.eclipse.jdt.core.dom.Type node) {
+	// String name = node.toString();
+	// name = node.toString();
+	// Type sType = new
+	// sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.UNDEFINED,
+	// name, false);
+	// if (typeMap.containsKey(sType.toString()))
+	// return sType;
+	// typeMap.put(sType.toString(), sType);
+	// return sType;
+	// }
 
 	public static Type getType(String name) {
 		if (name == null || name.equals("void"))
@@ -76,5 +79,9 @@ public class TypeAdapter {
 
 	public static HashMap<String, Type> getTypeMap() {
 		return typeMap;
+	}
+
+	public static void insertArrayType(String name,Type arrType) {
+		typeMap.put(name, arrType);
 	}
 }

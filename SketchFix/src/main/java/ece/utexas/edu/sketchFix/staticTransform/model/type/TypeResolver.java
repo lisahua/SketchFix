@@ -21,11 +21,12 @@ import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 
 public class TypeResolver {
 
-	HashMap<String, String> importFiles = new HashMap<String,String>();
+	HashMap<String, String> importFiles = new HashMap<String, String>();
 	HashMap<String, FieldWrapper> fieldMap = new HashMap<String, FieldWrapper>();
 	HashMap<String, HashMap<String, MethodWrapper>> methodMap = new HashMap<String, HashMap<String, MethodWrapper>>();
 
-	public TypeResolver(List<ImportDeclaration> imports) {
+	public TypeResolver(List<ImportDeclaration> imports, TypeDeclaration clazz) {
+		initType(clazz);
 		for (ImportDeclaration iDecl : imports) {
 			String path = iDecl.getName().toString().replace(".", "/") + ".java";
 			File code = new File(path);
@@ -37,8 +38,12 @@ public class TypeResolver {
 					continue;
 			}
 			String filePath = iDecl.getName().toString();
-			importFiles.put(filePath.substring(filePath.lastIndexOf(".")+1), code.getAbsolutePath());
+			importFiles.put(filePath.substring(filePath.lastIndexOf(".") + 1), code.getAbsolutePath());
 		}
+	}
+
+	private void initType(TypeDeclaration clazz) {
+		parseType(clazz);
 	}
 
 	public String getFieldType(String type, String field) {
@@ -86,8 +91,8 @@ public class TypeResolver {
 		if (methodMap.containsKey(type)) {
 			return methodMap.get(type).get(method);
 		}
-		//TODO if it is inherited from parents, check trace
-		return null;
+		// TODO if it is inherited from parents, check trace
+		return new MethodWrapper(type, method);
 	}
 
 	private void parseFile(File code) throws Exception {
@@ -98,13 +103,36 @@ public class TypeResolver {
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 		TypeDeclaration type = (TypeDeclaration) cu.types().get(0);
+		parseType(type);
+	}
+
+	private void parseType(TypeDeclaration type) {
+
 		// FieldDeclaration[] fields = type.getFields();
 		HashMap<String, MethodWrapper> mtdMap = new HashMap<String, MethodWrapper>();
 		for (MethodDeclaration mtd : type.getMethods()) {
-			mtdMap.put(mtd.getName().toString(), new MethodWrapper(type.getName().toString(),mtd));
+			mtdMap.put(mtd.getName().toString(), new MethodWrapper(type.getName().toString(), mtd));
 		}
 		methodMap.put(type.getName().toString(), mtdMap);
 		fieldMap.put(type.getName().toString(), new FieldWrapper(type));
+
+	}
+
+	public void updateParaType(String classType, String method, int id, String type) {
+		MethodWrapper wrap = getMethodWrapper(classType, method);
+		if (id == -1) {
+			// FIXME invoker mann I dont know how to handle inheritance override
+			// now
+
+		} else if (id == 10) {
+			// return type
+			if (!type.equals(wrap.getReturnType()))
+				wrap.setReturnType(type);
+		} else {
+			if (wrap == null)
+				return;
+			wrap.updateParam(id, type);
+		}
 
 	}
 }
