@@ -209,12 +209,15 @@ public abstract class AbstractSketchTransformer {
 		for (StructDef strct : transformer.getStructs()) {
 			if (curStruct.containsKey(strct.getName())) {
 				mergeTwoStructs(strct, curStruct.get(strct.getName()));
-			}
+			} else
+				structs.add(strct);
 		}
+
 		for (Function func : transformer.getMethods()) {
 			if (curMtd.containsKey(func.getName())) {
 				mergeTwoMethod(func, curMtd.get(func.getName()));
-			}
+			} else
+				methods.add(func);
 		}
 
 	}

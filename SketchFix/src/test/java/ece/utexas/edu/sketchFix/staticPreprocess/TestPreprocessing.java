@@ -3,10 +3,11 @@
  */
 package ece.utexas.edu.sketchFix.staticPreprocess;
 
+import org.junit.Test;
 
 public class TestPreprocessing {
-	
-	public static void  main(String[] args) {
+	@Test
+	public void main() {
 		String file = "/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/source";
 		String replace = file.replace("source", "work_dir");
 		String[] dir = { "--srcDir", file, "--workDir", replace, "--ignorePathFile", "preProcess.txt" };

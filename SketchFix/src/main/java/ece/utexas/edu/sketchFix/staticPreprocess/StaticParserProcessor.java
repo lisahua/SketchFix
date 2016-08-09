@@ -47,19 +47,21 @@ public class StaticParserProcessor {
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
 
 			String path = file.getAbsolutePath().replace(arg.getSrcDir(), arg.getWorkDir());
+			String repPath = file.getAbsolutePath().replace(arg.getSrcDir(), ".tmp");
 			File dir = new File(path.substring(0, path.lastIndexOf("/")));
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
-			StringBuilder plain = new StringBuilder();
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line = "";
-			while ((line = reader.readLine()) != null)
-				plain.append(line + "\n");
-			reader.close();
+//			StringBuilder plain = new StringBuilder();
+//			BufferedReader reader = new BufferedReader(new FileReader(file));
+//			String line = "";
+//			while ((line = reader.readLine()) != null)
+//				plain.append(line + "\n");
+//			reader.close();
+			File workFile = new DefendTestCaseRewriter().getTestCase(file,repPath);
 			PrintWriter writer = new PrintWriter(path);
 			PreprocessClassRewriter classVisitor = new PreprocessClassRewriter(superChecker);
-			classVisitor.process(file, writer);
+			classVisitor.process(workFile, writer);
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();

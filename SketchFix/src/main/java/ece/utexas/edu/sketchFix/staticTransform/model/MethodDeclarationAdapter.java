@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -46,7 +47,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
 		this.astLines = astLines;
-		typeResolver = new TypeResolver(cu.imports(),clazz);
+		typeResolver = new TypeResolver(cu.imports(), clazz);
 		stmtAdapter = new StatementAdapter(this);
 	}
 
@@ -63,8 +64,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		creator.params(param);
 
 		List<Statement> body = new ArrayList<Statement>();
-		for (ASTLinePy line : astLines) {
-			org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
+		List<org.eclipse.jdt.core.dom.Statement> stmts = ((Block)method.getBody()).statements();
+		for (org.eclipse.jdt.core.dom.Statement stmt: stmts){
+//		for (ASTLinePy line : astLines) {
+//			org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
 			Object obj = stmtAdapter.transform(stmt);
 			if (obj == null)
 				continue;

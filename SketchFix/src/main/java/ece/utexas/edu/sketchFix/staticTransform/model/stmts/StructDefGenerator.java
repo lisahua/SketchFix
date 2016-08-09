@@ -4,12 +4,11 @@
 package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
-import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
@@ -17,8 +16,8 @@ import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.Function;
-import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.Function.FunctionCreator;
+import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.StructDef;
@@ -27,8 +26,8 @@ import sketch.compiler.ast.core.typs.Type;
 import sketch.util.datastructures.HashmapList;
 
 public class StructDefGenerator {
-	private HashSet<StructDef> structDefMap = new HashSet<StructDef>();
-	private HashSet<Function> methodMap = new HashSet<Function>();
+	private HashMap<String, StructDef> structDefMap = new HashMap<String, StructDef>();
+	private HashMap<String, Function> methodMap = new HashMap<String, Function>();
 	TypeResolver resolver;
 
 	public StructDefGenerator(TypeUsageRecorder recorder, TypeResolver resolver) {
@@ -50,7 +49,7 @@ public class StructDefGenerator {
 	}
 
 	private void initStructDef(String typeName, HashSet<String> fields) {
-		if (typeName.contains("int") || typeName.contains("["))
+		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("["))
 			return;
 
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
@@ -66,7 +65,10 @@ public class StructDefGenerator {
 		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
 		creator.annotations(annotations);
 		creator.fields(names, types);
-		structDefMap.add(creator.create());
+		StructDef def = creator.create();
+		if (!structDefMap.containsKey(typeName)
+				|| structDefMap.get(typeName).toString().length() < def.toString().length())
+			structDefMap.put(typeName, def);
 	}
 
 	private void initMethod(MethodWrapper wrap) {
@@ -90,15 +92,15 @@ public class StructDefGenerator {
 		List<Statement> body = new ArrayList<Statement>();
 		creator.body(new StmtBlock(methodNode.getOrigin(), body));
 		// TODO add repair here
-		methodMap.add(creator.create());
+		methodMap.put(wrap.getMethodName(), creator.create());
 	}
 
-	public HashSet<StructDef> getStructDefMap() {
-		return structDefMap;
+	public Collection<StructDef> getStructDefMap() {
+		return structDefMap.values();
 	}
 
-	public HashSet<Function> getMethodMap() {
-		return methodMap;
+	public Collection<Function> getMethodMap() {
+		return methodMap.values();
 	}
 
 }

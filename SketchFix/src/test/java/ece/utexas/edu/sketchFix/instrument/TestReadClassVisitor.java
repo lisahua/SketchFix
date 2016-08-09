@@ -1,22 +1,21 @@
 package ece.utexas.edu.sketchFix.instrument;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.CheckClassAdapter;
-import org.objectweb.asm.util.TraceClassVisitor;
 
-import ece.utexas.edu.sketchFix.instrument.visitors.InstrumentClassVisitor;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+@JsonIdentityInfo(generator=ObjectIdGenerators.IntSequenceGenerator.class, property="@id")
 
 public class TestReadClassVisitor {
 
 	public static void main(String[] args) throws Exception {
 		FileInputStream is = new FileInputStream(
-				"/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/.classes_instrumented/org/jfree/chart/renderer/AbstractRenderer.class");
+				"/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/.classes_instrumented/org/jfree/chart/renderer/category/AbstractCategoryItemRenderer.class");
 
 		ClassReader cr = new ClassReader(is);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -24,7 +23,7 @@ public class TestReadClassVisitor {
 		cr.accept(new CheckClassAdapter(cw), 0);
 
 		final byte[] b = cw.toByteArray();
-		CheckClassAdapter.verify(new ClassReader(b), true, new PrintWriter(System.out));
+		CheckClassAdapter.verify(new ClassReader(b), true, new PrintWriter("tmp.txt"));
 ////
 //		FileOutputStream fos = new FileOutputStream("Here.class");
 //		fos.write(cw.toByteArray());
