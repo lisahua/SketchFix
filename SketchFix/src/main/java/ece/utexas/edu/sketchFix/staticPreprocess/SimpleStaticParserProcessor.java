@@ -12,11 +12,11 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 
-public class StaticParserProcessor {
+public class SimpleStaticParserProcessor {
 	Argument arg = null;
 	SuperPrecessModel superChecker = null;
 
-	public StaticParserProcessor(String[] args) {
+	public SimpleStaticParserProcessor(String[] args) {
 		arg = new Argument(args);
 		superChecker = new SuperPrecessModel(arg.getIgnorePathFile());
 	}
@@ -47,7 +47,7 @@ public class StaticParserProcessor {
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
 
 			String path = file.getAbsolutePath().replace(arg.getSrcDir(), arg.getWorkDir());
-			String repPath = file.getAbsolutePath().replace(arg.getSrcDir(), ".tmp");
+//			String repPath = file.getAbsolutePath().replace(arg.getSrcDir(), ".tmp");
 			File dir = new File(path.substring(0, path.lastIndexOf("/")));
 			if (!dir.exists()) {
 				dir.mkdirs();
@@ -58,12 +58,12 @@ public class StaticParserProcessor {
 			// while ((line = reader.readLine()) != null)
 			// plain.append(line + "\n");
 			// reader.close();
-			File workFile = new DefendTestCaseRewriter().getTestCase(file, repPath);
+//			File workFile = new DefendTestCaseRewriter().getTestCase(file, repPath);
 			PrintWriter writer = new PrintWriter(path);
 			PreprocessClassRewriter classVisitor = new PreprocessClassRewriter(superChecker);
-			classVisitor.process(workFile, writer);
+			classVisitor.process(file, writer);
 			writer.close();
-			workFile.delete();
+			file.delete();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

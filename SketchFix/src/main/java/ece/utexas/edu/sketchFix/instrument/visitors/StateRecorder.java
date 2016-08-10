@@ -52,7 +52,7 @@ public class StateRecorder {
 			out.println("------------");
 			out.close();
 		} catch (Exception e) {
-		e.printStackTrace();
+//		e.printStackTrace();
 		}
 		
 	}
@@ -81,7 +81,7 @@ public class StateRecorder {
 			writer.close();
 			pw.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 	}
 
