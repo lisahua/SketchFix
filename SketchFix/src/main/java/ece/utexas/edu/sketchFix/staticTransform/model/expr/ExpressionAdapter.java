@@ -54,6 +54,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 	protected StatementAdapter stmtAdapter;
 	private HashMap<String, Type> arrayTypes = new HashMap<String, Type>();
+	private Type currVarType = null;
 
 	public ExpressionAdapter(StatementAdapter method) {
 		this.stmtAdapter = method;
@@ -203,6 +204,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 		for (int i = 0; i < arg.size(); i++) {
 			Expression exp = (Expression) transform(arg.get(i));
+			currVarType = resolveType(exp);
 			if (exp != null)
 				expArg.add(exp);
 			else
@@ -222,14 +224,15 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		List<Expression> expArg = new ArrayList<Expression>();
 		Expression invoker = (Expression) transform(mtdInvoke.getExpression());
 		String invokerType = null;
-		if (invoker != null) {
-			invokerType = resolveType(invoker).toString();
-			mtdModel = stmtAdapter.getMethodModel(invokerType, mtdInvoke.getName().toString());
-			stmtAdapter.insertUseMethod(invokerType, mtdInvoke.getName().toString());
-		}
+		// FIXME known bug: if invoker==null, should add this obj
+		if (invoker == null)
+			invoker = thisObj;
+		invokerType = resolveType(invoker).toString();
+		mtdModel = stmtAdapter.getMethodModel(invokerType, mtdInvoke.getName().toString());
+		stmtAdapter.insertUseMethod(invokerType, mtdInvoke.getName().toString());
+
 		List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
-		if (invoker != null)
-			expArg.add(invoker);
+		expArg.add(invoker);
 
 		for (int i = 0; i < arg.size(); i++) {
 			Expression exp = (Expression) transform(arg.get(i));
@@ -241,6 +244,8 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		}
 		if (mtdModel != null) {
 			Type type = TypeAdapter.getType(mtdModel.getReturnType());
+			if (mtdModel.getReturnType() == null && type == null)
+				type = currVarType;
 			if (type != null) {
 				stmtAdapter.insertStmt(initNewObject(type));
 				expArg.add(new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName()));
@@ -306,7 +311,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		return false;
 	}
 
-	private Type resolveType(Expression expr) {
+	public Type resolveType(Expression expr) {
 		if (expr instanceof ExprNew) {
 			return ((ExprNew) expr).getTypeToConstruct();
 		} else if (expr instanceof ExprField) {
@@ -328,12 +333,16 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 		} else if (expr instanceof ExprConstFloat) {
 			return TypePrimitive.floattype;
-		}else if (expr instanceof ExprConstInt) {
+		} else if (expr instanceof ExprConstInt) {
 			return TypePrimitive.int32type;
 		} else if (expr instanceof ExprConstChar) {
 			return TypePrimitive.chartype;
 		}
 		return null;
+	}
+
+	public void setCurrVarType(Type currVarType) {
+		this.currVarType = currVarType;
 	}
 
 }

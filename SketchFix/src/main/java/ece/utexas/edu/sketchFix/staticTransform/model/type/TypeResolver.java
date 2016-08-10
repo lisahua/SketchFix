@@ -88,7 +88,7 @@ public class TypeResolver {
 				}
 			}
 		}
-		if (methodMap.containsKey(type)) {
+		if (methodMap.containsKey(type)&& methodMap.get(type).containsKey(method)) {
 			return methodMap.get(type).get(method);
 		}
 		// TODO if it is inherited from parents, check trace

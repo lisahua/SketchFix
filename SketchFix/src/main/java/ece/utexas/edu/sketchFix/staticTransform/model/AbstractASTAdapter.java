@@ -21,7 +21,7 @@ import sketch.compiler.ast.core.typs.Type;
 public abstract class AbstractASTAdapter {
 	public final static String thisClass = "thisObj";
 	public final static String returnObj = "returnObj";
-	private static ExprVar thisObj;
+	protected static ExprVar thisObj;
 	private static ExprVar rtnObj;
 	private static FENode packageNode = null;
 	private static FENode methodNode = null;

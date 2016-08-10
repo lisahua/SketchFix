@@ -21,6 +21,7 @@ import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
+import sketch.compiler.ast.core.Function.FcnType;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.stmts.Statement;
@@ -40,6 +41,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private Type rtnType;
 	private TypeResolver typeResolver;
 	private TypeUsageRecorder useRecorder = new TypeUsageRecorder();
+	private boolean harness = false;
 
 	@SuppressWarnings("unchecked")
 	public MethodDeclarationAdapter(CompilationUnit cu, List<ASTLinePy> astLines) {
@@ -49,6 +51,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		this.astLines = astLines;
 		typeResolver = new TypeResolver(cu.imports(), clazz);
 		stmtAdapter = new StatementAdapter(this);
+	}
+
+	public void setHarness(boolean har) {
+		harness = har;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -64,10 +70,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		creator.params(param);
 
 		List<Statement> body = new ArrayList<Statement>();
-		List<org.eclipse.jdt.core.dom.Statement> stmts = ((Block)method.getBody()).statements();
-		for (org.eclipse.jdt.core.dom.Statement stmt: stmts){
-//		for (ASTLinePy line : astLines) {
-//			org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
+		List<org.eclipse.jdt.core.dom.Statement> stmts = ((Block) method.getBody()).statements();
+		for (org.eclipse.jdt.core.dom.Statement stmt : stmts) {
+			// for (ASTLinePy line : astLines) {
+			// org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
 			Object obj = stmtAdapter.transform(stmt);
 			if (obj == null)
 				continue;
@@ -79,7 +85,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 		StmtBlock block = new StmtBlock(getMethodContext(), body);
 		creator.body(block);
-
+		if (harness)
+			creator.type(FcnType.Harness);
 		// TODO add repair here
 		Function function = creator.create();
 

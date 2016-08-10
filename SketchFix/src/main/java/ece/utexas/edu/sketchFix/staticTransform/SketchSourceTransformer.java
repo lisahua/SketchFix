@@ -9,6 +9,9 @@ import java.util.TreeMap;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
+import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
+import sketch.compiler.ast.core.Function;
 
 public class SketchSourceTransformer extends AbstractSketchTransformer {
 
@@ -29,6 +32,8 @@ public class SketchSourceTransformer extends AbstractSketchTransformer {
 			return;
 		try {
 			staticTransform(location, locations);
+			
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

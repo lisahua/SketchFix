@@ -54,8 +54,9 @@ public abstract class AbstractSketchTransformer {
 
 	protected List<Function> methods = new ArrayList<Function>();
 	protected List<StructDef> structs = new ArrayList<StructDef>();
+	protected boolean harness = false;
 
-	public void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
+	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
 		File code = new File(method.getClassFullPath() + ".java");
 		if (!code.exists()) {
@@ -67,14 +68,19 @@ public abstract class AbstractSketchTransformer {
 		}
 
 		parseFile(code, method);
-
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, astLines);
+		mtdDecl.setHarness(harness);
 		Function function = (Function) mtdDecl.transform(currentMtd);
 		StructDefGenerator generator = new StructDefGenerator(mtdDecl.getUseRecorder(), mtdDecl.getTypeResolver());
 		// TODO create structDef correspondingly
 		methods.addAll(generator.getMethodMap());
 		methods.add(function);
 		structs.addAll(generator.getStructDefMap());
+
+	}
+
+	protected void setHarness(boolean har) {
+		harness = har;
 	}
 
 	@SuppressWarnings("unchecked")
