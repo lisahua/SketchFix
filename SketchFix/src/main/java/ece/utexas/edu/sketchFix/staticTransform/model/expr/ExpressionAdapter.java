@@ -21,9 +21,11 @@ import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NullLiteral;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
+import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
@@ -105,7 +107,22 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			ExprBinary exprBin = new ExprBinary(stmtAdapter.getMethodContext(), resolveOperator(condExpr.getOperator()),
 					left, right);
 			return exprBin;
-		} else if (expr instanceof Name) {
+		}else if (expr instanceof PostfixExpression) {
+			// postfixExpression -->ExprBinary
+			PostfixExpression condExpr = (PostfixExpression) expr;
+			Expression left = (Expression) transform(condExpr.getOperand());
+			ExprBinary exprBin=null;
+			if (condExpr.getOperator()==PostfixExpression.Operator.DECREMENT)
+			exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_SUB,
+					left, ExprConstInt.one);
+			else 
+				exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_ADD,
+						left, ExprConstInt.one);
+			StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(),left,exprBin);
+			stmtAdapter.insertStmt(assign);
+			return exprBin;
+		}
+		else if (expr instanceof Name) {
 			// VariableDeclarationExpression --> ExprVar
 			Name varDecl = (Name) expr;
 			return new ExprVar(stmtAdapter.getMethodContext(), varDecl.getFullyQualifiedName());
@@ -115,6 +132,15 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			Expression right = (Expression) transform(assign.getRightHandSide());
 			return new StmtAssign(stmtAdapter.getMethodContext(), left, right);
 		} else if (expr instanceof VariableDeclarationExpression) {
+			VariableDeclarationExpression varDecl = (VariableDeclarationExpression) expr;
+			Type sType = TypeAdapter.getType(varDecl.getType().toString());
+			List<VariableDeclarationFragment> frags = varDecl.fragments();
+			if (frags.size() > 0) {
+				VariableDeclarationFragment frag = frags.get(0);
+				StmtVarDecl var = new StmtVarDecl(stmtAdapter.getMethodContext(), sType, frag.getName().toString(),
+						(Expression) transform(frag.getInitializer()));
+				return var;
+			}
 			// TODO no idea
 		} else if (expr instanceof NullLiteral) {
 			return new ExprNullPtr();

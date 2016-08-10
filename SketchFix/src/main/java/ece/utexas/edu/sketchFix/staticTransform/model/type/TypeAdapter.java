@@ -70,6 +70,8 @@ public class TypeAdapter {
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.bittype;
 		else if (name.equals("float"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.doubletype;
+			else if (name.equals("bit")|| name.equals("boolean"))
+				type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.bittype;
 		else
 			type = (typeMap.containsKey(name)) ? typeMap.get(name)
 					: new sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.UNDEFINED, name, false);

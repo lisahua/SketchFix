@@ -49,7 +49,8 @@ public class StructDefGenerator {
 	}
 
 	private void initStructDef(String typeName, HashSet<String> fields) {
-		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("["))
+		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("[") || typeName.contains("bit")
+				|| typeName.contains("boolean"))
 			return;
 
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
@@ -72,7 +73,8 @@ public class StructDefGenerator {
 	}
 
 	private void initMethod(MethodWrapper wrap) {
-		if (wrap==null) return;
+		if (wrap == null)
+			return;
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
 		creator.name(wrap.getMethodName());
 		Function methodNode = creator.create();
@@ -85,7 +87,7 @@ public class StructDefGenerator {
 		for (String name : wrap.getParamList())
 			param.add(new Parameter(methodNode.getOrigin(), TypeAdapter.getType(name), (paraBase + count++)));
 
-		if (wrap.getReturnType()!=null&& !wrap.getReturnType().equals("void"))
+		if (wrap.getReturnType() != null && !wrap.getReturnType().equals("void"))
 			param.add(new Parameter(methodNode.getOrigin(), TypeAdapter.getType(wrap.getReturnType()),
 					(paraBase + count++)));
 		creator.params(param);

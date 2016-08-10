@@ -23,12 +23,11 @@ import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.expr.ExpressionAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.ast.core.FENode;
-import sketch.compiler.ast.core.exprs.ExprFunCall;
-import sketch.compiler.ast.core.exprs.ExprVar;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtAssign;
 import sketch.compiler.ast.core.stmts.StmtBlock;
+import sketch.compiler.ast.core.stmts.StmtExpr;
 import sketch.compiler.ast.core.stmts.StmtIfThen;
 import sketch.compiler.ast.core.stmts.StmtReturn;
 import sketch.compiler.ast.core.stmts.StmtVarDecl;
@@ -174,80 +173,73 @@ public class StatementAdapter extends AbstractASTAdapter {
 			method.insertVarDecl(name, sType);
 			names.add(name);
 			org.eclipse.jdt.core.dom.Expression init = frag.getInitializer();
-//			Expression inExp = (Expression) exprAdapter.transform(init);
-			// hacky for inherited methods
-//			if (inExp instanceof ExprFunCall) {
-//				ExprFunCall fCall = (ExprFunCall) inExp;
-//				if (fCall.getParams().size() > 0) {
-//					inExp = fCall.getParams().get(fCall.getParams().size() - 1);
-//					Type last = exprAdapter.resolveType(inExp);
-//					if (!last.toString().equals(sType.toString())) {
-//						Expression rtn = new ExprVar(getMethodContext(), getNextName());
-//						List<Expression> param = new ArrayList<Expression>();
-//						param.addAll(fCall.getParams());
-//						param.add(rtn);
-//						Type invoker = exprAdapter.resolveType(fCall.getParams().get(0));
-//						updateParaType(invoker.toString(), fCall.getName(), 10, sType.toString());
-//						fCall = new ExprFunCall(getMethodContext(), fCall.getName(), param);
-//					}
-//				}
-//				inits.add(fCall);
-//			} else
-				inits.add((Expression) exprAdapter.transform(init));
+			
+			inits.add((Expression) exprAdapter.transform(init));
 		}
 
 		stmtList.add(new StmtVarDecl(method.getMethodContext(), types, names, inits));
 	}
 
 	@SuppressWarnings("unchecked")
-	private StmtIfThen handleIfStmt(IfStatement ifStmt) {
+	private Object handleIfStmt(IfStatement ifStmt) {
+
 		exprAdapter.setCurrVarType(TypePrimitive.bittype);
 		org.eclipse.jdt.core.dom.Expression exp = ifStmt.getExpression();
 		org.eclipse.jdt.core.dom.Statement thenStmt = ifStmt.getThenStatement();
 		org.eclipse.jdt.core.dom.Statement elseStmt = ifStmt.getElseStatement();
+
 		Object then = transform(thenStmt);
 		Statement thenStatement = null;
 		if (then != null && (then instanceof Statement)) {
 			thenStatement = (Statement) then;
 		} else if (then != null)
 			thenStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) then);
-
-		Object elseSt = transform(elseStmt);
+		stmtList.clear();
 		Statement elseStatement = null;
-		if (elseSt != null && (elseSt instanceof Statement)) {
-			elseStatement = (Statement) elseSt;
-		} else if (elseSt != null)
-			elseStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) elseSt);
-
-		StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), (Expression) exprAdapter.transform(exp),
-				thenStatement, elseStatement);
-		return skIfStmt;
+		if (elseStmt != null) {
+			Object elseSt = transform(elseStmt);
+			if (elseSt != null && (elseSt instanceof Statement)) {
+				elseStatement = (Statement) elseSt;
+			} else if (elseSt != null)
+				elseStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) elseSt);
+		}
+		stmtList.clear();
+		Expression skExp = (Expression) exprAdapter.transform(exp);
+		StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), skExp, thenStatement, elseStatement);
+		stmtList.add(skIfStmt);
+		return stmtList;
 	}
 
 	@SuppressWarnings("unchecked")
-	private StmtWhile handleForStmt(ForStatement forStmt) {
+	private Object handleForStmt(ForStatement forStmt) {
 		List<org.eclipse.jdt.core.dom.Expression> inits = forStmt.initializers();
 		List<org.eclipse.jdt.core.dom.Expression> updater = forStmt.updaters();
 		org.eclipse.jdt.core.dom.Expression cond = forStmt.getExpression();
-
+		List<Statement> initList = new ArrayList<Statement>();
 		for (org.eclipse.jdt.core.dom.Expression exp : inits) {
 			Object obj = exprAdapter.transform(exp);
 			if (obj instanceof Statement) {
-				stmtList.add((Statement) obj);
-			}
+				initList.add((Statement) obj);
+			}else if (obj instanceof Expression)
+				initList.add(new StmtExpr(getMethodContext(), (Expression)obj));
 		}
 		List<Statement> updates = new ArrayList<Statement>();
+		stmtList.clear();
+		StmtBlock body = (StmtBlock) transform(forStmt.getBody());
+		updates.addAll( body.getStmts());
+		stmtList.clear();
 		for (org.eclipse.jdt.core.dom.Expression exp : updater) {
 			Object obj = exprAdapter.transform(exp);
 			if (obj instanceof Statement) {
 				updates.add((Statement) obj);
+			}else if (obj instanceof Expression){
+				updates.addAll(stmtList);
+				stmtList.clear();
 			}
 		}
-		StmtBlock body = (StmtBlock) transform(forStmt.getBody());
-		updates.addAll(0, body.getStmts());
-
 		StmtBlock block = new StmtBlock(method.getMethodContext(), updates);
 		StmtWhile skWhile = new StmtWhile(method.getMethodContext(), (Expression) exprAdapter.transform(cond), block);
-		return skWhile;
+		initList.add(skWhile);
+		return initList;
 	}
 }
