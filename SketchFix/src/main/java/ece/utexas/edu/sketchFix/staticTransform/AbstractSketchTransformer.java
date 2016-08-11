@@ -26,20 +26,16 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
-import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Function;
-import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.Program;
-import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Program.ProgramCreator;
-import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.stmts.StmtSpAssert;
 import sketch.compiler.ast.core.typs.StructDef;
-import sketch.compiler.ast.core.typs.Type;
 import sketch.compiler.ast.core.typs.StructDef.TStructCreator;
+import sketch.compiler.ast.core.typs.Type;
 import sketch.util.datastructures.HashmapList;
 
 public abstract class AbstractSketchTransformer {
@@ -58,6 +54,9 @@ public abstract class AbstractSketchTransformer {
 
 	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
+		// FIXME no test method executed...
+		if (method == null)
+			return;
 		File code = new File(method.getClassFullPath() + ".java");
 		if (!code.exists()) {
 			code = new File(LocalizerUtility.baseDir + method.getClassFullPath() + ".java");
@@ -68,6 +67,8 @@ public abstract class AbstractSketchTransformer {
 		}
 
 		parseFile(code, method);
+		if (astLines == null)
+			return;
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, astLines);
 		mtdDecl.setHarness(harness);
 		Function function = (Function) mtdDecl.transform(currentMtd);
@@ -83,7 +84,6 @@ public abstract class AbstractSketchTransformer {
 		harness = har;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void parseFile(File code, MethodData method) throws Exception {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		String fileString = null;
@@ -96,55 +96,59 @@ public abstract class AbstractSketchTransformer {
 		MethodDeclaration[] methods = type.getMethods();
 		// FieldDeclaration[] fields = type.getFields();
 		currentMtd = null;
+		HashSet<MethodDeclaration> overloadMtd = new HashSet<MethodDeclaration>();
 		for (MethodDeclaration mtd : methods) {
 			if (mtd.getName().toString().equals(method.getMethodName())) {
-				currentMtd = mtd;
-				break;
+				overloadMtd.add(mtd);
 			}
 		}
-		if (currentMtd == null)
-			return;
 		List<LinePy> lines = method.getTouchLinesList();
-		List<Statement> statements = (List<Statement>) currentMtd.getBody().statements();
-		astLines = matchLinePyStatementNode(lines, statements);
-
+		// List<Statement> statements = (List<Statement>)
+		// currentMtd.getBody().statements();
+		astLines = matchLinePyStatementNode(lines, overloadMtd);
 	}
 
-	private List<ASTLinePy> matchLinePyStatementNode(List<LinePy> lines, List<Statement> statements) {
-		List<ASTLinePy> astLines = new ArrayList<ASTLinePy>();
-		boolean[] stmtMark = new boolean[statements.size()];
-		boolean[] lineMark = new boolean[lines.size()];
-		int id = 0;
-		for (int i = 0; i < statements.size(); i++) {
-			Statement stmt = statements.get(i);
-			String stmtS = stmt.toString().replace(" ", "").replace("\n", "");
-			for (; id < lines.size(); id++) {
-				if (lineMark[id] == true)
-					continue;
-				String key = lines.get(id).getSourceLine().replace(" ", "").replace("\n", "");
-				if (stmtS.contains(key)) {
-					lineMark[id] = true;
-					if (stmtMark[i] == false) {
-						ASTLinePy astLine = new ASTLinePy(lines.get(id), stmt);
-						astLines.add(astLine);
-						stmtMark[i] = true;
+	private List<ASTLinePy> matchLinePyStatementNode(List<LinePy> lines, HashSet<MethodDeclaration> methods) {
 
-					} else {
-						astLines.get(i).addLinePy(lines.get(id));
-					}
-				} else
-					break;
+		for (MethodDeclaration mDecl : methods) {
+			List<Statement> statements = (List<Statement>) mDecl.getBody().statements();
+			List<ASTLinePy> astLines = new ArrayList<ASTLinePy>();
+			boolean[] stmtMark = new boolean[statements.size()];
+			boolean[] lineMark = new boolean[lines.size()];
+			int id = 0;
+			for (int i = 0; i < statements.size(); i++) {
+				Statement stmt = statements.get(i);
+				String stmtS = stmt.toString().replace(" ", "").replace("\n", "");
+				for (; id < lines.size(); id++) {
+					if (lineMark[id] == true)
+						continue;
+					String key = lines.get(id).getSourceLine().replace("\n", "").replace("\t", "").replace(" ", "");
+					if (stmtS.indexOf(key) > -1) {
+						lineMark[id] = true;
+						if (stmtMark[i] == false) {
+							ASTLinePy astLine = new ASTLinePy(lines.get(id), stmt);
+							astLines.add(astLine);
+							stmtMark[i] = true;
 
+						} else {
+							astLines.get(i-1).addLinePy(lines.get(id));
+						}
+					} else
+						break;
+
+				}
+				boolean check = true;
+				for (boolean mark : lineMark) {
+					check = check && mark;
+				}
+				if (check) {
+					currentMtd = mDecl;
+					return astLines;
+				}
 			}
-			boolean check = true;
-			for (boolean mark : lineMark) {
-				check = check && mark;
-			}
-			if (check)
-				break;
 
 		}
-		return astLines;
+		return null;
 	}
 	// protected Program generate() {
 	// MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(type,

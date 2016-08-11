@@ -21,8 +21,8 @@ import sketch.compiler.ast.core.typs.Type;
 public abstract class AbstractASTAdapter {
 	public final static String thisClass = "thisObj";
 	public final static String returnObj = "returnObj";
-	protected static ExprVar thisObj;
-	private static ExprVar rtnObj;
+	protected static ExprVar thisObj=new ExprVar(getContext(), thisClass);
+	private static ExprVar rtnObj= new ExprVar(getContext(), returnObj);;
 	private static FENode packageNode = null;
 	private static FENode methodNode = null;
 	public static final String nextName = "_tmp";
@@ -57,16 +57,10 @@ public abstract class AbstractASTAdapter {
 	}
 
 	public static ExprVar getThisObj() {
-		if (thisObj == null) {
-			thisObj = new ExprVar(getContext(), thisClass);
-		}
 		return thisObj;
 	}
 
 	public static ExprVar getRtnObj() {
-		if (rtnObj == null) {
-			rtnObj = new ExprVar(getContext(), returnObj);
-		}
 		return rtnObj;
 	}
 
@@ -74,7 +68,7 @@ public abstract class AbstractASTAdapter {
 
 	}
 
-	public static void registerMethods(String name, Type invokerType, List<Type> param) {
+	private static void registerMethods(String name, Type invokerType, List<Type> param) {
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
 		creator.name(name);
 		// creator.params(param);

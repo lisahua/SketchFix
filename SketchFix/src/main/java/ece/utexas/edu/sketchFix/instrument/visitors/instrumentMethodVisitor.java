@@ -5,9 +5,10 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class instrumentMethodVisitor extends MethodVisitor implements Opcodes {
-//	private String lineRecorder = LineNumberRecorder.class.getCanonicalName().replace(".", "/");
+	// private String lineRecorder =
+	// LineNumberRecorder.class.getCanonicalName().replace(".", "/");
 	private String stateRecorder = StateRecorder.class.getCanonicalName().replace(".", "/");
-//	private String lineRecordMtd = "_sketchFix_recordLine";
+	// private String lineRecordMtd = "_sketchFix_recordLine";
 	private String stateRecordMtd = "_sketchFix_recordState";
 
 	public instrumentMethodVisitor(MethodVisitor mv) {
@@ -18,18 +19,18 @@ public class instrumentMethodVisitor extends MethodVisitor implements Opcodes {
 	@Override
 	public void visitLineNumber(int line, Label start) {
 		mv.visitLineNumber(line, start);
-//		mv.visitLdcInsn(InstrumentClassVisitor.className + "-" + InstrumentClassVisitor.methodName + "-"
-//				+ String.valueOf(line));
-//		mv.visitMethodInsn(INVOKESTATIC, lineRecorder, lineRecordMtd, "(Ljava/lang/String;)V", false);
+		// mv.visitLdcInsn(InstrumentClassVisitor.className + "-" +
+		// InstrumentClassVisitor.methodName + "-"
+		// + String.valueOf(line));
+		// mv.visitMethodInsn(INVOKESTATIC, lineRecorder, lineRecordMtd,
+		// "(Ljava/lang/String;)V", false);
 		mv.visitLdcInsn(InstrumentClassVisitor.className + "-" + InstrumentClassVisitor.methodName + "-"
-				+ String.valueOf(line));
+				+ InstrumentClassVisitor.params + "-" + String.valueOf(line));
 		mv.visitMethodInsn(INVOKESTATIC, stateRecorder, stateRecordMtd, "(Ljava/lang/Object;)V", false);
 	}
 
 	@Override
 	public void visitVarInsn(int opcode, int var) {
-		StateRecorder.setTraceFile(
-				".build_tests/" + InstrumentClassVisitor.className + "_" + InstrumentClassVisitor.methodName + ".txt");
 		mv.visitCode();
 		mv.visitVarInsn(opcode, var);
 		int op = -1;
@@ -71,8 +72,6 @@ public class instrumentMethodVisitor extends MethodVisitor implements Opcodes {
 
 	@Override
 	public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-		StateRecorder.setTraceFile(
-				".build_tests/" + InstrumentClassVisitor.className + "_" + InstrumentClassVisitor.methodName + ".txt");
 		mv.visitCode();
 		mv.visitFieldInsn(opcode, owner, name, desc);
 		//

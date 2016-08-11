@@ -9,17 +9,19 @@ import org.objectweb.asm.util.CheckClassAdapter;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
+import ece.utexas.edu.sketchFix.instrument.visitors.InstrumentClassVisitor;
 @JsonIdentityInfo(generator=ObjectIdGenerators.IntSequenceGenerator.class, property="@id")
 
 public class TestReadClassVisitor {
 
 	public static void main(String[] args) throws Exception {
 		FileInputStream is = new FileInputStream(
-				"/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/.classes_instrumented/org/jfree/chart/renderer/category/AbstractCategoryItemRenderer.class");
+				"/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.classes_instrumented/org/jfree/chart/plot/XYPlot.class");
 
 		ClassReader cr = new ClassReader(is);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-//		cr.accept(new LineNumberClassVisitor(cw), 0);
+		cr.accept(new InstrumentClassVisitor(cw), 0);
 		cr.accept(new CheckClassAdapter(cw), 0);
 
 		final byte[] b = cw.toByteArray();

@@ -9,6 +9,7 @@ import java.util.Vector;
 
 public abstract class LinePyGenerator {
 	protected Vector<LinePy> trace = new Vector<LinePy>();
+	//fileName + line number
 	protected HashMap<String, TreeMap<Integer, LinePy>> files = new HashMap<String, TreeMap<Integer, LinePy>>();
 
 	public LinePyGenerator() {

@@ -95,7 +95,13 @@ public class StatementAdapter extends AbstractASTAdapter {
 		} else if (stmt instanceof ExpressionStatement) {
 			ExpressionStatement exprStmt = (ExpressionStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression expr = exprStmt.getExpression();
-			Expression sExpr = (Expression) exprAdapter.transform(expr);
+			Object obj = exprAdapter.transform(expr);
+			if (obj instanceof Expression){
+				Expression sExpr = (Expression) exprAdapter.transform(expr);
+			}else {
+				//No idea
+			}
+			
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
 		}

@@ -16,12 +16,14 @@ public class LinePy {
 	private Vector<StringBuilder> storeState = new Vector<StringBuilder>();
 	private Vector<InstrPy> instructions = new Vector<InstrPy>();
 	private String prevType = "";
+	private String params;
 
 	public LinePy(String line) {
 		String[] tokens = line.split("-");
 		filePath = tokens[0];
 		methodName = tokens[1];
-		lineNum = Integer.parseInt(tokens[2]);
+		params = tokens[2];
+		lineNum = Integer.parseInt(tokens[3]);
 		toString = line;
 	}
 
@@ -61,29 +63,6 @@ public class LinePy {
 		this.toString = toString;
 	}
 
-	// public String getInstType() {
-	// return instType;
-	// }
-	//
-	// public void setInstType(String instType) {
-	// this.instType = instType;
-	// }
-	//
-	// public String getVarType() {
-	// return varType;
-	// }
-	//
-	// public void setVarType(String varType) {
-	// this.varType = varType;
-	// }
-	//
-	// public String getInstSecond() {
-	// return instSecond;
-	// }
-	//
-	// public void setInstSecond(String instSecond) {
-	// this.instSecond = instSecond;
-	// }
 	/**
 	 * Use a vector of states because one line of code may store multiple
 	 * objects, although it's rare.
@@ -96,7 +75,7 @@ public class LinePy {
 		}
 		StringBuilder currentObj = storeState.get(storeState.size() - 1);
 		// TODO buggy?
-		currentObj.append(line );
+		currentObj.append(line);
 
 	}
 
@@ -140,8 +119,16 @@ public class LinePy {
 
 	}
 
+	public String getParams() {
+		return params;
+	}
+
+	public void setParams(String params) {
+		this.params = params;
+	}
+
 	private void parseType(InstrPy instr) {
-		//FIXME hacky
+		// FIXME hacky
 		if (instr.getVarType().trim().length() > prevType.length())
 			prevType = instr.getVarType();
 		// TODO has to map back to legal type name for reflection

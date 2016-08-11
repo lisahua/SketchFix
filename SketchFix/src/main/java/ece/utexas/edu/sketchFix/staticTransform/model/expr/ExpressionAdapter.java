@@ -74,7 +74,8 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
 			List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
 			for (org.eclipse.jdt.core.dom.Expression e : param) {
-				skParam.add((ExprNamedParam) transform(e));
+				Expression para = (Expression) transform(e);
+				skParam.add((convExprParam(para)));
 			}
 			skExpr = new ExprNew(stmtAdapter.getMethodContext(), (Type) TypeAdapter.getType(type.toString()), skParam,
 					false);
@@ -107,22 +108,19 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			ExprBinary exprBin = new ExprBinary(stmtAdapter.getMethodContext(), resolveOperator(condExpr.getOperator()),
 					left, right);
 			return exprBin;
-		}else if (expr instanceof PostfixExpression) {
+		} else if (expr instanceof PostfixExpression) {
 			// postfixExpression -->ExprBinary
 			PostfixExpression condExpr = (PostfixExpression) expr;
 			Expression left = (Expression) transform(condExpr.getOperand());
-			ExprBinary exprBin=null;
-			if (condExpr.getOperator()==PostfixExpression.Operator.DECREMENT)
-			exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_SUB,
-					left, ExprConstInt.one);
-			else 
-				exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_ADD,
-						left, ExprConstInt.one);
-			StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(),left,exprBin);
+			ExprBinary exprBin = null;
+			if (condExpr.getOperator() == PostfixExpression.Operator.DECREMENT)
+				exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_SUB, left, ExprConstInt.one);
+			else
+				exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_ADD, left, ExprConstInt.one);
+			StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(), left, exprBin);
 			stmtAdapter.insertStmt(assign);
 			return exprBin;
-		}
-		else if (expr instanceof Name) {
+		} else if (expr instanceof Name) {
 			// VariableDeclarationExpression --> ExprVar
 			Name varDecl = (Name) expr;
 			return new ExprVar(stmtAdapter.getMethodContext(), varDecl.getFullyQualifiedName());
@@ -369,6 +367,32 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 	public void setCurrVarType(Type currVarType) {
 		this.currVarType = currVarType;
+	}
+
+	private ExprNamedParam convExprParam(Expression exp) {
+		ExprNamedParam param = null;
+		if (exp instanceof ExprVar) {
+			ExprVar var = (ExprVar) exp;
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(), var.getName(), exp);
+		} else if (exp instanceof ExprConstInt) {
+			StmtVarDecl varDecl = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.int32type,
+					getNextName(), exp);
+			stmtAdapter.insertStmt(varDecl);
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(), varDecl.getName(0), exp);
+		} else if (exp instanceof ExprConstChar) {
+			StmtVarDecl varDecl = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.chartype,
+					getNextName(), exp);
+			stmtAdapter.insertStmt(varDecl);
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(), varDecl.getName(0), exp);
+		} else if (exp instanceof ExprConstFloat) {
+			StmtVarDecl varDecl = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.floattype,
+					getNextName(), exp);
+			stmtAdapter.insertStmt(varDecl);
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(), varDecl.getName(0), exp);
+		} else if (exp instanceof ExprField) {
+//FIXME dont know
+		}
+return param;
 	}
 
 }

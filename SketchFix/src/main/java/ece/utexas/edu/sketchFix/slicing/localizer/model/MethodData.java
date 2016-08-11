@@ -15,6 +15,7 @@ public class MethodData implements Comparable<MethodData> {
 	String className = "";
 	String classFullPath = "";
 	String methodName = "";
+	String params = "";
 	String key = "";
 	int count;
 	TreeMap<Integer, LinePy> touchLines = new TreeMap<Integer, LinePy>();
@@ -25,7 +26,8 @@ public class MethodData implements Comparable<MethodData> {
 		classFullPath = token[0];
 		className = classFullPath.substring(classFullPath.lastIndexOf("/") + 1);
 		methodName = token[1];
-		key = line;
+		params = token[2];
+		key = className + "-" + methodName;
 		// FIXME check test_dir is better
 		isTestMethod = line.toLowerCase().contains("test");
 	}
@@ -34,12 +36,20 @@ public class MethodData implements Comparable<MethodData> {
 		return className;
 	}
 
+	public String getParams() {
+		return params;
+	}
+
 	public void setClassName(String className) {
 		this.className = className;
 	}
 
 	public String getMethodName() {
 		return methodName;
+	}
+
+	public String getMethodNameWithParam() {
+		return methodName + "-" + params;
 	}
 
 	public void setMethodName(String methodName) {

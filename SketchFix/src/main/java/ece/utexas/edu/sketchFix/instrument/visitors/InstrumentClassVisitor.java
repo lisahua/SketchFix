@@ -7,7 +7,9 @@ import org.objectweb.asm.Opcodes;
 
 public class InstrumentClassVisitor extends ClassVisitor implements Opcodes {
 	public static String className = "";
-public static String methodName = "";
+	public static String methodName = "";
+	public static String params = "";
+
 	public InstrumentClassVisitor(ClassVisitor cv) {
 		super(ASM5);
 		this.cv = cv;
@@ -22,9 +24,10 @@ public static String methodName = "";
 	public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature,
 			final String[] exceptions) {
 		methodName = name;
+		params = desc;
 		instrumentMethodVisitor mv = new instrumentMethodVisitor(
 				cv.visitMethod(access, name, desc, signature, exceptions));
-	
+
 		return mv;
 	}
 
