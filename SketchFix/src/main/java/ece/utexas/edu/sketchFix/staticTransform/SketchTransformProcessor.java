@@ -6,24 +6,33 @@ package ece.utexas.edu.sketchFix.staticTransform;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
+import ece.utexas.edu.sketchFix.repair.Argument;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
 public class SketchTransformProcessor {
+	Argument arg = null;
+
+	public SketchTransformProcessor(Argument argument) {
+		arg = argument;
+	}
 
 	public void process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod,
 			String outputFile) {
 		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
+		// FIXME buggy
+		testMethod.setBasrDirs(arg.getSourceDir());
+		testMethod.setBaseDir(arg.getSourceDir()[1]);
 		assertTran.transform(testMethod, generator, locations);
-//		assertTran.writeToFile(outputFile+"2");
-	
-		
-		
+		// assertTran.writeToFile(outputFile+"2");
+
 		AbstractSketchTransformer sourceTran = new SketchSourceTransformer();
+		MethodData data = locations.get(0);
+		data.setBaseDir(arg.getSourceDir()[0]);
+		data.setBasrDirs(arg.getSourceDir());
 		sourceTran.transform(locations.get(0), generator, locations);
 		assertTran.mergeAnotherTransformer(sourceTran);
 		assertTran.writeToFile(outputFile);
 		// transform sketch assertion
-		
 
 	}
 

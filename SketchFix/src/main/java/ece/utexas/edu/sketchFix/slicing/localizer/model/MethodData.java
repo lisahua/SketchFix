@@ -14,12 +14,15 @@ public class MethodData implements Comparable<MethodData> {
 
 	String className = "";
 	String classFullPath = "";
+	String classAbsolutePath = "";
 	String methodName = "";
 	String params = "";
 	String key = "";
 	int count;
 	TreeMap<Integer, LinePy> touchLines = new TreeMap<Integer, LinePy>();
 	boolean isTestMethod = false;
+	String[] baseDirs = null;
+	String baseDir = "";
 
 	public MethodData(String line) {
 		String[] token = line.split("-");
@@ -187,4 +190,22 @@ public class MethodData implements Comparable<MethodData> {
 	public String toString() {
 		return key;
 	}
+
+	public String getClassAbsolutePath() {
+		return classAbsolutePath;
+	}
+
+	public String[] getBaseDirs() {
+		return baseDirs;
+	}
+
+	public void setBasrDirs(String[] dirs) {
+		this.baseDirs = dirs;
+	}
+
+	public void setBaseDir(String baseDir) {
+		this.baseDir = baseDir;
+		classAbsolutePath = baseDir + classFullPath + ".java";
+	}
+
 }

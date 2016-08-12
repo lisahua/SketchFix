@@ -44,12 +44,12 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private boolean harness = false;
 
 	@SuppressWarnings("unchecked")
-	public MethodDeclarationAdapter(CompilationUnit cu, List<ASTLinePy> astLines) {
+	public MethodDeclarationAdapter(CompilationUnit cu, List<ASTLinePy> astLines, String[] srcDir) {
 		// TypeDeclaration clazz, FieldDeclaration[] fields,
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
 		this.astLines = astLines;
-		typeResolver = new TypeResolver(cu.imports(), clazz);
+		typeResolver = new TypeResolver(cu.imports(), clazz,srcDir);
 		stmtAdapter = new StatementAdapter(this);
 	}
 

@@ -5,17 +5,23 @@ package ece.utexas.edu.sketchFix.repair;
 
 public class Argument {
 	String traceFile = "";
-	String sourceDir = "";
-	String classDir = "";
+	String[] sourceDir = null;
+	String[] classDir = null;
+	String skOrigin = "";
 
 	public Argument(String[] arg) {
 		for (int i = 0; i < arg.length; i++) {
 			if (arg[i].equals("--traceFile"))
 				traceFile = arg[++i];
-			else if (arg[i].equals("--sourceDir"))
-				sourceDir = arg[++i];
-			else if (arg[i].equals("--classDir"))
-				classDir = arg[++i];
+			else if (arg[i].equals("--srcDir")) {
+				String sDir = arg[++i].trim();
+				sourceDir = sDir.split(",");
+			} else if (arg[i].equals("--workDir")) {
+				String cDir = arg[++i].trim();
+				classDir = cDir.split(",");
+			} else if (arg[i].equals("--skOrigin")) {
+				skOrigin = arg[++i].trim();
+			}
 		}
 	}
 
@@ -27,20 +33,22 @@ public class Argument {
 		this.traceFile = traceFile;
 	}
 
-	public String getSourceDir() {
+	public String[] getSourceDir() {
 		return sourceDir;
 	}
 
-	public void setSourceDir(String sourceDir) {
-		this.sourceDir = sourceDir;
-	}
-
-	public String getClassDir() {
+	public String[] getClassDir() {
 		return classDir;
 	}
 
-	public void setClassDir(String classDir) {
-		this.classDir = classDir;
+	public String getSkOrigin() {
+		return skOrigin;
 	}
 
+	public void setSkOrigin(String skOrigin) {
+		this.skOrigin = skOrigin;
+	}
+
+	
+	
 }

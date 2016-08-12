@@ -12,12 +12,12 @@ public class TestRepairProcessor {
 		// String[] arg = {
 		// "org.jfree.chart.renderer.category.junit.AbstractCategoryItemRendererTests",
 		// "test2947660" };
-		String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart9_buggy/";
-		LocalizerUtility.baseDir = baseDir + "work_dir/";
-		LocalizerUtility.testDir = baseDir + "test_dir/";
-		String[] arg = { "--sourceDir", baseDir + "work_dir/," + baseDir + "test_dir/", "--classDir",
+		String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/";
+//		LocalizerUtility.baseDir = baseDir + "work_dir/";
+//		LocalizerUtility.testDir = baseDir + "test_dir/";
+		String[] arg = { "--srcDir", baseDir + "work_dir/," + baseDir + "test_dir/", "--classDir",
 				baseDir + ".classes_instrumented/," + baseDir + ".test_instrumented/", "--traceFile",
-				baseDir + ".trace_state.txt" };
+				baseDir + ".trace_state.txt" ,"--skOrigin",baseDir +".skOrigin.txt"};
 		RepairMain.main(arg);
 		// TextualFaultLocalizer tLocalizer = new TextualFaultLocalizer();
 

@@ -57,19 +57,14 @@ public abstract class AbstractSketchTransformer {
 		// FIXME no test method executed...
 		if (method == null)
 			return;
-		File code = new File(method.getClassFullPath() + ".java");
-		if (!code.exists()) {
-			code = new File(LocalizerUtility.baseDir + method.getClassFullPath() + ".java");
-			if (!code.exists())
-				code = new File(LocalizerUtility.testDir + method.getClassFullPath() + ".java");
-			if (!code.exists())
-				return;
-		}
-
+		File code = new File(method.getClassAbsolutePath());
+		if (!code.exists())
+			return;
+		System.out.println("[Checking suspicious location:]" + method.getClassFullPath());
 		parseFile(code, method);
 		if (astLines == null)
 			return;
-		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, astLines);
+		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, astLines, method.getBaseDirs());
 		mtdDecl.setHarness(harness);
 		Function function = (Function) mtdDecl.transform(currentMtd);
 		StructDefGenerator generator = new StructDefGenerator(mtdDecl.getUseRecorder(), mtdDecl.getTypeResolver());
@@ -131,7 +126,7 @@ public abstract class AbstractSketchTransformer {
 							stmtMark[i] = true;
 
 						} else {
-							astLines.get(i-1).addLinePy(lines.get(id));
+							astLines.get(i - 1).addLinePy(lines.get(id));
 						}
 					} else
 						break;

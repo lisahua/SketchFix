@@ -9,6 +9,6 @@ public class LocalizerUtility {
 	public static final double textPrioritize = 0.5;
 	
 //FOR DEBUG
-	public static  String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/work_dir/";
-	public static  String testDir = "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/test_dir/";
+//	public static  String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/work_dir/";
+//	public static  String testDir = "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/test_dir/";
 }

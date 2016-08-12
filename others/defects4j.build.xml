@@ -29,7 +29,7 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
 #############################################################################-->
 <project name="Defects4J" basedir="${basedir}">
     <!-- Ensure basedir is properly set -->
-        <property name="basedir" value="${basedir}" />
+    <property name="basedir" value="${basedir}" />
     <property name="d4j.workdir" value="${basedir}" />
     <property name="d4j.properties" value="defects4j.build.properties" />
     <fail message="Directory ${d4j.workdir} is not a Defects4J working directory!">
@@ -41,7 +41,7 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
     <fail message="Property d4j.home not set!" unless="d4j.home" />
 
     <taskdef resource="net/sf/antcontrib/antlib.xml"
-            classpath="${d4j.home}/framework/lib/ant-contrib.jar"/>
+        classpath="${d4j.home}/framework/lib/ant-contrib.jar"/>
 
     <!-- Dependencies used by all projects -->
     <property name="junit.jar"  value="${d4j.home}/framework/projects/lib/junit-4.11.jar"/>
@@ -59,8 +59,8 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
     <!-- Location of customized JUnit formatter-->
     <property name="formatter.jar" value="${d4j.home}/framework/lib/formatter.jar"/>
     <!-- Directory of instrumented classes (e.g., for coverage analysis)-->
-    <property name="d4j.dir.classes.instrumented" value="${d4j.workdir}/.classes_instrumented"/>
-    <property name="d4j.dir.tests.instrumented" value="${d4j.workdir}/.tests_instrumented"/>
+    <property name="d4j.dir.classes.instrumented" value="${d4j.workdir}/.classes_instrumented/"/>
+    <property name="d4j.dir.tests.instrumented" value="${d4j.workdir}/.tests_instrumented/"/>
     <!-- Directory of mutated classes-->
     <property name="d4j.dir.classes.mutated" value="${d4j.workdir}/.classes_mutated"/>
     <!-- Directory of coverage reports-->
@@ -96,57 +96,77 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
         <fail unless="ant.refid:compile.classpath"/>
         <fail unless="ant.refid:all.manual.tests" />
     </target>
-    
-    
-      <property name="tracer.dir" value="${d4j.home}/framework/projects/lib/" />
+
+
+    <property name="tracer.dir" value="${d4j.home}/framework/projects/lib/" />
+    <property name="sk.traceFile" value="${d4j.workdir}/.trace_state.txt"/>
+    <property name="sk.workDir" value="${d4j.workdir}/work_dir/"/>
+    <property name="sk.testDir" value="${d4j.workdir}/test_dir/"/>
+    <property name="sk.transFile" value="${d4j.workdir}/.sketchOrig.sk"/>
+    <property name="sk.fixFile" value="${d4j.workdir}/.sketchFix.sk"/>
+
     <path id="tracer.classpath">
         <fileset dir="${tracer.dir}">
             <include name="Tracer.jar" />
         </fileset>
     </path> 
     <taskdef name="tracer" classname="ece.utexas.edu.sketchFix.instrument.ant.InstrumentTask" classpathref="tracer.classpath">
-     <classpath>
-    <pathelement location="${d4j.home}/framework/projects/lib/Tracer.jar"/>
-  </classpath>
+        <classpath>
+            <pathelement location="${d4j.home}/framework/projects/lib/Tracer.jar"/>
+        </classpath>
     </taskdef>
-    
-     <taskdef name="preprocess" classname="ece.utexas.edu.sketchFix.staticPreprocess.PreprocessTask" classpathref="tracer.classpath" >
-     <classpath>
-    <pathelement location="${d4j.home}/framework/projects/lib/Tracer.jar"/>
-  </classpath>
+
+    <taskdef name="preprocess" classname="ece.utexas.edu.sketchFix.staticPreprocess.PreprocessTask" classpathref="tracer.classpath" >
+        <classpath>
+            <pathelement location="${d4j.home}/framework/projects/lib/Tracer.jar"/>
+        </classpath>
     </taskdef>
-    
-     <target name="preprocess" depends="" description="Run unit tests" >
-          <!-- create a temp build directory -->
+
+    <taskdef name="repair" classname="ece.utexas.edu.sketchFix.repair.RepairTask" classpathref="tracer.classpath" >
+        <classpath>
+            <pathelement location="${d4j.home}/framework/projects/lib/Tracer.jar"/>
+        </classpath>
+    </taskdef>
+
+
+
+
+    <target name="preprocess" depends="" description="Run unit tests" >
+        <!-- create a temp build directory -->
         <mkdir dir="${d4j.workdir}/work_dir" />
-            <copy todir="${d4j.workdir}/source">
+        <copy todir="${d4j.workdir}/source">
             <fileset dir="${d4j.workdir}/work_dir">
                 <include name="*.*" />
             </fileset>
         </copy>
-           <preprocess srcDir="${d4j.workdir}/source" workDir="${d4j.workdir}/work_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
-         <mkdir dir="${d4j.workdir}/test_dir" />
-            <copy todir="${d4j.workdir}/tests">
+        <preprocess srcDir="${d4j.workdir}/source" workDir="${d4j.workdir}/work_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
+        <mkdir dir="${d4j.workdir}/test_dir" />
+        <copy todir="${d4j.workdir}/tests">
             <fileset dir="${d4j.workdir}/test_dir">
                 <include name="*.*" />
             </fileset>
         </copy>
-     <preprocess srcDir="${d4j.workdir}/tests" workDir="${d4j.workdir}/test_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
+        <preprocess srcDir="${d4j.workdir}/tests" workDir="${d4j.workdir}/test_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
     </target>
-      
-    
+
+
     <target name="instrument.src" depends="compile.tests" description="Run unit tests">
-           <delete dir="${d4j.dir.classes.instrumented}"/> 
-            <mkdir dir="${d4j.dir.classes.instrumented}" />
-     <tracer srcDir="${d4j.workdir}/build" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${d4j.workdir}/build"     traceFile=".trace_state.txt" instrumentDir="${d4j.dir.classes.instrumented}"  >
+        <delete dir="${d4j.dir.classes.instrumented}"/> 
+        <mkdir dir="${d4j.dir.classes.instrumented}" />
+        <tracer srcDir="${d4j.workdir}/build" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${d4j.workdir}/build"     traceFile="${sk.traceFile}" instrumentDir="${d4j.dir.classes.instrumented}"  >
         </tracer>
     </target>
-    
-        <target name="instrument.tests" depends="compile.tests,instrument.src" description="Run unit tests">
-                 <delete dir="${d4j.dir.tests.instrumented}" />
-              <mkdir dir="${d4j.dir.tests.instrumented}" />
-     <tracer srcDir="${d4j.workdir}/build-tests" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${d4j.workdir}/build"     traceFile=".trace_test.txt" instrumentDir="${d4j.dir.tests.instrumented}"  >
+
+    <target name="instrument.tests" depends="compile.tests,instrument.src" description="Run unit tests">
+        <delete dir="${d4j.dir.tests.instrumented}" />
+        <mkdir dir="${d4j.dir.tests.instrumented}" />
+        <tracer srcDir="${d4j.workdir}/build-tests" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${d4j.workdir}/build"     traceFile="${sk.traceFile}" instrumentDir="${d4j.dir.tests.instrumented}"  >
         </tracer>
+    </target>
+
+    <target name="sketchFix.repair" depends="" description="Repair program">
+        <repair srcDir="${sk.workDir},${sk.testDir}" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  workDir="${d4j.dir.classes.instrumented},${d4j.dir.tests.instrumented}"     traceFile="${sk.traceFile}"   skOrigin="${sk.transFile}">
+        </repair>
     </target>
 
 <!--
@@ -158,28 +178,28 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
                 <!-- Make sure that instrumented classes appear at the beginning of the
                      classpath -->
                  <pathelement path="${d4j.home}/framework/projects/lib/Tracer.jar" />
-                <pathelement location="${d4j.dir.classes.instrumented}" />
-               <!--   <pathelement location="${d4j.dir.tests.instrumented}" /> -->
-                <pathelement path="${formatter.jar}" />
-                <pathelement path="${cobertura.jar}" />
-                
-                <path refid="d4j.test.classpath"/>
-            </classpath>
+                 <pathelement location="${d4j.dir.classes.instrumented}" />
+                 <pathelement location="${d4j.dir.tests.instrumented}" /> 
+                 <pathelement path="${formatter.jar}" />
+                 <pathelement path="${cobertura.jar}" />
 
-            <sysproperty key="OUTFILE" value="${OUTFILE}"/>
-       <!--     <formatter classname="edu.washington.cs.mut.testrunner.Formatter" usefile="false" /> -->
+                 <path refid="d4j.test.classpath"/>
+             </classpath>
+
+             <sysproperty key="OUTFILE" value="${OUTFILE}"/>
+             <!--     <formatter classname="edu.washington.cs.mut.testrunner.Formatter" usefile="false" /> -->
              <formatter type="plain" usefile="false" />
-            <test name="${test.entry.class}" methods="${test.entry.method}" if="test.entry.class" />
-            <batchtest unless="test.entry.class">
-                <fileset refid="all.manual.tests" />
-            </batchtest>
-        </junit>
-        <!-- fail build in case we are running all classes, but there are none in the fileset -->
-        <if> <not> <isset property="test.entry.class" /> </not> <then>
-            <pathconvert refid="all.manual.tests" property="fileset.notempty" setonempty="false" />
-            <fail unless="fileset.notempty" message="Test is running with empty fileset" />
-        </then> </if>
-    </target>
+             <test name="${test.entry.class}" methods="${test.entry.method}" if="test.entry.class" />
+             <batchtest unless="test.entry.class">
+                 <fileset refid="all.manual.tests" />
+             </batchtest>
+         </junit>
+         <!-- fail build in case we are running all classes, but there are none in the fileset -->
+         <if> <not> <isset property="test.entry.class" /> </not> <then>
+                 <pathconvert refid="all.manual.tests" property="fileset.notempty" setonempty="false" />
+                 <fail unless="fileset.notempty" message="Test is running with empty fileset" />
+         </then> </if>
+     </target>
 
 <!--
     Run individual test and monitor class loader
@@ -191,7 +211,7 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
         <fail message="Property test.output not set!" unless="test.output" />
 
         <java fork="true" classname="edu.washington.cs.mut.testrunner.SingleTestRunner"
-              output="${test.output}" failonerror="true" logError="true">
+            output="${test.output}" failonerror="true" logError="true">
 
             <arg value="${test.entry}"/>
             <jvmarg value="-verbose:class"/>
@@ -306,16 +326,16 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
 
         <mkdir dir="${build.home}/gen-tests" />
         <javac srcdir="${d4j.test.dir}"
-               destdir="${build.home}/gen-tests"
-               debug="true"
-               deprecation="false"
-               optimize="false">
-               <classpath>
-                    <path refid="d4j.test.classpath" />
-                    <pathelement path="${classes.dir}" />
-                    <!-- Add dependencies to runtime libraries of test generation tools -->
-                    <path refid="d4j.lib.testgen.rt"/>
-               </classpath>
+            destdir="${build.home}/gen-tests"
+            debug="true"
+            deprecation="false"
+            optimize="false">
+            <classpath>
+                <path refid="d4j.test.classpath" />
+                <pathelement path="${classes.dir}" />
+                <!-- Add dependencies to runtime libraries of test generation tools -->
+                <path refid="d4j.lib.testgen.rt"/>
+            </classpath>
         </javac>
     </target>
 
@@ -349,13 +369,13 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
             <sysproperty key="OUTFILE" value="${OUTFILE}"/>
             <formatter classname="edu.washington.cs.mut.testrunner.Formatter" usefile="false" />
             <test name="${test.entry.class}" methods="${test.entry.method}" if="test.entry.class" />
-                <batchtest unless="test.entry.class">
-                    <fileset dir="${d4j.test.dir}">
-                        <include name="**/${d4j.test.include}"/>
-                        <!-- Ignore helper classes that do not contain test cases -->
-                        <exclude name="**/*_scaffolding.java"/>
-                    </fileset>
-                </batchtest>
+            <batchtest unless="test.entry.class">
+                <fileset dir="${d4j.test.dir}">
+                    <include name="**/${d4j.test.include}"/>
+                    <!-- Ignore helper classes that do not contain test cases -->
+                    <exclude name="**/*_scaffolding.java"/>
+                </fileset>
+            </batchtest>
         </junit>
     </target>
 
@@ -403,7 +423,7 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
                    build file should not rely on the current directory structure
               => D4J should provide properly filtered files in the working directory-->
         <loadfile srcfile="${d4j.home}/framework/projects/${d4j.project.id}/relevant_tests/${d4j.bug.id}"
-                 property="rel.files">
+            property="rel.files">
             <filterchain>
                 <tokenfilter>
                     <replaceregex pattern="\." replace="/" flags="g"/>
@@ -433,7 +453,7 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
 -->
     <target name="reset.cobertura.ser" if="classes.instrumented.uptodate">
         <copy file="${d4j.dir.classes.instrumented}/${d4j.file.cobertura.ser}"
-              todir="${d4j.workdir}" overwrite="true" />
+            todir="${d4j.workdir}" overwrite="true" />
     </target>
 
 </project>

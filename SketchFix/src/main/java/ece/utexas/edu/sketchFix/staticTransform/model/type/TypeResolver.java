@@ -25,20 +25,22 @@ public class TypeResolver {
 	HashMap<String, FieldWrapper> fieldMap = new HashMap<String, FieldWrapper>();
 	HashMap<String, HashMap<String, MethodWrapper>> methodMap = new HashMap<String, HashMap<String, MethodWrapper>>();
 
-	public TypeResolver(List<ImportDeclaration> imports, TypeDeclaration clazz) {
+	public TypeResolver(List<ImportDeclaration> imports, TypeDeclaration clazz, String[] dir) {
 		initType(clazz);
 		for (ImportDeclaration iDecl : imports) {
 			String path = iDecl.getName().toString().replace(".", "/") + ".java";
 			File code = new File(path);
-			if (!code.exists()) {
-				code = new File(LocalizerUtility.baseDir + path);
-				if (!code.exists())
-					code = new File(LocalizerUtility.testDir + path);
-				if (!code.exists())
-					continue;
+			for (String d : dir) {
+				code = new File(d + path);
+				if (code.exists())
+					break;
 			}
+
 			String filePath = iDecl.getName().toString();
-			importFiles.put(filePath.substring(filePath.lastIndexOf(".") + 1), code.getAbsolutePath());
+			if (!code.exists()) {
+//				System.out.println("[TypeResolver cannot find]" + dir + "," + path);
+			} else
+				importFiles.put(filePath.substring(filePath.lastIndexOf(".") + 1), code.getAbsolutePath());
 		}
 	}
 
@@ -88,7 +90,7 @@ public class TypeResolver {
 				}
 			}
 		}
-		if (methodMap.containsKey(type)&& methodMap.get(type).containsKey(method)) {
+		if (methodMap.containsKey(type) && methodMap.get(type).containsKey(method)) {
 			return methodMap.get(type).get(method);
 		}
 		// TODO if it is inherited from parents, check trace

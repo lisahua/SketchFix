@@ -35,7 +35,7 @@ of the checked-out project version.
     <property name="classes.dir" value="${d4j.workdir}/build" />
     <path id="compile.classpath">
         <path  refid="build.classpath" ></path>
-     <!--   <path location="${d4j.home}/framework/projects/lib/Tracer.jar"></path> -->
+        <path location="${d4j.home}/framework/projects/lib/Tracer.jar"></path>
     </path>
 
     <!-- Clean up working directory, i.e., delete classes and test classes. -->
@@ -47,18 +47,13 @@ of the checked-out project version.
     <!-- target used for compiling sources. This was replicated to avoid deleting the compilation directory -->
     <target name="compile" depends="initialise,preprocess"
             description="Compile the JFreeChart source code.">
- <mkdir dir="${d4j.workdir}/work_dir" />
+ <!--<mkdir dir="${d4j.workdir}/work_dir" />
             <copy todir="${d4j.workdir}/source">
             <fileset dir="${d4j.workdir}/work_dir">
                 <include name="*.*" />
             </fileset>
-        </copy> 
-        <mkdir dir="${d4j.workdir}/test_dir" />
-            <copy todir="${d4j.workdir}/tests">
-            <fileset dir="${d4j.workdir}/test_dir">
-                <include name="*.*" />
-            </fileset>
-        </copy>
+        </copy> -->
+        
         <!-- create a temp build directory -->
         <mkdir dir="${d4j.workdir}/build" />
 

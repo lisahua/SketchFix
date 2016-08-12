@@ -18,7 +18,7 @@ public class instrumentMethodVisitor extends MethodVisitor implements Opcodes {
 
 	@Override
 	public void visitLineNumber(int line, Label start) {
-		mv.visitLineNumber(line, start);
+		
 		// mv.visitLdcInsn(InstrumentClassVisitor.className + "-" +
 		// InstrumentClassVisitor.methodName + "-"
 		// + String.valueOf(line));
@@ -27,6 +27,7 @@ public class instrumentMethodVisitor extends MethodVisitor implements Opcodes {
 		mv.visitLdcInsn(InstrumentClassVisitor.className + "-" + InstrumentClassVisitor.methodName + "-"
 				+ InstrumentClassVisitor.params + "-" + String.valueOf(line));
 		mv.visitMethodInsn(INVOKESTATIC, stateRecorder, stateRecordMtd, "(Ljava/lang/Object;)V", false);
+		mv.visitLineNumber(line, start);
 	}
 
 	@Override

@@ -11,7 +11,9 @@ def _main_():
     defect4j=os.environ["DEFECT4J"]
     print defect4j
     script="ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"   run.dev.tests 2>&1  -Dtest.entry.class="
-    
+  
+    os.system("ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"  instrument.tests ")
+
     f= open(fname,"r")
     content = f.readlines()
     for lin in content:
@@ -29,10 +31,12 @@ def _main_():
         mtdList.append(token[1])
 
     for i in range(0,len(clsList)):
-        tmp=script+clsList[0]+"  -Dtest.entry.method="+mtdList[i]
+        tmp=script+clsList[i]+"  -Dtest.entry.method="+mtdList[i]
         print tmp
         os.system(tmp)
-        os.system("cp .trace_state.txt .trace_state.txt"+str(i))
+        os.system("cp .trace_state.txt .trace_state"+str(i)+".txt")
 
-
+    os.system("ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"  sketchFix.repair ")
+        
+        
 _main_()

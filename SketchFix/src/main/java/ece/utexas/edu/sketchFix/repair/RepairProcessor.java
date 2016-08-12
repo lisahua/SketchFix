@@ -26,19 +26,17 @@ public class RepairProcessor {
 		// parse source code, trace, and state
 		LinePyGenerator generator = parseTrace();
 		Vector<LinePy> trace = generator.getTrace();
-		System.out.println(trace.lastElement());
 		// localize faults
 		List<MethodData> locations = faultLocalize(trace);
-		System.out.println(locations.get(locations.size()-1));
 		// transform to sketch front end
-		new SketchTransformProcessor().process(generator, locations, testMethod,"tmp.txt");
-		
+		new SketchTransformProcessor(argument).process(generator, locations, testMethod, argument.skOrigin);
+
 		// map repair back
 
 	}
 
 	private LinePyGenerator parseTrace() {
-		String[] dirs = argument.classDir.split(",");
+		String[] dirs = argument.classDir;
 
 		String[] dyArg = new String[dirs.length + 1];
 		dyArg[0] = argument.traceFile;
@@ -48,7 +46,7 @@ public class RepairProcessor {
 		dynamicParser.parseFiles(dyArg);
 
 		StaticSourceMapper staticParser = new StaticSourceMapper(dynamicParser);
-		String[] arg = argument.sourceDir.split(",");
+		String[] arg = argument.sourceDir;
 		staticParser.parseFiles(arg);
 
 		Vector<LinePy> trace = staticParser.getTrace();
