@@ -101,16 +101,22 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		List<Parameter> param = new ArrayList<Parameter>();
 		if (isTestMethod(method.getName().toString()))
 			return param;
-
+		// this object
 		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(clazz.getName().toString()),
 				AbstractASTAdapter.thisClass);
 		param.add(thisParam);
+		// return value;
 		rtnType = (Type) TypeAdapter.getType(returnType.toString());
 		if (rtnType != null) {
 			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
 			param.add(rtnParam);
 			varType.put(rtnParam.getName(), rtnParam.getType());
 		}
+		// exception object
+		Parameter excpParam = new Parameter(getMethodContext(), AbstractASTAdapter.excepType,
+				AbstractASTAdapter.excepName);
+		param.add(excpParam);
+		varType.put(AbstractASTAdapter.excepName, AbstractASTAdapter.excepType);
 
 		for (SingleVariableDeclaration para : parameters) {
 			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(para.getType().toString()),
@@ -182,9 +188,11 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	public void insertUseField(String type, String field) {
 		useRecorder.insertField(type, field);
 	}
+
 	public String insertUseConstructor(String type, String varType) {
 		return useRecorder.insertUseConstructor(type, varType);
 	}
+
 	public void insertUseMethod(String type, String method) {
 		useRecorder.insertMethod(type, method);
 	}

@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
@@ -100,6 +101,16 @@ public class StatementAdapter extends AbstractASTAdapter {
 				stmtList.add((Statement) obj);
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
+		} else if (stmt instanceof ThrowStatement) {
+			ThrowStatement throwStmt = (ThrowStatement) stmt;
+			Object obj = exprAdapter.transform(throwStmt.getExpression());
+			if (obj instanceof Exception) {
+				StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(), AbstractASTAdapter.excepType,
+						AbstractASTAdapter.excepName, (Expression) obj);
+				stmtList.add(decl);
+				stmtList.add(new StmtReturn(method.getMethodContext(), null));
+				return stmtList;
+			}
 		}
 		// TODO more stmts such as for stmt
 

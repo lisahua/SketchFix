@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.ast.core.FEContext;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
@@ -21,14 +22,15 @@ import sketch.compiler.ast.core.typs.Type;
 public abstract class AbstractASTAdapter {
 	public final static String thisClass = "thisObj";
 	public final static String returnObj = "returnObj";
-	protected static ExprVar thisObj=new ExprVar(getContext(), thisClass);
-	private static ExprVar rtnObj= new ExprVar(getContext(), returnObj);;
+	protected static ExprVar thisObj = new ExprVar(getContext(), thisClass);
+	private static ExprVar rtnObj = new ExprVar(getContext(), returnObj);;
 	private static FENode packageNode = null;
 	private static FENode methodNode = null;
 	public static final String nextName = "_tmp";
 	private static int nextNameCount = 0;
 	public static final String pkgName = "sketchFix";
-
+	public static final String excepName = "_exceptionObj";
+	public static final Type excepType = TypeAdapter.getType("Exception");
 	/**
 	 * Transform a ASTNode to Sketch Node
 	 * 
