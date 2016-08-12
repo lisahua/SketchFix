@@ -182,7 +182,9 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	public void insertUseField(String type, String field) {
 		useRecorder.insertField(type, field);
 	}
-
+	public String insertUseConstructor(String type, String varType) {
+		return useRecorder.insertUseConstructor(type, varType);
+	}
 	public void insertUseMethod(String type, String method) {
 		useRecorder.insertMethod(type, method);
 	}

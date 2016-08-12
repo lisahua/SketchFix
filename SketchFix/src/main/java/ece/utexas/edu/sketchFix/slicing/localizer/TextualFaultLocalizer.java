@@ -31,7 +31,7 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 	private Vector<MethodData> textPrioritize(Vector<LinePy> trace) {
 		MethodComparator comp = null;
 		//init test method
-		for (int i = 0; i < methodOrder.size(); i++) {
+		for (int i = methodOrder.size()-1; i >=0; i--) {
 			MethodData mdata = methodMap.get(methodOrder.get(i));
 			// MethodData mdata = methodMap.get(methodOrder.peek());
 			if (mdata.isTestMethod()) {

@@ -36,10 +36,13 @@ public class StructDefGenerator {
 		HashMap<String, HashSet<String>> methods = recorder.getMethodMap();
 
 		for (String type : fields.keySet()) {
-			initStructDef(type, fields.get(type));
+			initStructDef(type, fields.get(type), recorder.getConstructors().get(type));
+		}
+		for (String type : recorder.getConstructors().keySet()) {
+			initStructDef(type, fields.get(type), recorder.getConstructors().get(type));
 		}
 		for (String type : TypeAdapter.getTypeMap().keySet()) {
-			initStructDef(type, null);
+			initStructDef(type, null, null);
 		}
 		for (String type : methods.keySet()) {
 			for (String mtd : methods.get(type)) {
@@ -48,7 +51,7 @@ public class StructDefGenerator {
 		}
 	}
 
-	private void initStructDef(String typeName, HashSet<String> fields) {
+	private void initStructDef(String typeName, HashSet<String> fields, HashMap<String, String> constructor) {
 		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("[") || typeName.contains("bit")
 				|| typeName.contains("boolean"))
 			return;
@@ -61,6 +64,13 @@ public class StructDefGenerator {
 			for (String field : fields) {
 				names.add(field);
 				types.add(TypeAdapter.getType(resolver.getFieldType(typeName, field)));
+			}
+		}
+		//FIXME mann, I know it's buggy
+		if (constructor != null) {
+			for (String type : constructor.keySet()) {
+				names.add(constructor.get(type));
+				types.add(TypeAdapter.getType(type));
 			}
 		}
 		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();

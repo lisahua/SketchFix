@@ -66,40 +66,20 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 	@SuppressWarnings({ "unchecked", "unused" })
 	public Object transform(ASTNode node) {
 		org.eclipse.jdt.core.dom.Expression expr = (org.eclipse.jdt.core.dom.Expression) node;
-		sketch.compiler.ast.core.exprs.Expression skExpr = null;
 		if (expr instanceof ClassInstanceCreation) {
-			ClassInstanceCreation instNew = (ClassInstanceCreation) expr;
-			org.eclipse.jdt.core.dom.Type type = instNew.getType();
-
-			List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
-			List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
-			for (org.eclipse.jdt.core.dom.Expression e : param) {
-				Expression para = (Expression) transform(e);
-				skParam.add((convExprParam(para)));
-			}
-			skExpr = new ExprNew(stmtAdapter.getMethodContext(), (Type) TypeAdapter.getType(type.toString()), skParam,
-					false);
-			return skExpr;
+			return handleClassInstance(expr);
 		} else if (expr instanceof FieldAccess) {
 			FieldAccess jField = (FieldAccess) expr;
 			org.eclipse.jdt.core.dom.Expression exp = jField.getExpression();
-			skExpr = (sketch.compiler.ast.core.exprs.Expression) transform(exp);
+			sketch.compiler.ast.core.exprs.Expression skExpr = (sketch.compiler.ast.core.exprs.Expression) transform(
+					exp);
 			ExprField field = new ExprField(stmtAdapter.getMethodContext(), skExpr, jField.getName().toString(), false);
 
 			return field;
 		} else if (expr instanceof ThisExpression) {
 			return AbstractASTAdapter.getThisObj();
 		} else if (expr instanceof MethodInvocation) {
-			// MethodInvocation --> ExprFunCall
-			MethodInvocation mtdInvoke = (MethodInvocation) node;
-			String invokeMethod = mtdInvoke.getName().toString();
-			if (isJunitAsserts(invokeMethod)) {
-				return transformJUnit(mtdInvoke);
-			}
-			ExprFunCall funCall = getExprFunCall(mtdInvoke);
-			StmtExpr newCall = new StmtExpr(stmtAdapter.getMethodContext(), funCall);
-			stmtAdapter.insertStmt(newCall);
-			return new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName());
+			return handleMethodInvoke(expr);
 		} else if (expr instanceof InfixExpression) {
 			// InfixExpression -->ExprBinary
 			InfixExpression condExpr = (InfixExpression) expr;
@@ -109,17 +89,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 					left, right);
 			return exprBin;
 		} else if (expr instanceof PostfixExpression) {
-			// postfixExpression -->ExprBinary
-			PostfixExpression condExpr = (PostfixExpression) expr;
-			Expression left = (Expression) transform(condExpr.getOperand());
-			ExprBinary exprBin = null;
-			if (condExpr.getOperator() == PostfixExpression.Operator.DECREMENT)
-				exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_SUB, left, ExprConstInt.one);
-			else
-				exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_ADD, left, ExprConstInt.one);
-			StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(), left, exprBin);
-			stmtAdapter.insertStmt(assign);
-			return exprBin;
+			return handlePostfixExpr(expr);
 		} else if (expr instanceof Name) {
 			// VariableDeclarationExpression --> ExprVar
 			Name varDecl = (Name) expr;
@@ -127,6 +97,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (expr instanceof Assignment) {
 			Assignment assign = (Assignment) expr;
 			Expression left = (Expression) transform(assign.getLeftHandSide());
+			currVarType = resolveType(left);
 			Expression right = (Expression) transform(assign.getRightHandSide());
 			return new StmtAssign(stmtAdapter.getMethodContext(), left, right);
 		} else if (expr instanceof VariableDeclarationExpression) {
@@ -169,6 +140,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			return transform(paren.getExpression());
 		} else if (expr instanceof CastExpression) {
 			CastExpression castExp = (CastExpression) expr;
+			return transform(castExp.getExpression());
 			// TODO no idea
 		} else if (expr instanceof ArrayAccess) {
 			// TODO not fully support by sketch
@@ -177,21 +149,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			CharacterLiteral charOrString = (CharacterLiteral) expr;
 			// TODO char expression
 		} else if (expr instanceof StringLiteral) {
-			String strName = getNextName();
-
-			StringLiteral string = (StringLiteral) expr;
-			String value = string.getLiteralValue();
-			ExprConstInt len = new ExprConstInt(stmtAdapter.getMethodContext(), value.length());
-			TypeArray array = new TypeArray(TypePrimitive.chartype, len);
-			stmtAdapter.insertVarDecl(strName, array);
-			TypeAdapter.insertArrayType(array.toString(), array);
-			List<Expression> initEle = new ArrayList<Expression>();
-			for (char c : value.toCharArray())
-				initEle.add(ExprConstChar.create(c));
-			ExprArrayInit arrInit = new ExprArrayInit(stmtAdapter.getMethodContext(), initEle);
-			StmtVarDecl varStmt = new StmtVarDecl(stmtAdapter.getMethodContext(), array, strName, arrInit);
-			stmtAdapter.insertStmt(varStmt);
-			return new ExprVar(stmtAdapter.getMethodContext(), strName);
+			return handleStringLiteral(expr);
 		}
 
 		return null;
@@ -199,7 +157,11 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 	private int resolveOperator(InfixExpression.Operator op) {
 		if (op == InfixExpression.Operator.AND)
-			return ExprBinary.BINOP_ADD;
+			return ExprBinary.BINOP_AND;
+		else if (op == InfixExpression.Operator.CONDITIONAL_AND)
+			return ExprBinary.BINOP_AND;
+		else if (op == InfixExpression.Operator.CONDITIONAL_OR)
+			return ExprBinary.BINOP_OR;
 		else if (op == InfixExpression.Operator.EQUALS)
 			return ExprBinary.BINOP_EQ;
 		else if (op == InfixExpression.Operator.LESS)
@@ -369,30 +331,109 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		this.currVarType = currVarType;
 	}
 
-	private ExprNamedParam convExprParam(Expression exp) {
+	public void clearCurrVarType() {
+		currVarType = null;
+	}
+
+	private ExprNamedParam convExprParam(Expression exp, String type) {
 		ExprNamedParam param = null;
 		if (exp instanceof ExprVar) {
-			ExprVar var = (ExprVar) exp;
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(), var.getName(), exp);
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprConstInt) {
-			StmtVarDecl varDecl = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.int32type,
-					getNextName(), exp);
-			stmtAdapter.insertStmt(varDecl);
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(), varDecl.getName(0), exp);
+			// StmtVarDecl varDecl = new
+			// StmtVarDecl(stmtAdapter.getMethodContext(),
+			// TypePrimitive.int32type,
+			// stmtAdapter.insertUseConstructor(type,
+			// resolveType(exp).toString()), exp);
+			// stmtAdapter.insertStmt(varDecl);
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprConstChar) {
-			StmtVarDecl varDecl = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.chartype,
-					getNextName(), exp);
-			stmtAdapter.insertStmt(varDecl);
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(), varDecl.getName(0), exp);
+			// ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
+			// getNextName());
+			// StmtVarDecl varDecl = new
+			// StmtVarDecl(stmtAdapter.getMethodContext(),
+			// TypePrimitive.chartype, var.getName(),
+			// exp);
+			// stmtAdapter.insertStmt(varDecl);
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprConstFloat) {
-			StmtVarDecl varDecl = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.floattype,
-					getNextName(), exp);
-			stmtAdapter.insertStmt(varDecl);
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(), varDecl.getName(0), exp);
+			// ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
+			// getNextName());
+			// StmtVarDecl varDecl = new
+			// StmtVarDecl(stmtAdapter.getMethodContext(),
+			// TypePrimitive.floattype,
+			// var.getName(), exp);
+			// stmtAdapter.insertStmt(varDecl);
+			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprField) {
-//FIXME dont know
+			// FIXME dont know
 		}
-return param;
+		return param;
+	}
+
+	private Object handleStringLiteral(ASTNode expr) {
+		String strName = getNextName();
+
+		StringLiteral string = (StringLiteral) expr;
+		String value = string.getLiteralValue();
+		ExprConstInt len = new ExprConstInt(stmtAdapter.getMethodContext(), value.length());
+		TypeArray array = new TypeArray(TypePrimitive.chartype, len);
+		stmtAdapter.insertVarDecl(strName, array);
+		TypeAdapter.insertArrayType(array.toString(), array);
+		List<Expression> initEle = new ArrayList<Expression>();
+		for (char c : value.toCharArray())
+			initEle.add(ExprConstChar.create(c));
+		ExprArrayInit arrInit = new ExprArrayInit(stmtAdapter.getMethodContext(), initEle);
+		StmtVarDecl varStmt = new StmtVarDecl(stmtAdapter.getMethodContext(), array, strName, arrInit);
+		stmtAdapter.insertStmt(varStmt);
+		return new ExprVar(stmtAdapter.getMethodContext(), strName);
+	}
+
+	private Object handleClassInstance(ASTNode expr) {
+		ClassInstanceCreation instNew = (ClassInstanceCreation) expr;
+		org.eclipse.jdt.core.dom.Type type = instNew.getType();
+
+		List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
+		List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
+		for (org.eclipse.jdt.core.dom.Expression e : param) {
+			Expression para = (Expression) transform(e);
+			skParam.add((convExprParam(para, type.toString())));
+
+		}
+		sketch.compiler.ast.core.exprs.Expression skExpr = new ExprNew(stmtAdapter.getMethodContext(),
+				(Type) TypeAdapter.getType(type.toString()), skParam, false);
+		return skExpr;
+	}
+
+	private Object handleMethodInvoke(ASTNode node) {
+		// MethodInvocation --> ExprFunCall
+		MethodInvocation mtdInvoke = (MethodInvocation) node;
+		String invokeMethod = mtdInvoke.getName().toString();
+		if (isJunitAsserts(invokeMethod)) {
+			return transformJUnit(mtdInvoke);
+		}
+		ExprFunCall funCall = getExprFunCall(mtdInvoke);
+		StmtExpr newCall = new StmtExpr(stmtAdapter.getMethodContext(), funCall);
+		stmtAdapter.insertStmt(newCall);
+		return new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName());
+	}
+
+	private Object handlePostfixExpr(ASTNode expr) {
+		// postfixExpression -->ExprBinary
+		PostfixExpression condExpr = (PostfixExpression) expr;
+		Expression left = (Expression) transform(condExpr.getOperand());
+		ExprBinary exprBin = null;
+		if (condExpr.getOperator() == PostfixExpression.Operator.DECREMENT)
+			exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_SUB, left, ExprConstInt.one);
+		else
+			exprBin = new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_ADD, left, ExprConstInt.one);
+		StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(), left, exprBin);
+		stmtAdapter.insertStmt(assign);
+		return exprBin;
 	}
 
 }

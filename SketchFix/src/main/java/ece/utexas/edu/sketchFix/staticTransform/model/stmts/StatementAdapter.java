@@ -96,12 +96,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 			ExpressionStatement exprStmt = (ExpressionStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression expr = exprStmt.getExpression();
 			Object obj = exprAdapter.transform(expr);
-			if (obj instanceof Expression){
-				Expression sExpr = (Expression) exprAdapter.transform(expr);
-			}else {
-				//No idea
-			}
-			
+			if (obj instanceof Statement)
+				stmtList.add((Statement) obj);
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
 		}
@@ -125,6 +121,14 @@ public class StatementAdapter extends AbstractASTAdapter {
 	public void insertUseMethod(String type, String name) {
 		method.insertUseMethod(type, name);
 
+	}
+
+	public void insertUseField(String type, String field) {
+		method.insertUseField(type, field);
+	}
+
+	public String insertUseConstructor(String type, String varType) {
+		return method.insertUseConstructor(type, varType);
 	}
 
 	public Type getFieldTypeOf(String type, String field) {
@@ -179,7 +183,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 			method.insertVarDecl(name, sType);
 			names.add(name);
 			org.eclipse.jdt.core.dom.Expression init = frag.getInitializer();
-			
+
 			inits.add((Expression) exprAdapter.transform(init));
 		}
 
@@ -189,11 +193,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 	@SuppressWarnings("unchecked")
 	private Object handleIfStmt(IfStatement ifStmt) {
 
-		exprAdapter.setCurrVarType(TypePrimitive.bittype);
+		//
 		org.eclipse.jdt.core.dom.Expression exp = ifStmt.getExpression();
 		org.eclipse.jdt.core.dom.Statement thenStmt = ifStmt.getThenStatement();
 		org.eclipse.jdt.core.dom.Statement elseStmt = ifStmt.getElseStatement();
-
+		exprAdapter.clearCurrVarType();
 		Object then = transform(thenStmt);
 		Statement thenStatement = null;
 		if (then != null && (then instanceof Statement)) {
@@ -210,6 +214,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 				elseStatement = new StmtBlock(method.getMethodContext(), (List<Statement>) elseSt);
 		}
 		stmtList.clear();
+		exprAdapter.setCurrVarType(TypePrimitive.bittype);
 		Expression skExp = (Expression) exprAdapter.transform(exp);
 		StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), skExp, thenStatement, elseStatement);
 		stmtList.add(skIfStmt);
@@ -226,19 +231,19 @@ public class StatementAdapter extends AbstractASTAdapter {
 			Object obj = exprAdapter.transform(exp);
 			if (obj instanceof Statement) {
 				initList.add((Statement) obj);
-			}else if (obj instanceof Expression)
-				initList.add(new StmtExpr(getMethodContext(), (Expression)obj));
+			} else if (obj instanceof Expression)
+				initList.add(new StmtExpr(getMethodContext(), (Expression) obj));
 		}
 		List<Statement> updates = new ArrayList<Statement>();
 		stmtList.clear();
 		StmtBlock body = (StmtBlock) transform(forStmt.getBody());
-		updates.addAll( body.getStmts());
+		updates.addAll(body.getStmts());
 		stmtList.clear();
 		for (org.eclipse.jdt.core.dom.Expression exp : updater) {
 			Object obj = exprAdapter.transform(exp);
 			if (obj instanceof Statement) {
 				updates.add((Statement) obj);
-			}else if (obj instanceof Expression){
+			} else if (obj instanceof Expression) {
 				updates.addAll(stmtList);
 				stmtList.clear();
 			}

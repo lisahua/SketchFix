@@ -9,6 +9,7 @@ import java.util.HashSet;
 public class TypeUsageRecorder {
 	private HashMap<String, HashSet<String>> fieldMap = new HashMap<String, HashSet<String>>();
 	private HashMap<String, HashSet<String>> methodMap = new HashMap<String, HashSet<String>>();
+	private HashMap<String, HashMap<String, String>> constructors = new HashMap<String, HashMap<String, String>>();
 
 	public void insertField(String type, String field) {
 		HashSet<String> fields = (fieldMap.containsKey(type)) ? fieldMap.get(type) : new HashSet<String>();
@@ -31,6 +32,22 @@ public class TypeUsageRecorder {
 	public HashMap<String, HashSet<String>> getMethodMap() {
 		return methodMap;
 	}
-	
-	
+
+	public String insertUseConstructor(String type, String varType) {
+		HashMap<String, String> typeMatch = (constructors.containsKey(type)) ? constructors.get(type)
+				: new HashMap<String, String>();
+		if (typeMatch.containsKey(varType)) {
+			return typeMatch.get(varType);
+		}
+		
+		String varName =  "_constr" + (typeMatch.size() + 1);
+		typeMatch.put(varType, varName);
+		constructors.put(type, typeMatch);
+		return varName;
+	}
+
+	public HashMap<String, HashMap<String, String>> getConstructors() {
+		return constructors;
+	}
+
 }
