@@ -24,6 +24,8 @@ import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FcnType;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
+import sketch.compiler.ast.core.exprs.ExprNamedParam;
+import sketch.compiler.ast.core.exprs.ExprNew;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.Type;
@@ -42,6 +44,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeResolver typeResolver;
 	private TypeUsageRecorder useRecorder = new TypeUsageRecorder();
 	private boolean harness = false;
+	private ExprNew newExcp = null;
 
 	@SuppressWarnings("unchecked")
 	public MethodDeclarationAdapter(CompilationUnit cu, List<ASTLinePy> astLines, String[] srcDir) {
@@ -49,7 +52,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
 		this.astLines = astLines;
-		typeResolver = new TypeResolver(cu.imports(), clazz,srcDir);
+		typeResolver = new TypeResolver(cu.imports(), clazz, srcDir);
 		stmtAdapter = new StatementAdapter(this);
 	}
 
@@ -105,24 +108,26 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(clazz.getName().toString()),
 				AbstractASTAdapter.thisClass);
 		param.add(thisParam);
-		// return value;
-		rtnType = (Type) TypeAdapter.getType(returnType.toString());
-		if (rtnType != null) {
-			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
-			param.add(rtnParam);
-			varType.put(rtnParam.getName(), rtnParam.getType());
-		}
-		// exception object
-		Parameter excpParam = new Parameter(getMethodContext(), AbstractASTAdapter.excepType,
-				AbstractASTAdapter.excepName);
-		param.add(excpParam);
-		varType.put(AbstractASTAdapter.excepName, AbstractASTAdapter.excepType);
 
 		for (SingleVariableDeclaration para : parameters) {
 			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(para.getType().toString()),
 					para.getName().toString());
 			varType.put(p.getName(), p.getType());
 			param.add(p);
+		}
+
+		// exception object
+		Parameter excpParam = new Parameter(getMethodContext(), AbstractASTAdapter.excepType,
+				AbstractASTAdapter.excepName);
+		param.add(excpParam);
+		varType.put(AbstractASTAdapter.excepName, AbstractASTAdapter.excepType);
+		
+		// return value;
+		rtnType = (Type) TypeAdapter.getType(returnType.toString());
+		if (rtnType != null) {
+			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
+			param.add(rtnParam);
+			varType.put(rtnParam.getName(), rtnParam.getType());
 		}
 		return param;
 	}
@@ -215,5 +220,11 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 	private boolean isTestMethod(String name) {
 		return name.toLowerCase().contains("test");
+	}
+
+	public ExprNew getNewException() {
+		if (newExcp==null)
+			newExcp = new ExprNew(getMethodContext(), AbstractASTAdapter.excepType, new ArrayList<ExprNamedParam>(), false);
+		return newExcp;
 	}
 }

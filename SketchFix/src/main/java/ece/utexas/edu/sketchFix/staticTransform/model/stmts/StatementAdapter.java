@@ -24,6 +24,7 @@ import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.expr.ExpressionAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.ast.core.FENode;
+import sketch.compiler.ast.core.exprs.ExprNew;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtAssign;
@@ -263,5 +264,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 		StmtWhile skWhile = new StmtWhile(method.getMethodContext(), (Expression) exprAdapter.transform(cond), block);
 		initList.add(skWhile);
 		return initList;
+	}
+	public ExprNew getNewException() {
+		return method.getNewException();
 	}
 }
