@@ -19,6 +19,7 @@ public class SketchSourceTransformer extends AbstractSketchTransformer {
 	public void transform(MethodData method, LinePyGenerator utility, List<MethodData> locations) {
 		// know which method to transform, know which lines should be
 		// transformed.
+		this.utility = utility;
 //		for (MethodData method : locations) {
 		//DEBUG only test first location
 			createRepairCandidate(method, utility.getFileLines(method.getClassFullPath()), locations);

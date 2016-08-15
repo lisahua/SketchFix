@@ -4,13 +4,16 @@
 package ece.utexas.edu.sketchFix.staticTransform;
 
 import java.util.List;
+import java.util.Vector;
 
+import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
 public class SketchTransformProcessor {
-	Argument arg = null;
+	private Argument arg = null;
+	private Vector<LinePy> trace;
 
 	public SketchTransformProcessor(Argument argument) {
 		arg = argument;

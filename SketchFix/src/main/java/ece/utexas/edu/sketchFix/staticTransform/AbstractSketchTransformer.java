@@ -16,12 +16,11 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
-import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
@@ -51,6 +50,7 @@ public abstract class AbstractSketchTransformer {
 	protected List<Function> methods = new ArrayList<Function>();
 	protected List<StructDef> structs = new ArrayList<StructDef>();
 	protected boolean harness = false;
+	protected LinePyGenerator utility = null;
 
 	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
@@ -62,9 +62,8 @@ public abstract class AbstractSketchTransformer {
 			return;
 		System.out.println("[Checking suspicious location:]" + method.getClassFullPath());
 		parseFile(code, method);
-		if (astLines == null)
-			return;
-		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, astLines, method.getBaseDirs());
+		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, method.getTouchLinesList(),
+				method.getBaseDirs(), utility);
 		mtdDecl.setHarness(harness);
 		Function function = (Function) mtdDecl.transform(currentMtd);
 		StructDefGenerator generator = new StructDefGenerator(mtdDecl.getUseRecorder(), mtdDecl.getTypeResolver());
@@ -91,82 +90,35 @@ public abstract class AbstractSketchTransformer {
 		MethodDeclaration[] methods = type.getMethods();
 		// FieldDeclaration[] fields = type.getFields();
 		currentMtd = null;
-		HashSet<MethodDeclaration> overloadMtd = new HashSet<MethodDeclaration>();
+		List<String> param = method.getParams();
+		// HashSet<MethodDeclaration> overloadMtd = new
+		// HashSet<MethodDeclaration>();
 		for (MethodDeclaration mtd : methods) {
 			if (mtd.getName().toString().equals(method.getMethodName())) {
-				overloadMtd.add(mtd);
+				// check param
+				List<SingleVariableDeclaration> params = mtd.parameters();
+				if (params.size() != param.size())
+					continue;
+				boolean flag = true;
+				for (int i = 0; i < params.size(); i++) {
+					if (!params.get(i).getType().toString().equals(param.get(i))) {
+						flag = false;
+						break;
+					}
+				}
+				if (flag == false)
+					continue;
+				else {
+					currentMtd = mtd;
+					return;
+				}
 			}
 		}
-		List<LinePy> lines = method.getTouchLinesList();
+		// List<LinePy> lines = method.getTouchLinesList();
 		// List<Statement> statements = (List<Statement>)
 		// currentMtd.getBody().statements();
-		astLines = matchLinePyStatementNode(lines, overloadMtd);
+		// astLines = matchLinePyStatementNode(lines, overloadMtd);
 	}
-
-	private List<ASTLinePy> matchLinePyStatementNode(List<LinePy> lines, HashSet<MethodDeclaration> methods) {
-
-		for (MethodDeclaration mDecl : methods) {
-			List<Statement> statements = (List<Statement>) mDecl.getBody().statements();
-			List<ASTLinePy> astLines = new ArrayList<ASTLinePy>();
-			boolean[] stmtMark = new boolean[statements.size()];
-			boolean[] lineMark = new boolean[lines.size()];
-			int id = 0;
-			for (int i = 0; i < statements.size(); i++) {
-				Statement stmt = statements.get(i);
-				String stmtS = stmt.toString().replace(" ", "").replace("\n", "");
-				for (; id < lines.size(); id++) {
-					if (lineMark[id] == true)
-						continue;
-					String key = lines.get(id).getSourceLine().replace("\n", "").replace("\t", "").replace(" ", "");
-					if (stmtS.indexOf(key) > -1) {
-						lineMark[id] = true;
-						if (stmtMark[i] == false) {
-							ASTLinePy astLine = new ASTLinePy(lines.get(id), stmt);
-							astLines.add(astLine);
-							stmtMark[i] = true;
-
-						} else {
-							astLines.get(i - 1).addLinePy(lines.get(id));
-						}
-					} else
-						break;
-
-				}
-				boolean check = true;
-				for (boolean mark : lineMark) {
-					check = check && mark;
-				}
-				if (check) {
-					currentMtd = mDecl;
-					return astLines;
-				}
-			}
-
-		}
-		return null;
-	}
-	// protected Program generate() {
-	// MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(type,
-	// type.getFields(), astLines);
-	// Function function = (Function) mtdDecl.transform(currentMtd);
-	// // TODO create structDef correspondingly
-	// methods.addAll(StructDefGenerator.createMethods(locations));
-	// methods.add(function);
-	// structs.addAll(StructDefGenerator.createStructs());
-	// Program empty = Program.emptyProgram();
-	// sketch.compiler.ast.core.Package pkg = new
-	// sketch.compiler.ast.core.Package(empty, AbstractASTAdapter.pkgName,
-	// structs, new ArrayList<FieldDecl>(), methods, new
-	// ArrayList<StmtSpAssert>());
-	// List<sketch.compiler.ast.core.Package> pkgList = new
-	// ArrayList<sketch.compiler.ast.core.Package>();
-	// pkgList.add(pkg);
-	//
-	// ProgramCreator progCreator = new ProgramCreator(empty, pkgList, new
-	// HashSet<Directive>());
-	// return progCreator.create();
-	//
-	// }
 
 	public void writeToFile(String path) {
 		Program empty = Program.emptyProgram();

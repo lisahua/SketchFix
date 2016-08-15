@@ -14,7 +14,8 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
-import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
+import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
+import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
@@ -33,7 +34,7 @@ import sketch.compiler.ast.core.typs.Type;
 public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeDeclaration clazz;
 	// private FieldDeclaration[] fields;
-	private List<ASTLinePy> astLines;
+	private List<LinePy> touchLines;
 	// private HashMap<String, Type> fieldType = new HashMap<String, Type>();
 	private HashMap<String, Type> varType = new HashMap<String, Type>();
 	// private HashMap<String, Type> usedFieldType = new HashMap<String,
@@ -45,15 +46,20 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeUsageRecorder useRecorder = new TypeUsageRecorder();
 	private boolean harness = false;
 	private ExprNew newExcp = null;
+//	private List<LinePy> dynamicLine = null;
+	private LinePyGenerator utility;
 
 	@SuppressWarnings("unchecked")
-	public MethodDeclarationAdapter(CompilationUnit cu, List<ASTLinePy> astLines, String[] srcDir) {
+	public MethodDeclarationAdapter(CompilationUnit cu, List<LinePy> list, String[] srcDir,
+			LinePyGenerator utility) {
 		// TypeDeclaration clazz, FieldDeclaration[] fields,
+		this.utility = utility;
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
-		this.astLines = astLines;
+		this.touchLines = list;
 		typeResolver = new TypeResolver(cu.imports(), clazz, srcDir);
-		stmtAdapter = new StatementAdapter(this);
+		stmtAdapter = new StatementAdapter(this, list,srcDir);
+	
 	}
 
 	public void setHarness(boolean har) {
@@ -74,6 +80,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 		List<Statement> body = new ArrayList<Statement>();
 		List<org.eclipse.jdt.core.dom.Statement> stmts = ((Block) method.getBody()).statements();
+		
+
 		for (org.eclipse.jdt.core.dom.Statement stmt : stmts) {
 			// for (ASTLinePy line : astLines) {
 			// org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
@@ -84,6 +92,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 				body.add((Statement) obj);
 			else
 				body.addAll((List<Statement>) obj);
+
+	
 		}
 
 		StmtBlock block = new StmtBlock(getMethodContext(), body);
@@ -121,7 +131,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 				AbstractASTAdapter.excepName);
 		param.add(excpParam);
 		varType.put(AbstractASTAdapter.excepName, AbstractASTAdapter.excepType);
-		
+
 		// return value;
 		rtnType = (Type) TypeAdapter.getType(returnType.toString());
 		if (rtnType != null) {
@@ -223,8 +233,13 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	}
 
 	public ExprNew getNewException() {
-		if (newExcp==null)
-			newExcp = new ExprNew(getMethodContext(), AbstractASTAdapter.excepType, new ArrayList<ExprNamedParam>(), false);
+		if (newExcp == null)
+			newExcp = new ExprNew(getMethodContext(), AbstractASTAdapter.excepType, new ArrayList<ExprNamedParam>(),
+					false);
 		return newExcp;
+	}
+
+	public LinePyGenerator getLinePyGenerator() {
+		return utility;
 	}
 }

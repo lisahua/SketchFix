@@ -22,6 +22,7 @@ public class SketchAssertTransformer extends AbstractSketchTransformer {
 	public void transform(MethodData method, LinePyGenerator utility, List<MethodData> locations) {
 		// know which method to transform, know which lines should be
 		// transformed.
+		this.utility = utility;
 		// for (MethodData method : locations) {
 		try {
 			setHarness(true);

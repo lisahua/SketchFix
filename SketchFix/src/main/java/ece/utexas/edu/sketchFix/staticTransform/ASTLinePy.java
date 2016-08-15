@@ -14,7 +14,19 @@ public class ASTLinePy {
 
 	private List<LinePy> linePyList = new ArrayList<LinePy>();
 	private org.eclipse.jdt.core.dom.Statement statement;
-	
+	private String firstLinePyString = "";
+
+	public ASTLinePy() {
+
+	}
+
+	public void setFirstLineString(String line) {
+		firstLinePyString = line;
+	}
+
+	public String getLinePyString() {
+		return firstLinePyString;
+	}
 
 	public ASTLinePy(LinePy linePy, Statement stmt) {
 		linePyList.add(linePy);
@@ -40,6 +52,21 @@ public class ASTLinePy {
 	public void setStatement(org.eclipse.jdt.core.dom.Statement statement) {
 		this.statement = statement;
 	}
-	
-	
+
+	public String getStateIfAny() {
+		StringBuilder builder = new StringBuilder();
+		for (LinePy line : linePyList) {
+			if (builder.toString().contains(line.getStoreStateString()))
+				continue;
+			builder.append(line.getStoreStateString());
+		}
+		return builder.toString();
+	}
+
+	public String toString() {
+		if (linePyList.size() > 0)
+			return linePyList.get(0).toString() + "--state " + getStateIfAny();
+		return "";
+	}
+
 }

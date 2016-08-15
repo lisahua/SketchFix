@@ -18,6 +18,8 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
+import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
+import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
@@ -41,10 +43,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 	MethodDeclarationAdapter method;
 	ExpressionAdapter exprAdapter;
 	List<Statement> stmtList = new ArrayList<Statement>();
+	StmtStateMapper mapper;
 
-	public StatementAdapter(MethodDeclarationAdapter node) {
+	public StatementAdapter(MethodDeclarationAdapter node, List<LinePy> list,String[] baseDir) {
 		method = node;
 		exprAdapter = new ExpressionAdapter(this);
+		mapper =new StmtStateMapper(node.getLinePyGenerator().getTrace(), list,baseDir);
 	}
 
 	public void insertStmt(Statement stmt) {
@@ -67,6 +71,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 			ReturnStatement rtnStmt = (ReturnStatement) stmt;
 			Expression right = (Expression) exprAdapter.transform(rtnStmt.getExpression());
 			Expression left = AbstractASTAdapter.getRtnObj();
+			mapper.insertStmt(stmt,exprAdapter.resolveType(left).toString());
 			StmtAssign assign = new StmtAssign(method.getMethodContext(), left, right);
 			stmtList.add(assign);
 			stmtList.add(new StmtReturn(method.getMethodContext(), null));
@@ -95,14 +100,19 @@ public class StatementAdapter extends AbstractASTAdapter {
 			}
 			return new StmtBlock(method.getMethodContext(), skList);
 		} else if (stmt instanceof ExpressionStatement) {
+
 			ExpressionStatement exprStmt = (ExpressionStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression expr = exprStmt.getExpression();
 			Object obj = exprAdapter.transform(expr);
-			if (obj instanceof Statement)
+			if (obj instanceof Statement) {
 				stmtList.add((Statement) obj);
+				// FIXME buggy
+				mapper.insertStmt(exprStmt, exprAdapter.getCurrType().toString());
+			}
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
 		} else if (stmt instanceof ThrowStatement) {
+			mapper.insertStmt(stmt, AbstractASTAdapter.excepType.toString());
 			ThrowStatement throwStmt = (ThrowStatement) stmt;
 			Object obj = exprAdapter.transform(throwStmt.getExpression());
 			if (obj instanceof Exception) {
@@ -184,6 +194,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 	private void handleVarDecl(VariableDeclarationStatement vds) {
 		org.eclipse.jdt.core.dom.Type jType = vds.getType();
 		Type sType = TypeAdapter.getType(jType.toString());
+		mapper.insertStmt(vds,sType.toString());
+
 		exprAdapter.setCurrVarType(sType);
 		List<VariableDeclarationFragment> list = vds.fragments();
 		List<Type> types = new ArrayList<Type>();
@@ -265,7 +277,9 @@ public class StatementAdapter extends AbstractASTAdapter {
 		initList.add(skWhile);
 		return initList;
 	}
+
 	public ExprNew getNewException() {
 		return method.getNewException();
 	}
+
 }

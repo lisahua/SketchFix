@@ -39,8 +39,19 @@ public class MethodData implements Comparable<MethodData> {
 		return className;
 	}
 
-	public String getParams() {
-		return params;
+	public List<String> getParams() {
+		if (params.indexOf("(") < 0 || (params.indexOf(")") - params.indexOf("(") < 2))
+			return new ArrayList<String>();
+		String paraList = params.substring(params.indexOf("(") + 1, params.indexOf(")"));
+		String[] tokens = paraList.split(";");
+		List<String> pTypes = new ArrayList<String>();
+		for (String t : tokens) {
+			if (!t.contains("/"))
+				continue;
+			String type = t.substring(t.lastIndexOf("/") + 1);
+			pTypes.add(type);
+		}
+		return pTypes;
 	}
 
 	public void setClassName(String className) {

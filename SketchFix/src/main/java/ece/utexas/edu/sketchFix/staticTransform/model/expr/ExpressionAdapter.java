@@ -340,6 +340,10 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		currVarType = null;
 	}
 
+	public Type getCurrType() {
+		return currVarType;
+	}
+
 	private ExprNamedParam convExprParam(Expression exp, String type) {
 		ExprNamedParam param = null;
 		if (exp instanceof ExprVar) {
