@@ -42,23 +42,15 @@ public class StmtStateMapper {
 	 * @param vds
 	 * @param string
 	 */
-	public Object insertStmt(Statement stmt, String type) {
+	public StateRequest insertStmt(Statement stmt, String type) {
 		String stmtS = stmt.toString().replace(" ", "").replace("\n", "").replace("\t", "");
 		for (String key : strLine.keySet()) {
 			if (!stmtS.contains(key))
 				continue;
 			ASTLinePy item = strLine.get(key);
 			String state = item.getStateIfAny();
-			System.out.println(stmt + "," + type + "," + item);
-			try {
-				String ts = classNames.get(type);
-				if (state.length() == 0 || ts == null)
-					return null;
-				Object restore = mapper.readValue(state, Class.forName(ts));
-				return restore;
-			} catch (Exception e) {
-				return null;
-			}
+			if (state.length()>0)
+				return new StateRequest(type, stmt,item);
 		}
 		return null;
 	}
