@@ -179,9 +179,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 			return TypeAdapter.getType(clazz.getName().toString());
 		else if (var.equals(AbstractASTAdapter.returnObj))
 			return rtnType;
-
-		String fType = typeResolver.getFieldType(clazz.getName().toString(), var);
-		return TypeAdapter.getType(fType);
+		return null;
+		// String fType = typeResolver.getFieldType(clazz.getName().toString(),
+		// var);
+		// return TypeAdapter.getType(fType);
 	}
 
 	public Type getMethodReturnType(String type, String method) {

@@ -95,8 +95,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			return handlePostfixExpr(expr);
 		} else if (expr instanceof SimpleName) {
 			// VariableDeclarationExpression --> ExprVar
-			Name varDecl = (Name) expr;
-			return new ExprVar(stmtAdapter.getMethodContext(), varDecl.getFullyQualifiedName());
+			return handleSimpleName(expr);
 		} else if (expr instanceof QualifiedName) {
 			return handleQualifiedName(expr);
 		}
@@ -442,7 +441,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		ClassInstanceCreation instNew = (ClassInstanceCreation) expr;
 		// org.eclipse.jdt.core.dom.Type type = instNew.getType();
 		String sType = currVarType.toString();
-		if (currVarType==null)
+		if (currVarType == null)
 			sType = instNew.getType().toString();
 		List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
 		List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
@@ -503,4 +502,14 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		return field;
 	}
 
+	private Object handleSimpleName(ASTNode expr) {
+		Name varDecl = (Name) expr;
+		String name = varDecl.getFullyQualifiedName();
+		Type type = stmtAdapter.getVarType(name);
+		if (type != null)
+			return new ExprVar(stmtAdapter.getMethodContext(), name);
+		ExprField field = new ExprField(stmtAdapter.getMethodContext(), thisObj, name, false);
+		return field;
+
+	}
 }

@@ -8,8 +8,8 @@ import org.junit.Test;
 import ece.utexas.edu.sketchFix.main.RepairMain;
 
 public class TestRepairProcessor {
-@Test
-	public  void main() {
+	@Test
+	public void main() {
 		// String[] arg = {
 		// "org.jfree.chart.renderer.category.junit.AbstractCategoryItemRendererTests",
 		// "test2947660" };
