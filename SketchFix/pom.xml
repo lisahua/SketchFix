@@ -106,12 +106,12 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>${jackson.version}</version>
-        </dependency> -->
+        </dependency>
         <dependency>
 <groupId>org.jfree</groupId>
 <artifactId>jfreechart</artifactId>
 <version>1.0.19</version>
-</dependency>
+</dependency> -->
  		<dependency>
   		<groupId>ece.utexas.edu</groupId>
   		<artifactId>sketch</artifactId>

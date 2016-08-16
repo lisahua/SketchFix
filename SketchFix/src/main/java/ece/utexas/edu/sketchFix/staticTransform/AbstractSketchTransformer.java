@@ -190,10 +190,10 @@ public abstract class AbstractSketchTransformer {
 			names.add(entry.getKey());
 			types.add(entry.getValue());
 		}
-		for (Map.Entry<String, Type> entry : two.getFieldTypMap()) {
-			names.add(entry.getKey());
-			types.add(entry.getValue());
-		}
+//		for (Map.Entry<String, Type> entry : two.getFieldTypMap()) {
+//			names.add(entry.getKey());
+//			types.add(entry.getValue());
+//		}
 		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
 		creator.annotations(annotations);
 		creator.fields(names, types);

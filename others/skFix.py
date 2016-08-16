@@ -34,9 +34,9 @@ def _main_():
         tmp=script+clsList[i]+"  -Dtest.entry.method="+mtdList[i]
         print tmp
         os.system(tmp)
-        os.system("cp .trace_state.txt .trace_state"+str(i)+".txt")
-
-    os.system("ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"  sketchFix.repair ")
+        os.system("cat .trace_state.txt | wc -l >> .tmp/multi_trace.txt")
+        os.system("ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"  sketchFix.repair ")
+        os.system("cp .sketchOrig.sk .tmp/sketchOrig"+str(i)+".sk")
         
         
 _main_()

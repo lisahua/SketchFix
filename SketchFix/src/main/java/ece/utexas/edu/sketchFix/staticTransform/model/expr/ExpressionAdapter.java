@@ -150,7 +150,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			CharacterLiteral charOrString = (CharacterLiteral) expr;
 			// TODO char expression
 		} else if (expr instanceof StringLiteral) {
-			return handleStringLiteral(expr);
+			return handleStringLiteral_char(expr);
 		}
 
 		return null;
@@ -216,7 +216,6 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		if (invoker == null)
 			invoker = thisObj;
 		invokerType = resolveType(invoker).toString();
-		
 
 		List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
 		expArg.add(invoker);
@@ -240,9 +239,9 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 				expArg.add(new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName()));
 				stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), 10, type.toString());
 			}
-			for (int i = 1; i < expArg.size()-1; i++) {
-				 stmtAdapter.updateParaType(invokerType,
-				 mtdModel.getMethodName(), i, resolveType(expArg.get(i)).toString());
+			for (int i = 1; i < expArg.size() - 1; i++) {
+				stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), i,
+						resolveType(expArg.get(i)).toString());
 			}
 		}
 
@@ -270,7 +269,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (name.equals("assertFalse")) {
 			if (param.size() == 0)
 				return null;
-			
+
 			return new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0),
 					new ExprConstInt(stmtAdapter.getMethodContext(), 0));
 		} else if (name.equals("assertTrue")) {
@@ -408,6 +407,24 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		ExprArrayInit arrInit = new ExprArrayInit(stmtAdapter.getMethodContext(), initEle);
 		StmtVarDecl varStmt = new StmtVarDecl(stmtAdapter.getMethodContext(), array, strName, arrInit);
 		stmtAdapter.insertStmt(varStmt);
+		return new ExprVar(stmtAdapter.getMethodContext(), strName);
+	}
+
+	private Object handleStringLiteral_char(ASTNode expr) {
+		String strName = getNextName();
+
+		StringLiteral string = (StringLiteral) expr;
+		String value = string.getLiteralValue();
+		// FIXME what if empty string?
+		ExprConstChar newC = null;
+		if (value.length() > 0)
+			newC = ExprConstChar.create(value.charAt(0));
+		else
+			newC = ExprConstChar.zero;
+		StmtVarDecl varStmt = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.chartype, strName, newC);
+		stmtAdapter.insertStmt(varStmt);
+		stmtAdapter.insertVarDecl(strName, TypePrimitive.chartype);
+
 		return new ExprVar(stmtAdapter.getMethodContext(), strName);
 	}
 
