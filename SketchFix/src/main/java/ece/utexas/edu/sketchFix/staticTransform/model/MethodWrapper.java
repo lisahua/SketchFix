@@ -40,7 +40,7 @@ public class MethodWrapper {
 			paramList.remove(id);
 		if (id <= 0 || id >= paramList.size())
 			paramList.add(type);
-		else
+		else if (!paramList.get(id).equals(type))
 			paramList.add(id, type);
 	}
 

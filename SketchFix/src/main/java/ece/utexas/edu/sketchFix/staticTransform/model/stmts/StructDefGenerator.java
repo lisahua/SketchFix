@@ -53,7 +53,7 @@ public class StructDefGenerator {
 
 	private void initStructDef(String typeName, HashSet<String> fields, HashMap<String, String> constructor) {
 		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("[") || typeName.contains("bit")
-				|| typeName.contains("boolean"))
+				|| typeName.contains("boolean")|| typeName.contains("char"))
 			return;
 
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
