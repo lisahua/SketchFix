@@ -440,17 +440,19 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 	private Object handleClassInstance(ASTNode expr) {
 		ClassInstanceCreation instNew = (ClassInstanceCreation) expr;
-		org.eclipse.jdt.core.dom.Type type = instNew.getType();
-
+		// org.eclipse.jdt.core.dom.Type type = instNew.getType();
+		String sType = currVarType.toString();
+		if (currVarType==null)
+			sType = instNew.getType().toString();
 		List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
 		List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
 		for (org.eclipse.jdt.core.dom.Expression e : param) {
 			Expression para = (Expression) transform(e);
-			skParam.add((convExprParam(para, type.toString())));
+			skParam.add((convExprParam(para, sType)));
 
 		}
 		sketch.compiler.ast.core.exprs.Expression skExpr = new ExprNew(stmtAdapter.getMethodContext(),
-				(Type) TypeAdapter.getType(type.toString()), skParam, false);
+				(Type) TypeAdapter.getType(sType), skParam, false);
 		return skExpr;
 	}
 

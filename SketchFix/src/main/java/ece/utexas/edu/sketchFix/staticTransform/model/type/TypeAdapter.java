@@ -72,7 +72,7 @@ public class TypeAdapter {
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.doubletype;
 		else if (name.equals("bit") || name.equals("boolean"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.bittype;
-		else if (name.equals("char"))
+		else if (name.equals("char")||name.equals("String"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.chartype;
 		else
 			type = (typeMap.containsKey(name)) ? typeMap.get(name)
