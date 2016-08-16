@@ -440,9 +440,12 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 	private Object handleClassInstance(ASTNode expr) {
 		ClassInstanceCreation instNew = (ClassInstanceCreation) expr;
 		// org.eclipse.jdt.core.dom.Type type = instNew.getType();
-		String sType = currVarType.toString();
+		String sType = null;
 		if (currVarType == null)
 			sType = instNew.getType().toString();
+		else
+			sType = currVarType.toString();
+
 		List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
 		List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
 		for (org.eclipse.jdt.core.dom.Expression e : param) {
