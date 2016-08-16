@@ -112,13 +112,14 @@ public class StatementAdapter extends AbstractASTAdapter {
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
 		} else if (stmt instanceof ThrowStatement) {
-			mapper.insertStmt(stmt, AbstractASTAdapter.excepType.toString());
+//			mapper.insertStmt(stmt, AbstractASTAdapter.excepType.toString());
 			ThrowStatement throwStmt = (ThrowStatement) stmt;
 			Object obj = exprAdapter.transform(throwStmt.getExpression());
 			if (obj instanceof Exception) {
-				StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(), AbstractASTAdapter.excepType,
-						AbstractASTAdapter.excepName, (Expression) obj);
-				stmtList.add(decl);
+				String name = obj.getClass().getName();
+//				StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(), TypeAdapter.getType(name),
+//						AbstractASTAdapter.excepName, (Expression) obj);
+//				stmtList.add(decl);
 				stmtList.add(new StmtReturn(method.getMethodContext(), null));
 				return stmtList;
 			}
@@ -140,18 +141,18 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return method.getMethodReturnType(type, name);
 	}
 
-	public void insertUseMethod(String type, String name) {
-		method.insertUseMethod(type, name);
+//	public void insertUseMethod(String type, String name) {
+//		useRecorder.insertMethod(type, name);
+//
+//	}
+//
+//	public void insertUseField(String type, String field) {
+//		method.insertUseField(type, field);
+//	}
 
-	}
-
-	public void insertUseField(String type, String field) {
-		method.insertUseField(type, field);
-	}
-
-	public String insertUseConstructor(String type, String varType) {
-		return method.insertUseConstructor(type, varType);
-	}
+//	public String insertUseConstructor(String type, String varType) {
+//		return method.insertUseConstructor(type, varType);
+//	}
 
 	public Type getFieldTypeOf(String type, String field) {
 		return method.getFieldTypeOf(type, field);
@@ -278,8 +279,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return initList;
 	}
 
-	public ExprNew getNewException() {
-		return method.getNewException();
-	}
+//	public ExprNew getNewException() {
+//		return method.getNewException();
+//	}
 
 }

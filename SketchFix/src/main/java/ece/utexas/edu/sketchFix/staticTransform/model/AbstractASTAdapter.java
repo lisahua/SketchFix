@@ -8,6 +8,7 @@ import java.util.List;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.ast.core.FEContext;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
@@ -29,8 +30,10 @@ public abstract class AbstractASTAdapter {
 	public static final String nextName = "_tmp";
 	private static int nextNameCount = 0;
 	public static final String pkgName = "sketchFix";
-	public static final String excepName = "_exceptionObj";
-	public static final Type excepType = TypeAdapter.getType("Exception");
+	protected static TypeUsageRecorder useRecorder = new TypeUsageRecorder();
+
+	// public static final String excepName = "_exceptionObj";
+	// public static final Type excepType = TypeAdapter.getType("Exception");
 	/**
 	 * Transform a ASTNode to Sketch Node
 	 * 
@@ -38,6 +41,10 @@ public abstract class AbstractASTAdapter {
 	 * @return
 	 */
 	public abstract Object transform(ASTNode node);
+
+	public static TypeUsageRecorder getUseRecorder() {
+		return useRecorder;
+	}
 
 	public static FENode getContext() {
 		if (packageNode == null) {

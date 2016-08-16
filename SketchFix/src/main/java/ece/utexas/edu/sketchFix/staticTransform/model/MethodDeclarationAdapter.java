@@ -43,23 +43,22 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private FENode methodNode;
 	private Type rtnType;
 	private TypeResolver typeResolver;
-	private TypeUsageRecorder useRecorder = new TypeUsageRecorder();
+
 	private boolean harness = false;
 	private ExprNew newExcp = null;
-//	private List<LinePy> dynamicLine = null;
+	// private List<LinePy> dynamicLine = null;
 	private LinePyGenerator utility;
 
 	@SuppressWarnings("unchecked")
-	public MethodDeclarationAdapter(CompilationUnit cu, List<LinePy> list, String[] srcDir,
-			LinePyGenerator utility) {
+	public MethodDeclarationAdapter(CompilationUnit cu, List<LinePy> list, String[] srcDir, LinePyGenerator utility) {
 		// TypeDeclaration clazz, FieldDeclaration[] fields,
 		this.utility = utility;
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
 		this.touchLines = list;
 		typeResolver = new TypeResolver(cu.imports(), clazz, srcDir);
-		stmtAdapter = new StatementAdapter(this, list,srcDir);
-	
+		stmtAdapter = new StatementAdapter(this, list, srcDir);
+
 	}
 
 	public void setHarness(boolean har) {
@@ -72,16 +71,17 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		MethodDeclaration method = (MethodDeclaration) node;
 
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
-		creator.name(method.getName().toString());
-		methodNode = creator.create();
 
 		List<Parameter> param = generateParam(method);
 		creator.params(param);
-
+		String name = method.getName().toString();
+		for (int i = 1; i < param.size() - 1; i++)
+			name += "_" + param.get(i).getType().toString();
+		creator.name(name);
 		List<Statement> body = new ArrayList<Statement>();
 		List<org.eclipse.jdt.core.dom.Statement> stmts = ((Block) method.getBody()).statements();
-		
 
+		methodNode = creator.create();
 		for (org.eclipse.jdt.core.dom.Statement stmt : stmts) {
 			// for (ASTLinePy line : astLines) {
 			// org.eclipse.jdt.core.dom.Statement stmt = line.getStatement();
@@ -93,7 +93,6 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 			else
 				body.addAll((List<Statement>) obj);
 
-	
 		}
 
 		StmtBlock block = new StmtBlock(getMethodContext(), body);
@@ -118,6 +117,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(clazz.getName().toString()),
 				AbstractASTAdapter.thisClass);
 		param.add(thisParam);
+		// check if has been used before
+		// if (useRecorder)
 
 		for (SingleVariableDeclaration para : parameters) {
 			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(para.getType().toString()),
@@ -127,12 +128,15 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		}
 
 		// exception object
-		Parameter excpParam = new Parameter(getMethodContext(), AbstractASTAdapter.excepType,
-				AbstractASTAdapter.excepName);
-		param.add(excpParam);
-		varType.put(AbstractASTAdapter.excepName, AbstractASTAdapter.excepType);
+		// Parameter excpParam = new Parameter(getMethodContext(),
+		// AbstractASTAdapter.excepType,
+		// AbstractASTAdapter.excepName);
+		// param.add(excpParam);
+		// varType.put(AbstractASTAdapter.excepName,
+		// AbstractASTAdapter.excepType);
 
 		// return value;
+
 		rtnType = (Type) TypeAdapter.getType(returnType.toString());
 		if (rtnType != null) {
 			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
@@ -200,25 +204,25 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		return methodNode;
 	}
 
-	public void insertUseField(String type, String field) {
-		useRecorder.insertField(type, field);
-	}
-
-	public String insertUseConstructor(String type, String varType) {
-		return useRecorder.insertUseConstructor(type, varType);
-	}
-
-	public void insertUseMethod(String type, String method) {
-		useRecorder.insertMethod(type, method);
-	}
+	// public void insertUseField(String type, String field) {
+	// useRecorder.insertField(type, field);
+	// }
+	//
+	// public String insertUseConstructor(String type, String varType) {
+	// return useRecorder.insertUseConstructor(type, varType);
+	// }
+	//
+	// public void insertUseMethod(String type, String method) {
+	// useRecorder.insertMethod(type, method);
+	// }
 
 	public String getCurrentClassType() {
 		return clazz.getName().toString();
 	}
 
-	public TypeUsageRecorder getUseRecorder() {
-		return useRecorder;
-	}
+	// public TypeUsageRecorder getUseRecorder() {
+	// return useRecorder;
+	// }
 
 	public TypeResolver getTypeResolver() {
 		return typeResolver;
@@ -229,15 +233,16 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	}
 
 	private boolean isTestMethod(String name) {
-		return name.toLowerCase().contains("test");
+		return harness;
 	}
 
-	public ExprNew getNewException() {
-		if (newExcp == null)
-			newExcp = new ExprNew(getMethodContext(), AbstractASTAdapter.excepType, new ArrayList<ExprNamedParam>(),
-					false);
-		return newExcp;
-	}
+	// public ExprNew getNewException() {
+	// if (newExcp == null)
+	// newExcp = new ExprNew(getMethodContext(), AbstractASTAdapter.excepType,
+	// new ArrayList<ExprNamedParam>(),
+	// false);
+	// return newExcp;
+	// }
 
 	public LinePyGenerator getLinePyGenerator() {
 		return utility;

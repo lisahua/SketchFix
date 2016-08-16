@@ -26,6 +26,7 @@ public class MethodWrapper {
 		List<SingleVariableDeclaration> params = methodNode.parameters();
 		for (SingleVariableDeclaration para : params) {
 			paramType.put(para.getName().toString(), para.getType().toString());
+			methodName += "_" + para.getType().toString();
 		}
 	}
 

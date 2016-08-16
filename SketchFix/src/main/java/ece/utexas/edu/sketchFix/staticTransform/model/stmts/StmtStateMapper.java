@@ -27,6 +27,7 @@ public class StmtStateMapper {
 	HashMap<String, ASTLinePy> strLine = new HashMap<String, ASTLinePy>();
 	ObjectMapper mapper = new ObjectMapper();
 	HashMap<String, String> classNames = new HashMap<String, String>();
+	StateRequest request = new StateRequest();
 
 	public StmtStateMapper(Vector<LinePy> trace, List<LinePy> list, String[] baseDir) {
 		try {
@@ -42,17 +43,20 @@ public class StmtStateMapper {
 	 * @param vds
 	 * @param string
 	 */
-	public StateRequest insertStmt(Statement stmt, String type) {
+	public boolean insertStmt(Statement stmt, String type) {
 		String stmtS = stmt.toString().replace(" ", "").replace("\n", "").replace("\t", "");
+		boolean executed = false;
 		for (String key : strLine.keySet()) {
 			if (!stmtS.contains(key))
 				continue;
+			//FIXME buggy for repeating stmt
+			executed = true; 
 			ASTLinePy item = strLine.get(key);
 			String state = item.getStateIfAny();
-			if (state.length()>0)
-				return new StateRequest(type, stmt,item);
+			if (state.length() > 0)
+				request.insert(type, stmt, item);
 		}
-		return null;
+		return executed;
 	}
 
 	private TreeMap<Integer, ASTLinePy> init(Vector<LinePy> trace, List<LinePy> list) {

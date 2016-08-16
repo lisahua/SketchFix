@@ -108,6 +108,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 				VariableDeclarationFragment frag = frags.get(0);
 				StmtVarDecl var = new StmtVarDecl(stmtAdapter.getMethodContext(), sType, frag.getName().toString(),
 						(Expression) transform(frag.getInitializer()));
+				stmtAdapter.insertVarDecl(frag.getName().toString(), sType);
 				return var;
 			}
 			// TODO no idea
@@ -215,22 +216,21 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		if (invoker == null)
 			invoker = thisObj;
 		invokerType = resolveType(invoker).toString();
-		mtdModel = stmtAdapter.getMethodModel(invokerType, mtdInvoke.getName().toString());
-		stmtAdapter.insertUseMethod(invokerType, mtdInvoke.getName().toString());
+		
 
 		List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
 		expArg.add(invoker);
-
+		String name = mtdInvoke.getName().toString();
 		for (int i = 0; i < arg.size(); i++) {
 			Expression exp = (Expression) transform(arg.get(i));
 			if (exp != null) {
 				expArg.add(exp);
-				if (mtdModel != null && resolveType(exp) != null)
-					stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), i, resolveType(exp).toString());
+				name += "_" + resolveType(exp).toString();
 			}
 		}
-		expArg.add(stmtAdapter.getNewException());
-
+		mtdModel = stmtAdapter.getMethodModel(invokerType, name);
+		// expArg.add(stmtAdapter.getNewException());
+		useRecorder.insertMethod(invokerType, name);
 		if (mtdModel != null) {
 			Type type = TypeAdapter.getType(mtdModel.getReturnType());
 			if (mtdModel.getReturnType() == null && type == null)
@@ -240,9 +240,13 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 				expArg.add(new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName()));
 				stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), 10, type.toString());
 			}
+			for (int i = 1; i < expArg.size()-1; i++) {
+				 stmtAdapter.updateParaType(invokerType,
+				 mtdModel.getMethodName(), i, resolveType(expArg.get(i)).toString());
+			}
 		}
 
-		ExprFunCall expCall = new ExprFunCall(stmtAdapter.getMethodContext(), mtdInvoke.getName().toString(), expArg);
+		ExprFunCall expCall = new ExprFunCall(stmtAdapter.getMethodContext(), name, expArg);
 		return expCall;
 	}
 
@@ -266,6 +270,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (name.equals("assertFalse")) {
 			if (param.size() == 0)
 				return null;
+			
 			return new ExprBinary(stmtAdapter.getMethodContext(), ExprBinary.BINOP_EQ, param.get(0),
 					new ExprConstInt(stmtAdapter.getMethodContext(), 0));
 		} else if (name.equals("assertTrue")) {
@@ -348,7 +353,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		ExprNamedParam param = null;
 		if (exp instanceof ExprVar) {
 			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
+					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprConstInt) {
 			// StmtVarDecl varDecl = new
 			// StmtVarDecl(stmtAdapter.getMethodContext(),
@@ -357,7 +362,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			// resolveType(exp).toString()), exp);
 			// stmtAdapter.insertStmt(varDecl);
 			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
+					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprConstChar) {
 			// ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
 			// getNextName());
@@ -367,7 +372,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			// exp);
 			// stmtAdapter.insertStmt(varDecl);
 			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
+					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprConstFloat) {
 			// ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
 			// getNextName());
@@ -377,13 +382,13 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			// var.getName(), exp);
 			// stmtAdapter.insertStmt(varDecl);
 			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					stmtAdapter.insertUseConstructor(type, resolveType(exp).toString()), exp);
+					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
 		} else if (exp instanceof ExprField) {
 			// FIXME dont know
 		} else if (exp instanceof ExprNew) {
 			ExprNew newExp = (ExprNew) exp;
 			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					stmtAdapter.insertUseConstructor(type, newExp.getTypeToConstruct().toString()), exp);
+					useRecorder.insertUseConstructor(type, newExp.getTypeToConstruct().toString()), exp);
 		}
 		return param;
 	}

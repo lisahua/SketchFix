@@ -25,6 +25,7 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.FieldDecl;
@@ -40,6 +41,7 @@ import sketch.util.datastructures.HashmapList;
 public abstract class AbstractSketchTransformer {
 
 	public abstract void transform(MethodData method, LinePyGenerator utility, List<MethodData> locations);
+
 
 	protected List<MethodData> locations;
 	protected CompilationUnit cu;
@@ -66,7 +68,7 @@ public abstract class AbstractSketchTransformer {
 				method.getBaseDirs(), utility);
 		mtdDecl.setHarness(harness);
 		Function function = (Function) mtdDecl.transform(currentMtd);
-		StructDefGenerator generator = new StructDefGenerator(mtdDecl.getUseRecorder(), mtdDecl.getTypeResolver());
+		StructDefGenerator generator = new StructDefGenerator(AbstractASTAdapter.getUseRecorder(), mtdDecl.getTypeResolver());
 		// TODO create structDef correspondingly
 		methods.addAll(generator.getMethodMap());
 		methods.add(function);
@@ -205,7 +207,7 @@ public abstract class AbstractSketchTransformer {
 	}
 
 	private void mergeTwoMethod(Function one, Function two) {
-		if (one.getBody().toString().length() < two.getBody().toString().length())
+		if (one.toString().length() < two.toString().length())
 			return;
 		for (int i = 0; i < methods.size(); i++) {
 			if (methods.get(i).getName().equals(one.getName())) {
@@ -215,5 +217,6 @@ public abstract class AbstractSketchTransformer {
 		}
 		methods.add(one);
 	}
-
+	
+	
 }

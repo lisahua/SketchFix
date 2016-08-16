@@ -43,11 +43,20 @@ public class MethodData implements Comparable<MethodData> {
 		if (params.indexOf("(") < 0 || (params.indexOf(")") - params.indexOf("(") < 2))
 			return new ArrayList<String>();
 		String paraList = params.substring(params.indexOf("(") + 1, params.indexOf(")"));
-		String[] tokens = paraList.split(";");
 		List<String> pTypes = new ArrayList<String>();
+		if (!paraList.startsWith("L")) {
+			pTypes.add(resolvePrimitive(paraList.charAt(0)));
+		}
+		// FIXME may have more
+		String[] tokens = paraList.split(";");
+
 		for (String t : tokens) {
-			if (!t.contains("/"))
+			if (!t.contains("/")) {
+				if (t.length() == 1)
+					pTypes.add(resolvePrimitive(t.charAt(0)));
 				continue;
+			}
+
 			String type = t.substring(t.lastIndexOf("/") + 1);
 			pTypes.add(type);
 		}
@@ -219,4 +228,15 @@ public class MethodData implements Comparable<MethodData> {
 		classAbsolutePath = baseDir + classFullPath + ".java";
 	}
 
+	private String resolvePrimitive(char c) {
+		switch (c) {
+		case 'Z':
+			return "boolean";
+		case 'I':
+			return "int";
+		case 'F':
+			return "double";
+		}
+		return "";
+	}
 }
