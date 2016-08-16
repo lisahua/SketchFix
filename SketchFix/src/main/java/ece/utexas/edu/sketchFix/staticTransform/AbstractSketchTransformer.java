@@ -207,7 +207,7 @@ public abstract class AbstractSketchTransformer {
 	}
 
 	private void mergeTwoMethod(Function one, Function two) {
-		if (one.toString().length() < two.toString().length())
+		if (one.toString().length() <= two.toString().length())
 			return;
 		for (int i = 0; i < methods.size(); i++) {
 			if (methods.get(i).getName().equals(one.getName())) {

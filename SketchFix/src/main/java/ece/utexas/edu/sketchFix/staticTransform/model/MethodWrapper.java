@@ -36,12 +36,12 @@ public class MethodWrapper {
 	}
 
 	public void updateParam(int id, String type) {
-		if (id < paramList.size())
-			paramList.remove(id);
-		if (id <= 0 || id >= paramList.size())
+
+		if (id >= paramList.size()  )
 			paramList.add(type);
 		else if (!paramList.get(id).equals(type))
 			paramList.add(id, type);
+
 	}
 
 	public String getParamType(String name) {

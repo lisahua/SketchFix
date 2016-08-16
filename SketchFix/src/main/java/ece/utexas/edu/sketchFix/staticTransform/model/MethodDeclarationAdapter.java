@@ -168,14 +168,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 	public Type getFieldTypeOf(String type, String field) {
 		String fType = typeResolver.getFieldType(type, field);
-		String name = clazz.getName().toString();
-		if (type.equals(name)) {
-			useRecorder.insertField(type, field);
-			return TypeAdapter.getType(fType);
-		} else {
-			// TODO recursive check type
-		}
-		return null;
+		return TypeAdapter.getType(fType);
 	}
 
 	public Type getVarType(String var) {
@@ -246,5 +239,13 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 	public LinePyGenerator getLinePyGenerator() {
 		return utility;
+	}
+
+	public String getVarOfType(Type type) {
+		for (String name : varType.keySet()) {
+			if (varType.get(name).toString().equals(type.toString()))
+				return name;
+		}
+		return null;
 	}
 }

@@ -218,7 +218,6 @@ public class StatementAdapter extends AbstractASTAdapter {
 	@SuppressWarnings("unchecked")
 	private Object handleIfStmt(IfStatement ifStmt) {
 
-		//
 		org.eclipse.jdt.core.dom.Expression exp = ifStmt.getExpression();
 		org.eclipse.jdt.core.dom.Statement thenStmt = ifStmt.getThenStatement();
 		org.eclipse.jdt.core.dom.Statement elseStmt = ifStmt.getElseStatement();
@@ -282,5 +281,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 //	public ExprNew getNewException() {
 //		return method.getNewException();
 //	}
+public void insertUsedField(String type, String field) {
+	
+}
 
+public String getVarOfType(Type type) {
+	return method.getVarOfType(type);
+}
 }

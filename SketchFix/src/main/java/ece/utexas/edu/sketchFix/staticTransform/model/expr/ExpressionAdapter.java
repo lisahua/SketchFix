@@ -22,6 +22,8 @@ import org.eclipse.jdt.core.dom.NullLiteral;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
+import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
@@ -70,6 +72,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			return handleClassInstance(expr);
 		} else if (expr instanceof FieldAccess) {
 			FieldAccess jField = (FieldAccess) expr;
+
 			org.eclipse.jdt.core.dom.Expression exp = jField.getExpression();
 			sketch.compiler.ast.core.exprs.Expression skExpr = (sketch.compiler.ast.core.exprs.Expression) transform(
 					exp);
@@ -90,11 +93,15 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			return exprBin;
 		} else if (expr instanceof PostfixExpression) {
 			return handlePostfixExpr(expr);
-		} else if (expr instanceof Name) {
+		} else if (expr instanceof SimpleName) {
 			// VariableDeclarationExpression --> ExprVar
 			Name varDecl = (Name) expr;
 			return new ExprVar(stmtAdapter.getMethodContext(), varDecl.getFullyQualifiedName());
-		} else if (expr instanceof Assignment) {
+		} else if (expr instanceof QualifiedName) {
+			return handleQualifiedName(expr);
+		}
+
+		else if (expr instanceof Assignment) {
 			Assignment assign = (Assignment) expr;
 			Expression left = (Expression) transform(assign.getLeftHandSide());
 			currVarType = resolveType(left);
@@ -230,6 +237,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		mtdModel = stmtAdapter.getMethodModel(invokerType, name);
 		// expArg.add(stmtAdapter.getNewException());
 		useRecorder.insertMethod(invokerType, name);
+		int size = expArg.size();
 		if (mtdModel != null) {
 			Type type = TypeAdapter.getType(mtdModel.getReturnType());
 			if (mtdModel.getReturnType() == null && type == null)
@@ -239,8 +247,8 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 				expArg.add(new ExprVar(stmtAdapter.getMethodContext(), stmtAdapter.getLastInsertVarName()));
 				stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), 10, type.toString());
 			}
-			for (int i = 1; i < expArg.size() - 1; i++) {
-				stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), i,
+			for (int i = 1; i < size; i++) {
+				stmtAdapter.updateParaType(invokerType, mtdModel.getMethodName(), i - 1,
 						resolveType(expArg.get(i)).toString());
 			}
 		}
@@ -311,7 +319,9 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			ExprField fAccess = (ExprField) expr;
 			Expression left = fAccess.getLeft();
 			Type invoker = resolveType(left);
-			return stmtAdapter.getFieldTypeOf(invoker.toString(), fAccess.getName());
+			Type field = stmtAdapter.getFieldTypeOf(invoker.toString(), fAccess.getName());
+			useRecorder.insertField(invoker.toString(), fAccess.getName());
+			return field;
 		} else if (expr instanceof ExprFunCall) {
 			ExprFunCall funCall = (ExprFunCall) expr;
 			Expression rtnExp = funCall.getParams().get(funCall.getParams().size() - 1);
@@ -469,6 +479,26 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(), left, exprBin);
 		stmtAdapter.insertStmt(assign);
 		return exprBin;
+	}
+
+	private Object handleQualifiedName(ASTNode expr) {
+		QualifiedName staticQ = (QualifiedName) expr;
+		Type qualifier = TypeAdapter.getType(staticQ.getQualifier().toString());
+		String var = stmtAdapter.getVarOfType(qualifier);
+
+		if (var == null) {
+			var = getNextName();
+			ExprNew newInt = new ExprNew(stmtAdapter.getMethodContext(), qualifier, new ArrayList<ExprNamedParam>(),
+					false);
+			StmtVarDecl decl = new StmtVarDecl(stmtAdapter.getMethodContext(),
+					TypeAdapter.getType(staticQ.getQualifier().toString()), var, newInt);
+			stmtAdapter.insertVarDecl(decl.getName(0), decl.getType(0));
+			stmtAdapter.insertStmt(decl);
+		}
+		ExprVar varExp = new ExprVar(stmtAdapter.getMethodContext(), var);
+		ExprField field = new ExprField(stmtAdapter.getMethodContext(), varExp, staticQ.getName().toString(), false);
+		useRecorder.insertField(qualifier.toString(), field.getName());
+		return field;
 	}
 
 }
