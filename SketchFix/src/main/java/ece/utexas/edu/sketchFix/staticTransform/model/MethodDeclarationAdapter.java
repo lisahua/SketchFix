@@ -17,6 +17,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
@@ -33,21 +34,16 @@ import sketch.compiler.ast.core.typs.Type;
 
 public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeDeclaration clazz;
-	// private FieldDeclaration[] fields;
-	private List<LinePy> touchLines;
-	// private HashMap<String, Type> fieldType = new HashMap<String, Type>();
 	private HashMap<String, Type> varType = new HashMap<String, Type>();
-	// private HashMap<String, Type> usedFieldType = new HashMap<String,
-	// Type>();
 	private StatementAdapter stmtAdapter;
 	private FENode methodNode;
 	private Type rtnType;
 	private TypeResolver typeResolver;
 
 	private boolean harness = false;
-	private ExprNew newExcp = null;
-	// private List<LinePy> dynamicLine = null;
+//	private ExprNew newExcp = null;
 	private LinePyGenerator utility;
+	private StmtStateMapper stateMapper = null;
 
 	@SuppressWarnings("unchecked")
 	public MethodDeclarationAdapter(CompilationUnit cu, List<LinePy> list, String[] srcDir, LinePyGenerator utility) {
@@ -55,10 +51,9 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		this.utility = utility;
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
-		this.touchLines = list;
 		typeResolver = new TypeResolver(cu.imports(), clazz, srcDir);
-		stmtAdapter = new StatementAdapter(this, list, srcDir);
-
+		stmtAdapter = new StatementAdapter(this);
+		stateMapper = new StmtStateMapper(utility.getTrace(), list, srcDir);
 	}
 
 	public void setHarness(boolean har) {
@@ -248,5 +243,9 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 				return name;
 		}
 		return null;
+	}
+
+	public StmtStateMapper getStateMapper() {
+		return stateMapper;
 	}
 }

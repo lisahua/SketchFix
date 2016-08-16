@@ -43,12 +43,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 	MethodDeclarationAdapter method;
 	ExpressionAdapter exprAdapter;
 	List<Statement> stmtList = new ArrayList<Statement>();
-	StmtStateMapper mapper;
 
-	public StatementAdapter(MethodDeclarationAdapter node, List<LinePy> list,String[] baseDir) {
+	public StatementAdapter(MethodDeclarationAdapter node) {
 		method = node;
 		exprAdapter = new ExpressionAdapter(this);
-		mapper =new StmtStateMapper(node.getLinePyGenerator().getTrace(), list,baseDir);
+		// mapper =new StmtStateMapper(node.getLinePyGenerator().getTrace(),
+		// list,baseDir);
 	}
 
 	public void insertStmt(Statement stmt) {
@@ -71,7 +71,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 			ReturnStatement rtnStmt = (ReturnStatement) stmt;
 			Expression right = (Expression) exprAdapter.transform(rtnStmt.getExpression());
 			Expression left = AbstractASTAdapter.getRtnObj();
-			mapper.insertStmt(stmt,exprAdapter.resolveType(left).toString());
+			insertState(stmt, exprAdapter.resolveType(left).toString());
 			StmtAssign assign = new StmtAssign(method.getMethodContext(), left, right);
 			stmtList.add(assign);
 			stmtList.add(new StmtReturn(method.getMethodContext(), null));
@@ -107,19 +107,20 @@ public class StatementAdapter extends AbstractASTAdapter {
 			if (obj instanceof Statement) {
 				stmtList.add((Statement) obj);
 				// FIXME buggy
-				mapper.insertStmt(exprStmt, exprAdapter.getCurrType().toString());
+				insertState(exprStmt, exprAdapter.getCurrType().toString());
 			}
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
 		} else if (stmt instanceof ThrowStatement) {
-//			mapper.insertStmt(stmt, AbstractASTAdapter.excepType.toString());
+			// mapper.insertStmt(stmt, AbstractASTAdapter.excepType.toString());
 			ThrowStatement throwStmt = (ThrowStatement) stmt;
 			Object obj = exprAdapter.transform(throwStmt.getExpression());
 			if (obj instanceof Exception) {
 				String name = obj.getClass().getName();
-//				StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(), TypeAdapter.getType(name),
-//						AbstractASTAdapter.excepName, (Expression) obj);
-//				stmtList.add(decl);
+				// StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(),
+				// TypeAdapter.getType(name),
+				// AbstractASTAdapter.excepName, (Expression) obj);
+				// stmtList.add(decl);
 				stmtList.add(new StmtReturn(method.getMethodContext(), null));
 				return stmtList;
 			}
@@ -141,18 +142,18 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return method.getMethodReturnType(type, name);
 	}
 
-//	public void insertUseMethod(String type, String name) {
-//		useRecorder.insertMethod(type, name);
-//
-//	}
-//
-//	public void insertUseField(String type, String field) {
-//		method.insertUseField(type, field);
-//	}
+	// public void insertUseMethod(String type, String name) {
+	// useRecorder.insertMethod(type, name);
+	//
+	// }
+	//
+	// public void insertUseField(String type, String field) {
+	// method.insertUseField(type, field);
+	// }
 
-//	public String insertUseConstructor(String type, String varType) {
-//		return method.insertUseConstructor(type, varType);
-//	}
+	// public String insertUseConstructor(String type, String varType) {
+	// return method.insertUseConstructor(type, varType);
+	// }
 
 	public Type getFieldTypeOf(String type, String field) {
 		return method.getFieldTypeOf(type, field);
@@ -195,7 +196,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 	private void handleVarDecl(VariableDeclarationStatement vds) {
 		org.eclipse.jdt.core.dom.Type jType = vds.getType();
 		Type sType = TypeAdapter.getType(jType.toString());
-		mapper.insertStmt(vds,sType.toString());
+		insertState(vds, sType.toString());
 
 		exprAdapter.setCurrVarType(sType);
 		List<VariableDeclarationFragment> list = vds.fragments();
@@ -278,14 +279,18 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return initList;
 	}
 
-//	public ExprNew getNewException() {
-//		return method.getNewException();
-//	}
-public void insertUsedField(String type, String field) {
-	
-}
+	// public ExprNew getNewException() {
+	// return method.getNewException();
+	// }
+	// private void insertUsedField(String type, String field) {
+	//
+	// }
 
-public String getVarOfType(Type type) {
-	return method.getVarOfType(type);
-}
+	public String getVarOfType(Type type) {
+		return method.getVarOfType(type);
+	}
+
+	public void insertState(org.eclipse.jdt.core.dom.Statement stmt, String type) {
+		method.getStateMapper().insertStmt(stmt, type);
+	}
 }

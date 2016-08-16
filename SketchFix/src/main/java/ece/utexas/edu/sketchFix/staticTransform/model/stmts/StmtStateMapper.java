@@ -59,6 +59,7 @@ public class StmtStateMapper {
 		return executed;
 	}
 
+	
 	private TreeMap<Integer, ASTLinePy> init(Vector<LinePy> trace, List<LinePy> list) {
 		TreeMap<Integer, ASTLinePy> allMapping = new TreeMap<Integer, ASTLinePy>();
 		Iterator<LinePy> traceItr = trace.iterator();
@@ -147,8 +148,8 @@ public class StmtStateMapper {
 					if (stmtS.indexOf(key) > -1) {
 						lineMark[id] = true;
 						if (stmtMark[i] == false) {
-							ASTLinePy astLine = new ASTLinePy(lines.get(id), stmt);
-							astLines.add(astLine);
+//							ASTLinePy astLine = new ASTLinePy(lines.get(id), stmt);
+//							astLines.add(astLine);
 							stmtMark[i] = true;
 
 						} else {

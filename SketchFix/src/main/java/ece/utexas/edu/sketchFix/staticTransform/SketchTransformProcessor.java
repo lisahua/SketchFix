@@ -10,6 +10,8 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
+import ece.utexas.edu.sketchFix.stateRevert.StateReverter;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
 
 public class SketchTransformProcessor {
 	private Argument arg = null;
@@ -25,18 +27,23 @@ public class SketchTransformProcessor {
 		// FIXME buggy
 		testMethod.setBasrDirs(arg.getSourceDir());
 		testMethod.setBaseDir(arg.getSourceDir()[1]);
+		// transform sketch assertion
 		assertTran.transform(testMethod, generator, locations);
 		// assertTran.writeToFile(outputFile+"2");
+//		StmtStateMapper assState = assertTran.getStateMapper();
 
 		AbstractSketchTransformer sourceTran = new SketchSourceTransformer();
 		MethodData data = locations.get(0);
 		data.setBaseDir(arg.getSourceDir()[0]);
 		data.setBasrDirs(arg.getSourceDir());
 		sourceTran.transform(locations.get(0), generator, locations);
-		assertTran.mergeAnotherTransformer(sourceTran);
-		assertTran.writeToFile(outputFile);
-		// transform sketch assertion
+//		StmtStateMapper sourceState = sourceTran.getStateMapper();
 
+		StateReverter reverter = new StateReverter(assertTran, sourceTran);
+		reverter.writeToFile(outputFile);
+
+//		assertTran.mergeAnotherTransformer(sourceTran);
+//		assertTran.writeToFile(outputFile);
 	}
 
 }

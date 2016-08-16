@@ -19,13 +19,12 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
-import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
-import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.FieldDecl;
@@ -42,7 +41,6 @@ public abstract class AbstractSketchTransformer {
 
 	public abstract void transform(MethodData method, LinePyGenerator utility, List<MethodData> locations);
 
-
 	protected List<MethodData> locations;
 	protected CompilationUnit cu;
 	protected List<ASTLinePy> astLines;
@@ -53,6 +51,7 @@ public abstract class AbstractSketchTransformer {
 	protected List<StructDef> structs = new ArrayList<StructDef>();
 	protected boolean harness = false;
 	protected LinePyGenerator utility = null;
+	protected StmtStateMapper stateMapper = null;
 
 	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
@@ -68,12 +67,13 @@ public abstract class AbstractSketchTransformer {
 				method.getBaseDirs(), utility);
 		mtdDecl.setHarness(harness);
 		Function function = (Function) mtdDecl.transform(currentMtd);
-		StructDefGenerator generator = new StructDefGenerator(AbstractASTAdapter.getUseRecorder(), mtdDecl.getTypeResolver());
+		StructDefGenerator generator = new StructDefGenerator(AbstractASTAdapter.getUseRecorder(),
+				mtdDecl.getTypeResolver());
 		// TODO create structDef correspondingly
 		methods.addAll(generator.getMethodMap());
 		methods.add(function);
 		structs.addAll(generator.getStructDefMap());
-
+		stateMapper = mtdDecl.getStateMapper();
 	}
 
 	protected void setHarness(boolean har) {
@@ -121,8 +121,8 @@ public abstract class AbstractSketchTransformer {
 		// currentMtd.getBody().statements();
 		// astLines = matchLinePyStatementNode(lines, overloadMtd);
 	}
-
-	public void writeToFile(String path) {
+@Deprecated
+	private void writeToFile(String path) {
 		Program empty = Program.emptyProgram();
 		sketch.compiler.ast.core.Package pkg = new sketch.compiler.ast.core.Package(empty, AbstractASTAdapter.pkgName,
 				structs, new ArrayList<FieldDecl>(), methods, new ArrayList<StmtSpAssert>());
@@ -146,6 +146,10 @@ public abstract class AbstractSketchTransformer {
 		return structs;
 	}
 
+	public StmtStateMapper getStateMapper() {
+		return stateMapper;
+	}
+
 	public void setMethods(List<Function> methods2) {
 		methods.addAll(methods2);
 
@@ -156,7 +160,8 @@ public abstract class AbstractSketchTransformer {
 
 	}
 
-	public void mergeAnotherTransformer(AbstractSketchTransformer transformer) {
+	@Deprecated
+	private void mergeAnotherTransformer(AbstractSketchTransformer transformer) {
 		HashMap<String, StructDef> curStruct = new HashMap<String, StructDef>();
 		HashMap<String, Function> curMtd = new HashMap<String, Function>();
 
@@ -181,6 +186,7 @@ public abstract class AbstractSketchTransformer {
 
 	}
 
+	@Deprecated
 	private void mergeTwoStructs(StructDef one, StructDef two) {
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
 		creator.name(one.getName());
@@ -190,10 +196,10 @@ public abstract class AbstractSketchTransformer {
 			names.add(entry.getKey());
 			types.add(entry.getValue());
 		}
-//		for (Map.Entry<String, Type> entry : two.getFieldTypMap()) {
-//			names.add(entry.getKey());
-//			types.add(entry.getValue());
-//		}
+		// for (Map.Entry<String, Type> entry : two.getFieldTypMap()) {
+		// names.add(entry.getKey());
+		// types.add(entry.getValue());
+		// }
 		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
 		creator.annotations(annotations);
 		creator.fields(names, types);
@@ -206,6 +212,7 @@ public abstract class AbstractSketchTransformer {
 		structs.add(creator.create());
 	}
 
+	@Deprecated
 	private void mergeTwoMethod(Function one, Function two) {
 		if (one.toString().length() <= two.toString().length())
 			return;
@@ -217,6 +224,5 @@ public abstract class AbstractSketchTransformer {
 		}
 		methods.add(one);
 	}
-	
-	
+
 }
