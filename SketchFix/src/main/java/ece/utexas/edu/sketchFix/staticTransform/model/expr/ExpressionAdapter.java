@@ -441,10 +441,10 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		ClassInstanceCreation instNew = (ClassInstanceCreation) expr;
 		// org.eclipse.jdt.core.dom.Type type = instNew.getType();
 		String sType = null;
-		if (currVarType == null)
+//		if (currVarType == null)
 			sType = instNew.getType().toString();
-		else
-			sType = currVarType.toString();
+//		else
+//			sType = currVarType.toString();
 
 		List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
 		List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();

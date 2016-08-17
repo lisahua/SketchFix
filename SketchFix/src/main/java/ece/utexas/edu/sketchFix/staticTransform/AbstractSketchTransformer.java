@@ -52,6 +52,7 @@ public abstract class AbstractSketchTransformer {
 	protected boolean harness = false;
 	protected LinePyGenerator utility = null;
 	protected StmtStateMapper stateMapper = null;
+	private Function currMethod = null;
 
 	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
@@ -66,12 +67,12 @@ public abstract class AbstractSketchTransformer {
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, method.getTouchLinesList(),
 				method.getBaseDirs(), utility);
 		mtdDecl.setHarness(harness);
-		Function function = (Function) mtdDecl.transform(currentMtd);
+		currMethod = (Function) mtdDecl.transform(currentMtd);
 		StructDefGenerator generator = new StructDefGenerator(AbstractASTAdapter.getUseRecorder(),
 				mtdDecl.getTypeResolver());
 		// TODO create structDef correspondingly
 		methods.addAll(generator.getMethodMap());
-		methods.add(function);
+		methods.add(currMethod);
 		structs.addAll(generator.getStructDefMap());
 		stateMapper = mtdDecl.getStateMapper();
 	}
@@ -121,7 +122,8 @@ public abstract class AbstractSketchTransformer {
 		// currentMtd.getBody().statements();
 		// astLines = matchLinePyStatementNode(lines, overloadMtd);
 	}
-@Deprecated
+
+	@Deprecated
 	private void writeToFile(String path) {
 		Program empty = Program.emptyProgram();
 		sketch.compiler.ast.core.Package pkg = new sketch.compiler.ast.core.Package(empty, AbstractASTAdapter.pkgName,
@@ -225,4 +227,7 @@ public abstract class AbstractSketchTransformer {
 		methods.add(one);
 	}
 
+	public Function getCurrMethod() {
+		return currMethod;
+	}
 }

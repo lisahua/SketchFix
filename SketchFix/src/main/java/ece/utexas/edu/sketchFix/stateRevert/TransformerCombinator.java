@@ -8,28 +8,35 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import ece.utexas.edu.sketchFix.staticTransform.AbstractSketchTransformer;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import sketch.compiler.Directive;
+import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Program;
 import sketch.compiler.ast.core.Program.ProgramCreator;
 import sketch.compiler.ast.core.stmts.StmtSpAssert;
 import sketch.compiler.ast.core.typs.StructDef;
+import sketch.compiler.ast.core.typs.Type;
+import sketch.compiler.ast.core.typs.StructDef.TStructCreator;
+import sketch.util.datastructures.HashmapList;
 
-public class TransformerCombinator {
-	protected List<Function> methods = new ArrayList<Function>();
-	protected List<StructDef> structs = new ArrayList<StructDef>();
+public class TransformerCombinator extends TransHandler {
+	AbstractSketchTransformer ass;
+	AbstractSketchTransformer transformer;
 
 	public TransformerCombinator(AbstractSketchTransformer assTransformer,
 			AbstractSketchTransformer sourceTransformer) {
-		mergeAnotherTransformer(assTransformer, sourceTransformer);
+		ass = assTransformer;
+		transformer = sourceTransformer;
+		init();
 	}
 
-	private void mergeAnotherTransformer(AbstractSketchTransformer ass, AbstractSketchTransformer transformer) {
+	protected void init() {
 		HashMap<String, StructDef> curStruct = new HashMap<String, StructDef>();
 		HashMap<String, Function> curMtd = new HashMap<String, Function>();
 
@@ -57,24 +64,30 @@ public class TransformerCombinator {
 	}
 
 	private StructDef mergeTwoStructs(StructDef one, StructDef two) {
-		// FIXME I know buggy
-		if (one.toString().length() <= two.toString().length())
-			return two;
-		return one;
+		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
+		creator.name(one.getName());
+		List<String> names = new ArrayList<String>();
+		List<Type> types = new ArrayList<Type>();
+		for (Map.Entry<String, Type> entry : one.getFieldTypMap()) {
+			names.add(entry.getKey());
+			types.add(entry.getValue());
+		}
+		for (Map.Entry<String, Type> entry : two.getFieldTypMap()) {
+			if (names.contains(entry.getKey()))
+				continue;
+			names.add(entry.getKey());
+			types.add(entry.getValue());
+		}
+		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
+		creator.annotations(annotations);
+		creator.fields(names, types);
+		return creator.create();
 	}
 
 	private Function mergeTwoMethod(Function one, Function two) {
 		if (one.toString().length() <= two.toString().length())
 			return two;
 		return one;
-	}
-
-	public List<Function> getMethods() {
-		return methods;
-	}
-
-	public List<StructDef> getStructs() {
-		return structs;
 	}
 
 	public void writeToFile(String outputFile) {
