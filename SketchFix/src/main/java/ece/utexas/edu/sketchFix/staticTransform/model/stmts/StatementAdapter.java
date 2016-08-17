@@ -71,9 +71,10 @@ public class StatementAdapter extends AbstractASTAdapter {
 			ReturnStatement rtnStmt = (ReturnStatement) stmt;
 			Expression right = (Expression) exprAdapter.transform(rtnStmt.getExpression());
 			Expression left = AbstractASTAdapter.getRtnObj();
-			insertState(stmt, exprAdapter.resolveType(left).toString());
+
 			StmtAssign assign = new StmtAssign(method.getMethodContext(), left, right);
 			stmtList.add(assign);
+			insertState(stmt, exprAdapter.resolveType(left).toString(), assign);
 			stmtList.add(new StmtReturn(method.getMethodContext(), null));
 			return stmtList;
 		} else if (stmt instanceof WhileStatement) {
@@ -107,7 +108,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 			if (obj instanceof Statement) {
 				stmtList.add((Statement) obj);
 				// FIXME buggy
-				insertState(exprStmt, exprAdapter.getCurrType().toString());
+				insertState(exprStmt, exprAdapter.getCurrType().toString(),(Statement) obj);
 			}
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
@@ -196,7 +197,6 @@ public class StatementAdapter extends AbstractASTAdapter {
 	private void handleVarDecl(VariableDeclarationStatement vds) {
 		org.eclipse.jdt.core.dom.Type jType = vds.getType();
 		Type sType = TypeAdapter.getType(jType.toString());
-		insertState(vds, sType.toString());
 
 		exprAdapter.setCurrVarType(sType);
 		List<VariableDeclarationFragment> list = vds.fragments();
@@ -212,8 +212,9 @@ public class StatementAdapter extends AbstractASTAdapter {
 
 			inits.add((Expression) exprAdapter.transform(init));
 		}
-
-		stmtList.add(new StmtVarDecl(method.getMethodContext(), types, names, inits));
+		StmtVarDecl varDecl = new StmtVarDecl(method.getMethodContext(), types, names, inits);
+		stmtList.add(varDecl);
+		insertState(vds, sType.toString(), varDecl);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -242,6 +243,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 		exprAdapter.setCurrVarType(TypePrimitive.bittype);
 		Expression skExp = (Expression) exprAdapter.transform(exp);
 		StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), skExp, thenStatement, elseStatement);
+		
 		stmtList.add(skIfStmt);
 		return stmtList;
 	}
@@ -290,7 +292,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return method.getVarOfType(type);
 	}
 
-	public void insertState(org.eclipse.jdt.core.dom.Statement stmt, String type) {
-		method.getStateMapper().insertStmt(stmt, type);
+	public void insertState(org.eclipse.jdt.core.dom.Statement stmt, String type, Statement skStmt) {
+		method.getStateMapper().insertStmt(stmt, type, skStmt);
 	}
 }

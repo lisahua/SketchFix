@@ -6,21 +6,17 @@ package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Statement;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
+import sketch.compiler.ast.core.stmts.Statement;
 
 public class StmtStateMapper {
 	// HashMap<Statement, String> stmtType = new HashMap<Statement, String>();
@@ -43,23 +39,22 @@ public class StmtStateMapper {
 	 * @param vds
 	 * @param string
 	 */
-	public boolean insertStmt(Statement stmt, String type) {
+	public boolean insertStmt(org.eclipse.jdt.core.dom.Statement stmt, String type, Statement skStmt) {
 		String stmtS = stmt.toString().replace(" ", "").replace("\n", "").replace("\t", "");
 		boolean executed = false;
 		for (String key : strLine.keySet()) {
 			if (!stmtS.contains(key))
 				continue;
-			//FIXME buggy for repeating stmt
-			executed = true; 
+			// FIXME buggy for repeating stmt
+			executed = true;
 			ASTLinePy item = strLine.get(key);
 			String state = item.getStateIfAny();
 			if (state.length() > 0)
-				request.insert(type, stmt, item);
+				request.insert(type, stmt, item,skStmt);
 		}
 		return executed;
 	}
 
-	
 	private TreeMap<Integer, ASTLinePy> init(Vector<LinePy> trace, List<LinePy> list) {
 		TreeMap<Integer, ASTLinePy> allMapping = new TreeMap<Integer, ASTLinePy>();
 		Iterator<LinePy> traceItr = trace.iterator();
@@ -128,48 +123,29 @@ public class StmtStateMapper {
 			strLine.put(linePy.getLinePyString().replace(" ", "").replace("\n", "").replace("\t", ""), linePy);
 		}
 	}
-
-	@Deprecated
-	private List<ASTLinePy> matchLinePyStatementNode(List<LinePy> lines, HashSet<MethodDeclaration> methods) {
-
-		for (MethodDeclaration mDecl : methods) {
-			List<Statement> statements = (List<Statement>) mDecl.getBody().statements();
-			List<ASTLinePy> astLines = new ArrayList<ASTLinePy>();
-			boolean[] stmtMark = new boolean[statements.size()];
-			boolean[] lineMark = new boolean[lines.size()];
-			int id = 0;
-			for (int i = 0; i < statements.size(); i++) {
-				Statement stmt = statements.get(i);
-				String stmtS = stmt.toString().replace(" ", "").replace("\n", "");
-				for (; id < lines.size(); id++) {
-					if (lineMark[id] == true)
-						continue;
-					String key = lines.get(id).getSourceLine().replace("\n", "").replace("\t", "").replace(" ", "");
-					if (stmtS.indexOf(key) > -1) {
-						lineMark[id] = true;
-						if (stmtMark[i] == false) {
-//							ASTLinePy astLine = new ASTLinePy(lines.get(id), stmt);
-//							astLines.add(astLine);
-							stmtMark[i] = true;
-
-						} else {
-							astLines.get(i - 1).addLinePy(lines.get(id));
-						}
-					} else
-						break;
-
-				}
-				boolean check = true;
-				for (boolean mark : lineMark) {
-					check = check && mark;
-				}
-				if (check) {
-					// currentMtd = mDecl;
-					return astLines;
-				}
-			}
-
-		}
-		return null;
-	}
+	/*
+	 * @Deprecated private List<ASTLinePy> matchLinePyStatementNode(List<LinePy>
+	 * lines, HashSet<MethodDeclaration> methods) {
+	 * 
+	 * for (MethodDeclaration mDecl : methods) { List<Statement> statements =
+	 * (List<Statement>) mDecl.getBody().statements(); List<ASTLinePy> astLines
+	 * = new ArrayList<ASTLinePy>(); boolean[] stmtMark = new
+	 * boolean[statements.size()]; boolean[] lineMark = new
+	 * boolean[lines.size()]; int id = 0; for (int i = 0; i < statements.size();
+	 * i++) { Statement stmt = statements.get(i); String stmtS =
+	 * stmt.toString().replace(" ", "").replace("\n", ""); for (; id <
+	 * lines.size(); id++) { if (lineMark[id] == true) continue; String key =
+	 * lines.get(id).getSourceLine().replace("\n", "").replace("\t",
+	 * "").replace(" ", ""); if (stmtS.indexOf(key) > -1) { lineMark[id] = true;
+	 * if (stmtMark[i] == false) { // ASTLinePy astLine = new
+	 * ASTLinePy(lines.get(id), stmt); // astLines.add(astLine); stmtMark[i] =
+	 * true;
+	 * 
+	 * } else { astLines.get(i - 1).addLinePy(lines.get(id)); } } else break;
+	 * 
+	 * } boolean check = true; for (boolean mark : lineMark) { check = check &&
+	 * mark; } if (check) { // currentMtd = mDecl; return astLines; } }
+	 * 
+	 * } return null; }
+	 */
 }

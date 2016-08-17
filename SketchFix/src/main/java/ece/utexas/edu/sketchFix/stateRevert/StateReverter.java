@@ -15,7 +15,7 @@ public class StateReverter {
 	public StateReverter(AbstractSketchTransformer assertTran, AbstractSketchTransformer sourceTran) {
 		TransHandler combinator = new TransformerCombinator(assertTran, sourceTran);
 		TransHandler overloader = new TransOverloadHandler(combinator, assertTran, sourceTran);
-		Program prog = overloader.generateProg();
+		prog = overloader.generateProg();
 		InheritanceReplacer inheritReplacer = new InheritanceReplacer();
 		prog = (Program) inheritReplacer.visitProgram(prog);
 

@@ -5,9 +5,8 @@ package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 
 import java.util.Vector;
 
-import org.eclipse.jdt.core.dom.Statement;
-
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
+import sketch.compiler.ast.core.stmts.Statement;
 
 public class StateRequest {
 	Vector<StmtStateItem> stateItem = new Vector<StmtStateItem>();
@@ -16,20 +15,22 @@ public class StateRequest {
 
 	}
 
-	public void insert(String type, Statement stmt, ASTLinePy item) {
-		stateItem.add(new StmtStateItem(type, stmt, item));
+	public void insert(String type, org.eclipse.jdt.core.dom.Statement stmt, ASTLinePy item, Statement skStmt) {
+		stateItem.add(new StmtStateItem(type, stmt, item,skStmt));
 	}
 }
 
 class StmtStateItem {
 	String type;
-	Statement stmt;
+	org.eclipse.jdt.core.dom.Statement stmt;
 	ASTLinePy item;
+	Statement skStmt;
 
-	public StmtStateItem(String type, Statement stmt, ASTLinePy item) {
+	public StmtStateItem(String type, org.eclipse.jdt.core.dom.Statement stmt, ASTLinePy item, Statement skStmt) {
 		this.type = type;
 		this.stmt = stmt;
 		this.item = item;
+		this.skStmt = skStmt;
 	}
 
 }
