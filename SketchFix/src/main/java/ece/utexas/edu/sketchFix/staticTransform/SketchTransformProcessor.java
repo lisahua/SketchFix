@@ -8,7 +8,7 @@ import java.util.List;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
-import ece.utexas.edu.sketchFix.stateRevert.StateReverter;
+import ece.utexas.edu.sketchFix.stateRevert.TransformPostProcessor;
 
 public class SketchTransformProcessor {
 	private Argument arg = null;
@@ -26,7 +26,6 @@ public class SketchTransformProcessor {
 		testMethod.setBaseDir(arg.getSourceDir()[1]);
 		// transform sketch assertion
 		assertTran.transform(testMethod, generator, locations);
-		// assertTran.writeToFile(outputFile+"2");
 		// StmtStateMapper assState = assertTran.getStateMapper();
 
 		AbstractSketchTransformer sourceTran = new SketchSourceTransformer();
@@ -37,7 +36,7 @@ public class SketchTransformProcessor {
 		sourceTran.transform(locations.get(0), generator, locations);
 		// StmtStateMapper sourceState = sourceTran.getStateMapper();
 
-		StateReverter reverter = new StateReverter(sourceTran);
+		TransformPostProcessor reverter = new TransformPostProcessor(sourceTran);
 		reverter.writeToFile(outputFile);
 
 		// assertTran.mergeAnotherTransformer(sourceTran);
