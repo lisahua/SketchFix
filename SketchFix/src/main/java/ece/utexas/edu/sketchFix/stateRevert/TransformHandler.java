@@ -1,5 +1,5 @@
 /**
- * @author Lisa Aug 16, 2016 StateReverter.java 
+ * @author Lisa Aug 17, 2016 TransformHandler.java 
  */
 package ece.utexas.edu.sketchFix.stateRevert;
 
@@ -17,11 +17,14 @@ import sketch.compiler.ast.core.Program;
 import sketch.compiler.ast.core.Program.ProgramCreator;
 import sketch.compiler.ast.core.stmts.StmtSpAssert;
 
-public class StateReverter {
-	Program prog = null;
+public class TransformHandler {
+	AbstractSketchTransformer transformer;
 
-	public StateReverter(AbstractSketchTransformer transformer) {
-		
+	public TransformHandler(AbstractSketchTransformer skTransform) {
+		transformer = skTransform;
+	}
+
+	public Program generateProg() {
 		Program empty = Program.emptyProgram();
 		sketch.compiler.ast.core.Package pkg = new sketch.compiler.ast.core.Package(empty, AbstractASTAdapter.pkgName,
 				transformer.getMergeStructs(), new ArrayList<FieldDecl>(), transformer.getMergeMethods(),
@@ -30,15 +33,11 @@ public class StateReverter {
 		pkgList.add(pkg);
 
 		ProgramCreator progCreator = new ProgramCreator(empty, pkgList, new HashSet<Directive>());
-		prog = progCreator.create();
-
-		InheritanceReplacer inheritReplacer = new InheritanceReplacer();
-		prog = (Program) inheritReplacer.visitProgram(prog);
+		return progCreator.create();
 	}
 
 	public void writeToFile(String outputFile) {
-		if (prog == null)
-			return;
+		Program prog = generateProg();
 		try {
 			prog.accept(new SimpleSketchFilePrinter(outputFile));
 		} catch (FileNotFoundException e) {
@@ -46,5 +45,4 @@ public class StateReverter {
 		}
 
 	}
-
 }
