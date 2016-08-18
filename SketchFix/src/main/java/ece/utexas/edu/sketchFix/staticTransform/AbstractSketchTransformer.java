@@ -68,10 +68,11 @@ public abstract class AbstractSketchTransformer {
 		parseFile(code, method);
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, method, utility);
 		mtdDecl.setHarness(harness);
-		boolean needOverload = overloadHandler.needOverload(currentMtd);
-		if (needOverload)
+		if (overloadHandler != null)
 			mtdDecl.setOverloadHandler(overloadHandler);
+		
 		currMethod = (Function) mtdDecl.transform(currentMtd);
+		overloadHandler = mtdDecl.getOverloadHandler();
 		StructDefGenerator generator = new StructDefGenerator(AbstractASTAdapter.getUseRecorder(),
 				mtdDecl.getTypeResolver());
 		// TODO create structDef correspondingly

@@ -42,7 +42,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	// private ExprNew newExcp = null;
 	private LinePyGenerator utility;
 	private StmtStateMapper stateMapper = null;
-	private OverloadHandler overloadHandler;
+	private OverloadHandler overloadHandler = new OverloadHandler();
 
 	public MethodDeclarationAdapter(CompilationUnit cu, MethodData method, LinePyGenerator utility) {
 		this.utility = utility;
@@ -69,7 +69,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 			name += "_" + para.getType().toString();
 		creator.name(name);
 
-		overloadHandler.process(name);
+		overloadHandler.process(name, method);
 
 		List<Parameter> param = generateParam(method);
 		creator.params(param);
@@ -213,6 +213,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 	public StmtStateMapper getStateMapper() {
 		return stateMapper;
+	}
+
+	public OverloadHandler getOverloadHandler() {
+		return overloadHandler;
 	}
 
 	public void setOverloadHandler(OverloadHandler handler) {

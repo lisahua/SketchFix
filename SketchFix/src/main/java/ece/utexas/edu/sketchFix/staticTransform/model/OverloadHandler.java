@@ -33,14 +33,18 @@ import sketch.compiler.ast.core.typs.Type;
 import sketch.compiler.ast.core.typs.TypePrimitive;
 
 public class OverloadHandler {
-	List<Function> refFunctions;
+	List<Function> refFunctions = new ArrayList<Function>();
 	HashSet<Integer> potential = new HashSet<Integer>();
 	HashMap<String, String> replaceMap = new HashMap<String, String>();
-	String funcName;
+	String funcName = "";
 	List<String> destParam = new ArrayList<String>();
 	List<String> replaceDestParam = new ArrayList<String>();
 	HashMap<Integer, Function> combineFunc = new HashMap<Integer, Function>();
-	 List<StructDef> structs;
+	List<StructDef> structs = new ArrayList<StructDef>();
+
+	public OverloadHandler() {
+
+	}
 
 	public OverloadHandler(AbstractSketchTransformer refTransformer) {
 		refFunctions = refTransformer.getMethods();
@@ -64,7 +68,7 @@ public class OverloadHandler {
 		HashSet<String> destSet = new HashSet<String>(destParam);
 		for (String pType : testPara) {
 			if (destSet.contains(pType)) {
-				mark[destParam.indexOf(pType)] = testPara.indexOf(pType);
+				mark[destParam.indexOf(pType)] = testPara.indexOf(pType)+1;
 				destSet.remove(pType);
 				continue;
 			}
@@ -79,7 +83,7 @@ public class OverloadHandler {
 			}
 			if (!maxType.equals("")) {
 				destSet.remove(maxType);
-				mark[destParam.indexOf(maxType)] = testPara.indexOf(pType);
+				mark[destParam.indexOf(maxType)] = testPara.indexOf(pType)+1;
 				replaceMap.put(maxType, pType);
 				continue;
 			}
@@ -167,6 +171,8 @@ public class OverloadHandler {
 	}
 
 	public boolean needOverload(MethodDeclaration currentMtd) {
+		if (refFunctions.size() == 0)
+			return false;
 		String funcName = currentMtd.getName().toString();
 		List<SingleVariableDeclaration> params = currentMtd.parameters();
 		funcName = currentMtd.getName().toString();
@@ -176,7 +182,8 @@ public class OverloadHandler {
 
 		for (int i = 0; i < refFunctions.size(); i++) {
 			String name = refFunctions.get(i).getName();
-			name = name.substring(0, name.indexOf("_"));
+			if (name.contains("_"))
+				name = name.substring(0, name.indexOf("_"));
 			if (!name.equals(funcName))
 				continue;
 			potential.add(i);
@@ -207,7 +214,8 @@ public class OverloadHandler {
 		return (replaceMap.containsKey(type) ? replaceMap.get(type) : null);
 	}
 
-	public void process(String destName) {
+	public void process(String destName, MethodDeclaration currentMtd) {
+		needOverload(currentMtd);
 		// FIXME buggy when diff type paras
 		for (int i : potential)
 			singleProcess(i, destName);
@@ -223,33 +231,33 @@ public class OverloadHandler {
 			refFunctions.add(combineFunc.get(i));
 		}
 		List<String> refNames = new ArrayList<String>();
-		for (Function func: refFunctions)
+		for (Function func : refFunctions)
 			refNames.add(func.getName());
-		for (Function func: sourceFun){
+		for (Function func : sourceFun) {
 			if (refNames.contains(func.getName())) {
-				int index =  refNames.indexOf(func.getName());
+				int index = refNames.indexOf(func.getName());
 				if (refFunctions.get(index).toString().length() < func.toString().length()) {
 					refFunctions.remove(index);
-				}else {
+				} else {
 					continue;
 				}
 			}
 			refFunctions.add(func);
 		}
-		
+
 		return refFunctions;
 	}
 
 	public List<StructDef> getStructs(List<StructDef> source) {
 		List<String> refNames = new ArrayList<String>();
-		for (StructDef str: structs)
+		for (StructDef str : structs)
 			refNames.add(str.getName());
-		for (StructDef str: source){
+		for (StructDef str : source) {
 			if (refNames.contains(str.getName())) {
-				int index =  refNames.indexOf(str.getName());
+				int index = refNames.indexOf(str.getName());
 				if (structs.get(index).toString().length() < str.toString().length()) {
 					structs.remove(index);
-				}else {
+				} else {
 					continue;
 				}
 			}
