@@ -4,6 +4,7 @@
 package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -294,5 +295,10 @@ public class StatementAdapter extends AbstractASTAdapter {
 
 	public void insertState(org.eclipse.jdt.core.dom.Statement stmt, String type, Statement skStmt) {
 		method.getStateMapper().insertStmt(stmt, type, skStmt);
+	}
+
+	public void setOverloadMap(HashMap<String, String> overload) {
+		// TODO Auto-generated method stub
+		
 	}
 }

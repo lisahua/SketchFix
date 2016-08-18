@@ -134,6 +134,13 @@ public class TransOverloadHandler extends TransHandler {
 		insertFunction(empty, funDecl);
 	}
 
+	private void insertParameter() {
+		
+	}
+	
+	
+	
+	
 	private void insertFunction(Function empty, StmtExpr funDecl) {
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
 		creator.params(empty.getParams());

@@ -32,4 +32,6 @@ public class InheritanceReplacer extends FEReplacer {
 		return super.visitStmtVarDecl(stmt);
 	}
 
+	
+	
 }

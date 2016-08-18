@@ -14,16 +14,17 @@ import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
 import sketch.compiler.ast.core.Function;
 
 public class SketchSourceTransformer extends AbstractSketchTransformer {
+	
 
 	@Override
 	public void transform(MethodData method, LinePyGenerator utility, List<MethodData> locations) {
 		// know which method to transform, know which lines should be
 		// transformed.
 		this.utility = utility;
-//		for (MethodData method : locations) {
-		//DEBUG only test first location
-			createRepairCandidate(method, utility.getFileLines(method.getClassFullPath()), locations);
-//		}
+		// for (MethodData method : locations) {
+		// DEBUG only test first location
+		createRepairCandidate(method, utility.getFileLines(method.getClassFullPath()), locations);
+		// }
 
 	}
 
@@ -33,12 +34,13 @@ public class SketchSourceTransformer extends AbstractSketchTransformer {
 			return;
 		try {
 			staticTransform(location, locations);
-			
-			
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+
+
 
 }

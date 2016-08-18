@@ -23,6 +23,7 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.OverloadHandler;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
 import sketch.compiler.Directive;
@@ -53,6 +54,7 @@ public abstract class AbstractSketchTransformer {
 	protected LinePyGenerator utility = null;
 	protected StmtStateMapper stateMapper = null;
 	private Function currMethod = null;
+	private OverloadHandler overloadHandler = null;
 
 	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
@@ -64,9 +66,11 @@ public abstract class AbstractSketchTransformer {
 			return;
 		System.out.println("[Checking suspicious location:]" + method.getClassFullPath());
 		parseFile(code, method);
-		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, method.getTouchLinesList(),
-				method.getBaseDirs(), utility);
+		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, method, utility);
 		mtdDecl.setHarness(harness);
+		boolean needOverload = overloadHandler.needOverload(currentMtd);
+		if (needOverload)
+			mtdDecl.setOverloadHandler(overloadHandler);
 		currMethod = (Function) mtdDecl.transform(currentMtd);
 		StructDefGenerator generator = new StructDefGenerator(AbstractASTAdapter.getUseRecorder(),
 				mtdDecl.getTypeResolver());
@@ -146,6 +150,14 @@ public abstract class AbstractSketchTransformer {
 
 	public List<StructDef> getStructs() {
 		return structs;
+	}
+
+	public List<Function> getMergeMethods() {
+		return overloadHandler.getMethods(methods);
+	}
+
+	public List<StructDef> getMergeStructs() {
+		return overloadHandler.getStructs(structs);
 	}
 
 	public StmtStateMapper getStateMapper() {
@@ -230,4 +242,9 @@ public abstract class AbstractSketchTransformer {
 	public Function getCurrMethod() {
 		return currMethod;
 	}
+
+	public void setRefTransformer(AbstractSketchTransformer refTransformer) {
+		overloadHandler = new OverloadHandler(refTransformer);
+	}
+
 }

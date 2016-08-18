@@ -16,18 +16,16 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
+import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
-import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FcnType;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
-import sketch.compiler.ast.core.exprs.ExprNamedParam;
-import sketch.compiler.ast.core.exprs.ExprNew;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.Type;
@@ -41,19 +39,18 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeResolver typeResolver;
 
 	private boolean harness = false;
-//	private ExprNew newExcp = null;
+	// private ExprNew newExcp = null;
 	private LinePyGenerator utility;
 	private StmtStateMapper stateMapper = null;
+	private OverloadHandler overloadHandler;
 
-	@SuppressWarnings("unchecked")
-	public MethodDeclarationAdapter(CompilationUnit cu, List<LinePy> list, String[] srcDir, LinePyGenerator utility) {
-		// TypeDeclaration clazz, FieldDeclaration[] fields,
+	public MethodDeclarationAdapter(CompilationUnit cu, MethodData method, LinePyGenerator utility) {
 		this.utility = utility;
 		this.clazz = (TypeDeclaration) cu.types().get(0);
 		// this.fields = clazz.getFields();
-		typeResolver = new TypeResolver(cu.imports(), clazz, srcDir);
+		typeResolver = new TypeResolver(cu.imports(), clazz, method.getBaseDirs());
 		stmtAdapter = new StatementAdapter(this);
-		stateMapper = new StmtStateMapper(utility.getTrace(), list, srcDir);
+		stateMapper = new StmtStateMapper(utility.getTrace(), method.getTouchLinesList(), method.getBaseDirs());
 	}
 
 	public void setHarness(boolean har) {
@@ -66,13 +63,16 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		MethodDeclaration method = (MethodDeclaration) node;
 
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
+		List<SingleVariableDeclaration> parameters = method.parameters();
+		String name = method.getName().toString();
+		for (SingleVariableDeclaration para : parameters)
+			name += "_" + para.getType().toString();
+		creator.name(name);
+
+		overloadHandler.process(name);
 
 		List<Parameter> param = generateParam(method);
 		creator.params(param);
-		String name = method.getName().toString();
-		for (int i = 1; i < param.size() - 1; i++)
-			name += "_" + param.get(i).getType().toString();
-		creator.name(name);
 		List<Statement> body = new ArrayList<Statement>();
 		List<org.eclipse.jdt.core.dom.Statement> stmts = ((Block) method.getBody()).statements();
 
@@ -112,12 +112,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		Parameter thisParam = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(clazz.getName().toString()),
 				AbstractASTAdapter.thisClass);
 		param.add(thisParam);
-		// check if has been used before
-		// if (useRecorder)
 
-		for (SingleVariableDeclaration para : parameters) {
-			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(para.getType().toString()),
-					para.getName().toString());
+		for (int i = 0; i < parameters.size(); i++) {
+			Parameter p = new Parameter(getMethodContext(), (Type) TypeAdapter.getType(overloadHandler.convertParam(i)),
+					parameters.get(i).getName().toString());
 			varType.put(p.getName(), p.getType());
 			param.add(p);
 		}
@@ -141,25 +139,9 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		return param;
 	}
 
-	// @SuppressWarnings("unchecked")
-	// private void parseField() {
-	// for (FieldDeclaration field : fields) {
-	// org.eclipse.jdt.core.dom.Type jType = field.getType();
-	// Type sType = (Type) TypeAdapter.getInstance().recordField(jType);
-	// List<VariableDeclarationFragment> list = field.fragments();
-	// for (VariableDeclarationFragment frag : list) {
-	// fieldType.put(frag.getName().getIdentifier(), sType);
-	// }
-	// }
-	// }
-
 	public void insertVarDecl(String name, Type type) {
 		varType.put(name, type);
 	}
-
-	// public void insertUsedField(String name, Type type) {
-	// usedFieldType.put(name, type);
-	// }
 
 	public Type getFieldTypeOf(String type, String field) {
 		String fType = typeResolver.getFieldType(type, field);
@@ -193,25 +175,9 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		return methodNode;
 	}
 
-	// public void insertUseField(String type, String field) {
-	// useRecorder.insertField(type, field);
-	// }
-	//
-	// public String insertUseConstructor(String type, String varType) {
-	// return useRecorder.insertUseConstructor(type, varType);
-	// }
-	//
-	// public void insertUseMethod(String type, String method) {
-	// useRecorder.insertMethod(type, method);
-	// }
-
 	public String getCurrentClassType() {
 		return clazz.getName().toString();
 	}
-
-	// public TypeUsageRecorder getUseRecorder() {
-	// return useRecorder;
-	// }
 
 	public TypeResolver getTypeResolver() {
 		return typeResolver;
@@ -247,5 +213,9 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 	public StmtStateMapper getStateMapper() {
 		return stateMapper;
+	}
+
+	public void setOverloadHandler(OverloadHandler handler) {
+		this.overloadHandler = handler;
 	}
 }

@@ -36,6 +36,7 @@ public class SketchTransformProcessor {
 		MethodData data = locations.get(0);
 		data.setBaseDir(arg.getSourceDir()[0]);
 		data.setBasrDirs(arg.getSourceDir());
+		sourceTran.setRefTransformer(assertTran);
 		sourceTran.transform(locations.get(0), generator, locations);
 //		StmtStateMapper sourceState = sourceTran.getStateMapper();
 
