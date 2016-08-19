@@ -3,12 +3,13 @@
  */
 package ece.utexas.edu.sketchFix.staticTransform;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
-import ece.utexas.edu.sketchFix.stateRevert.ConditionTraceReplacer;
+import ece.utexas.edu.sketchFix.stateRevert.NotNullTraceReplacer;
 import ece.utexas.edu.sketchFix.stateRevert.TransformPostProcessor;
 import sketch.compiler.ast.core.Program;
 
@@ -42,9 +43,19 @@ public class SketchTransformProcessor {
 		reverter.writeToFile(outputFile);
 
 		Program prog = reverter.getProgram();
-		ConditionTraceReplacer replacer = new ConditionTraceReplacer(assertTran.getStateMapper().getLinePyList(),
+		// ConditionTraceReplacer replacer = new
+		// ConditionTraceReplacer(assertTran.getStateMapper().getLinePyList(),
+		// sourceTran.getStateMapper().getLinePyList());
+		// prog = (Program) replacer.visitProgram(prog);
+		NotNullTraceReplacer replacer = new NotNullTraceReplacer(assertTran.getStateMapper().getLinePyList(),
 				sourceTran.getStateMapper().getLinePyList());
 		prog = (Program) replacer.visitProgram(prog);
+
+		try {
+			prog.accept(new SimpleSketchFilePrinter(outputFile + "2"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		// assertTran.mergeAnotherTransformer(sourceTran);
 		// assertTran.writeToFile(outputFile);
 	}

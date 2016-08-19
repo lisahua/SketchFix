@@ -255,7 +255,7 @@ public class OverloadHandler {
 		for (StructDef str : source) {
 			if (refNames.contains(str.getName())) {
 				int index = refNames.indexOf(str.getName());
-				if (structs.get(index).toString().length() < str.toString().length()) {
+				if (structs.get(index).getFields().size() < str.getFields().size()) {
 					structs.remove(index);
 				} else {
 					continue;

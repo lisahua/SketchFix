@@ -41,8 +41,11 @@ public class StmtStateMapper {
 			ASTLinePy astLine = allMapping.get(i);
 			if (!stmtS.contains(astLine.getLinePyString()))
 				continue;
+			if (astLine.getStatement()!=null)
+				continue;
 			// FIXME nested and repeat line
 			astLine.setType(type);
+	
 			astLine.setStatement(stmt);
 			astLine.setSkStmt(skStmt);
 			copyMap.put(i, astLine);

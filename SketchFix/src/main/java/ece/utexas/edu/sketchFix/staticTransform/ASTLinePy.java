@@ -41,6 +41,7 @@ public class ASTLinePy {
 			firstLineNum = linePy.getLineNum();
 		}
 		linePyList.add(linePy);
+
 	}
 
 	public List<LinePy> getLinePyList() {
@@ -73,10 +74,9 @@ public class ASTLinePy {
 	}
 
 	public String toString() {
-		if (linePyList.size() > 0)
-			return statement + "--" + firstLinePyString + "--" + type + "--" + linePyList.get(0).toString() + "--state "
-					+ getStateIfAny();
+		if (skStmts.isEmpty())
 		return "";
+		return skStmts.toString();
 	}
 
 	public void setSkStmt(Object skStmt) {
@@ -99,6 +99,10 @@ public class ASTLinePy {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public List<Statement> getSkStmts() {
+		return skStmts;
 	}
 
 }

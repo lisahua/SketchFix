@@ -3,6 +3,8 @@
  */
 package ece.utexas.edu.sketchFix.slicing.localizer;
 
+import org.junit.Test;
+
 import ece.utexas.edu.sketchFix.main.RepairMain;
 
 public class TestRepairProcessor {
