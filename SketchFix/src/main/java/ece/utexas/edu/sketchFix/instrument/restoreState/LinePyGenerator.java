@@ -9,7 +9,7 @@ import java.util.Vector;
 
 public abstract class LinePyGenerator {
 	protected Vector<LinePy> trace = new Vector<LinePy>();
-	//fileName + line number
+	// fileName + line number
 	protected HashMap<String, TreeMap<Integer, LinePy>> files = new HashMap<String, TreeMap<Integer, LinePy>>();
 
 	public LinePyGenerator() {
@@ -25,8 +25,17 @@ public abstract class LinePyGenerator {
 	}
 
 	public abstract void parseFiles(String[] files);
+
 	public Vector<LinePy> getTrace() {
-		return trace;
+		Vector<LinePy> newTrace = new Vector<LinePy>();
+		for (LinePy line : trace) {
+			if (line.getSourceLine().equals("")) {
+				line = files.get(line.getFilePath()).get(line.getLineNum());
+			}
+			newTrace.add(line);
+		}
+
+		return newTrace;
 	}
 
 	protected void setTrace(Vector<LinePy> trace) {

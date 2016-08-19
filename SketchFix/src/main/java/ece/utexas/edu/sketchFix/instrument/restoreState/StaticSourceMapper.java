@@ -43,6 +43,8 @@ public class StaticSourceMapper extends LinePyGenerator {
 			if (lines.containsKey(index)) {
 				LinePy item = lines.get(index);
 				item.setSourceLine(line);
+				lines.put(index, item);
+//				System.out.println(item.getMethodName()+","+index+","+line);
 			}
 			
 		}

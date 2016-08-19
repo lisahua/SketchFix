@@ -49,7 +49,7 @@ public class RepairProcessor {
 		String[] arg = argument.sourceDir;
 		staticParser.parseFiles(arg);
 
-		Vector<LinePy> trace = staticParser.getTrace();
+//		Vector<LinePy> trace = staticParser.getTrace();
 		return staticParser;
 	}
 

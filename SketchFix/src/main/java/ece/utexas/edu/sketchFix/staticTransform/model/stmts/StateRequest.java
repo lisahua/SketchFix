@@ -31,6 +31,7 @@ class StmtStateItem {
 		this.stmt = stmt;
 		this.item = item;
 		this.skStmt = skStmt;
+		System.out.println("init StateItem "+ type+","+skStmt+","+item+","+stmt);
 	}
 
 }

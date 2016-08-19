@@ -3,31 +3,26 @@
  */
 package ece.utexas.edu.sketchFix.staticTransform.model.stmts;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
-import sketch.compiler.ast.core.stmts.Statement;
 
 public class StmtStateMapper {
 	// HashMap<Statement, String> stmtType = new HashMap<Statement, String>();
-	HashMap<String, ASTLinePy> strLine = new HashMap<String, ASTLinePy>();
-	ObjectMapper mapper = new ObjectMapper();
-	HashMap<String, String> classNames = new HashMap<String, String>();
+	// HashMap<String, ASTLinePy> strLine = new HashMap<String, ASTLinePy>();
+	// ObjectMapper mapper = new ObjectMapper();
+	// HashMap<String, String> classNames = new HashMap<String, String>();
 	StateRequest request = new StateRequest();
+	TreeMap<Integer, ASTLinePy> allMapping = new TreeMap<Integer, ASTLinePy>();
 
 	public StmtStateMapper(Vector<LinePy> trace, List<LinePy> list, String[] baseDir) {
 		try {
-			matchFileStmt(baseDir, init(trace, list));
+			init(trace, list);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -39,34 +34,36 @@ public class StmtStateMapper {
 	 * @param vds
 	 * @param string
 	 */
-	public boolean insertStmt(org.eclipse.jdt.core.dom.Statement stmt, String type, Statement skStmt) {
+	public void insertStmt(org.eclipse.jdt.core.dom.Statement stmt, String type, Object skStmt) {
 		String stmtS = stmt.toString().replace(" ", "").replace("\n", "").replace("\t", "");
-		boolean executed = false;
-		for (String key : strLine.keySet()) {
-			if (!stmtS.contains(key))
+		TreeMap<Integer, ASTLinePy> copyMap = new TreeMap<Integer, ASTLinePy>(allMapping);
+		for (int i : allMapping.keySet()) {
+			ASTLinePy astLine = allMapping.get(i);
+			if (!stmtS.contains(astLine.getLinePyString()))
 				continue;
-			// FIXME buggy for repeating stmt
-			executed = true;
-			ASTLinePy item = strLine.get(key);
-			String state = item.getStateIfAny();
-			if (state.length() > 0)
-				request.insert(type, stmt, item,skStmt);
+			// FIXME nested and repeat line
+			astLine.setType(type);
+			astLine.setStatement(stmt);
+			astLine.setSkStmt(skStmt);
+			copyMap.put(i, astLine);
+			break;
 		}
-		return executed;
+		allMapping = copyMap;
 	}
 
-	private TreeMap<Integer, ASTLinePy> init(Vector<LinePy> trace, List<LinePy> list) {
-		TreeMap<Integer, ASTLinePy> allMapping = new TreeMap<Integer, ASTLinePy>();
+	private void init(Vector<LinePy> trace, List<LinePy> list) {
+		// TreeMap<Integer, ASTLinePy> allMapping = new TreeMap<Integer,
+		// ASTLinePy>();
 		Iterator<LinePy> traceItr = trace.iterator();
 		Iterator<LinePy> touchItr = list.iterator();
 		if (!touchItr.hasNext())
-			return null;
+			return;
 		LinePy line = touchItr.next();
 		boolean flag = false;
 		ASTLinePy astLine = null;
 		while (traceItr.hasNext()) {
 			LinePy item = traceItr.next();
-			insertClassDic(item);
+			// insertClassDic(item);//Not sure if necessary
 			if (item.toString().equals(line.toString())) {
 				if (astLine != null)
 					allMapping.put(astLine.getLinePyList().get(0).getLineNum(), astLine);
@@ -78,74 +75,39 @@ public class StmtStateMapper {
 			if (flag)
 				astLine.addLinePy(item);
 		}
-		allMapping.put(astLine.getLinePyList().get(0).getLineNum(), astLine);
+		allMapping.put(astLine.getFirstLineNum(), astLine);
 
-		return allMapping;
+		// return allMapping;
+	}
+	
+	public List<ASTLinePy> getLinePyList() {
+//		for (int i: allMapping.keySet())
+//			System.out.println(i+":"+allMapping.get(i));
+		return new ArrayList<ASTLinePy>(allMapping.values());
 	}
 
-	private void insertClassDic(LinePy item) {
-		String file = item.getFilePath();
-		String clazz = file.substring(file.lastIndexOf("/") + 1);
-		classNames.put(clazz, file.replace("/", "."));
-	}
-
-	private void matchFileStmt(String[] baseDir, TreeMap<Integer, ASTLinePy> allMapping) throws Exception {
-		File code = null;
-		LinePy first = null;
-		try {
-			for (ASTLinePy line : allMapping.values()) {
-				first = line.getLinePyList().get(0);
-				break;
-			}
-		} catch (Exception e) {
-			return;
-		}
-		if (first == null)
-			return;
-		for (String base : baseDir) {
-			code = new File(base + first.getFilePath() + ".java");
-			if (code.exists())
-				break;
-		}
-		if (code == null || !code.exists())
-			return;
-		BufferedReader reader = new BufferedReader(new FileReader(code));
-		String line = "";
-		int id = 0;
-		while ((line = reader.readLine()) != null) {
-			id++;
-			if (allMapping.containsKey(id))
-				allMapping.get(id).setFirstLineString(line);
-		}
-		reader.close();
-
-		for (ASTLinePy linePy : allMapping.values()) {
-			strLine.put(linePy.getLinePyString().replace(" ", "").replace("\n", "").replace("\t", ""), linePy);
-		}
-	}
+	// private void insertClassDic(LinePy item) {
+	// String file = item.getFilePath();
+	// String clazz = file.substring(file.lastIndexOf("/") + 1);
+	// classNames.put(clazz, file.replace("/", "."));
+	// }
 	/*
-	 * @Deprecated private List<ASTLinePy> matchLinePyStatementNode(List<LinePy>
-	 * lines, HashSet<MethodDeclaration> methods) {
+	 * private void matchFileStmt(String[] baseDir, TreeMap<Integer, ASTLinePy>
+	 * allMapping) throws Exception { File code = null; LinePy first = null; try
+	 * { for (ASTLinePy line : allMapping.values()) { first =
+	 * line.getLinePyList().get(0); break; } } catch (Exception e) { return; }
+	 * if (first == null) return; for (String base : baseDir) { code = new
+	 * File(base + first.getFilePath() + ".java"); if (code.exists()) break; }
+	 * if (code == null || !code.exists()) return; BufferedReader reader = new
+	 * BufferedReader(new FileReader(code)); String line = ""; int id = 0; while
+	 * ((line = reader.readLine()) != null) { id++; if
+	 * (allMapping.containsKey(id)) allMapping.get(id).setFirstLineString(line);
+	 * } reader.close();
 	 * 
-	 * for (MethodDeclaration mDecl : methods) { List<Statement> statements =
-	 * (List<Statement>) mDecl.getBody().statements(); List<ASTLinePy> astLines
-	 * = new ArrayList<ASTLinePy>(); boolean[] stmtMark = new
-	 * boolean[statements.size()]; boolean[] lineMark = new
-	 * boolean[lines.size()]; int id = 0; for (int i = 0; i < statements.size();
-	 * i++) { Statement stmt = statements.get(i); String stmtS =
-	 * stmt.toString().replace(" ", "").replace("\n", ""); for (; id <
-	 * lines.size(); id++) { if (lineMark[id] == true) continue; String key =
-	 * lines.get(id).getSourceLine().replace("\n", "").replace("\t",
-	 * "").replace(" ", ""); if (stmtS.indexOf(key) > -1) { lineMark[id] = true;
-	 * if (stmtMark[i] == false) { // ASTLinePy astLine = new
-	 * ASTLinePy(lines.get(id), stmt); // astLines.add(astLine); stmtMark[i] =
-	 * true;
+	 * for (ASTLinePy linePy : allMapping.values()) {
+	 * strLine.put(linePy.getLinePyString().replace(" ", "").replace("\n",
+	 * "").replace("\t", ""), linePy);
 	 * 
-	 * } else { astLines.get(i - 1).addLinePy(lines.get(id)); } } else break;
-	 * 
-	 * } boolean check = true; for (boolean mark : lineMark) { check = check &&
-	 * mark; } if (check) { // currentMtd = mDecl; return astLines; } }
-	 * 
-	 * } return null; }
+	 * } }
 	 */
 }

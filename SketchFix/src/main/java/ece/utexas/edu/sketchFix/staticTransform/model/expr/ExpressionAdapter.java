@@ -433,7 +433,6 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		StmtVarDecl varStmt = new StmtVarDecl(stmtAdapter.getMethodContext(), TypePrimitive.chartype, strName, newC);
 		stmtAdapter.insertStmt(varStmt);
 		stmtAdapter.insertVarDecl(strName, TypePrimitive.chartype);
-
 		return new ExprVar(stmtAdapter.getMethodContext(), strName);
 	}
 

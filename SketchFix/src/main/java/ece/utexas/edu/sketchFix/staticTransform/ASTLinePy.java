@@ -6,15 +6,17 @@ package ece.utexas.edu.sketchFix.staticTransform;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jdt.core.dom.Statement;
-
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
+import sketch.compiler.ast.core.stmts.Statement;
 
 public class ASTLinePy {
 
 	private List<LinePy> linePyList = new ArrayList<LinePy>();
 	private org.eclipse.jdt.core.dom.Statement statement;
 	private String firstLinePyString = "";
+	private List<Statement> skStmts = new ArrayList<Statement>();
+	private int firstLineNum = 0;
+	private String type = "";
 
 	public ASTLinePy() {
 
@@ -28,12 +30,16 @@ public class ASTLinePy {
 		return firstLinePyString;
 	}
 
-	public ASTLinePy(LinePy linePy, Statement stmt) {
+	public ASTLinePy(LinePy linePy, org.eclipse.jdt.core.dom.Statement stmt) {
 		linePyList.add(linePy);
 		statement = stmt;
 	}
 
 	public void addLinePy(LinePy linePy) {
+		if (linePyList.size() == 0) {
+			firstLinePyString = linePy.getSourceLine().replace(" ", "").replace("\n", "").replace("\t", "");
+			firstLineNum = linePy.getLineNum();
+		}
 		linePyList.add(linePy);
 	}
 
@@ -50,6 +56,9 @@ public class ASTLinePy {
 	}
 
 	public void setStatement(org.eclipse.jdt.core.dom.Statement statement) {
+		if (this.statement != null && this.statement.toString().length() < statement.toString().length())
+			return;
+
 		this.statement = statement;
 	}
 
@@ -65,8 +74,31 @@ public class ASTLinePy {
 
 	public String toString() {
 		if (linePyList.size() > 0)
-			return linePyList.get(0).toString() + "--state " + getStateIfAny();
+			return statement + "--" + firstLinePyString + "--" + type + "--" + linePyList.get(0).toString() + "--state "
+					+ getStateIfAny();
 		return "";
+	}
+
+	public void setSkStmt(Object skStmt) {
+		if (this.skStmts.size() > 0 && this.skStmts.toString().length() < skStmt.toString().length())
+			return;
+
+		if (skStmt instanceof Statement)
+			skStmts.add((Statement) skStmt);
+		else
+			skStmts.addAll((List<Statement>) skStmt);
+	}
+
+	public int getFirstLineNum() {
+		return firstLineNum;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 }

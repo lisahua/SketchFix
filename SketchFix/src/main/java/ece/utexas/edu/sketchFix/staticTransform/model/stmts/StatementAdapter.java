@@ -75,8 +75,9 @@ public class StatementAdapter extends AbstractASTAdapter {
 
 			StmtAssign assign = new StmtAssign(method.getMethodContext(), left, right);
 			stmtList.add(assign);
-			insertState(stmt, exprAdapter.resolveType(left).toString(), assign);
+
 			stmtList.add(new StmtReturn(method.getMethodContext(), null));
+			insertState(stmt, exprAdapter.resolveType(left).toString(), stmtList);
 			return stmtList;
 		} else if (stmt instanceof WhileStatement) {
 			WhileStatement whileStmt = (WhileStatement) stmt;
@@ -100,6 +101,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 				else
 					skList.addAll((List<Statement>) transform(one));
 			}
+			insertState(stmt, "", skList);
 			return new StmtBlock(method.getMethodContext(), skList);
 		} else if (stmt instanceof ExpressionStatement) {
 
@@ -109,23 +111,23 @@ public class StatementAdapter extends AbstractASTAdapter {
 			if (obj instanceof Statement) {
 				stmtList.add((Statement) obj);
 				// FIXME buggy
-				insertState(exprStmt, exprAdapter.getCurrType().toString(),(Statement) obj);
 			}
+				insertState(exprStmt, "", stmtList);
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
 		} else if (stmt instanceof ThrowStatement) {
 			// mapper.insertStmt(stmt, AbstractASTAdapter.excepType.toString());
 			ThrowStatement throwStmt = (ThrowStatement) stmt;
 			Object obj = exprAdapter.transform(throwStmt.getExpression());
-			if (obj instanceof Exception) {
-				String name = obj.getClass().getName();
-				// StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(),
-				// TypeAdapter.getType(name),
-				// AbstractASTAdapter.excepName, (Expression) obj);
-				// stmtList.add(decl);
-				stmtList.add(new StmtReturn(method.getMethodContext(), null));
-				return stmtList;
-			}
+
+			// StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(),
+			// TypeAdapter.getType(name),
+			// AbstractASTAdapter.excepName, (Expression) obj);
+			// stmtList.add(decl);
+			
+			stmtList.add(new StmtReturn(method.getMethodContext(), null));
+			insertState(throwStmt,"Exception", stmtList);
+			return stmtList;
 		}
 		// TODO more stmts such as for stmt
 
@@ -143,19 +145,6 @@ public class StatementAdapter extends AbstractASTAdapter {
 	public Type getMethodReturnType(String type, String name) {
 		return method.getMethodReturnType(type, name);
 	}
-
-	// public void insertUseMethod(String type, String name) {
-	// useRecorder.insertMethod(type, name);
-	//
-	// }
-	//
-	// public void insertUseField(String type, String field) {
-	// method.insertUseField(type, field);
-	// }
-
-	// public String insertUseConstructor(String type, String varType) {
-	// return method.insertUseConstructor(type, varType);
-	// }
 
 	public Type getFieldTypeOf(String type, String field) {
 		return method.getFieldTypeOf(type, field);
@@ -215,7 +204,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 		}
 		StmtVarDecl varDecl = new StmtVarDecl(method.getMethodContext(), types, names, inits);
 		stmtList.add(varDecl);
-		insertState(vds, sType.toString(), varDecl);
+//		for (Statement stmt: stmtList)
+		insertState(vds, sType.toString(), stmtList);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -244,8 +234,9 @@ public class StatementAdapter extends AbstractASTAdapter {
 		exprAdapter.setCurrVarType(TypePrimitive.bittype);
 		Expression skExp = (Expression) exprAdapter.transform(exp);
 		StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), skExp, thenStatement, elseStatement);
-		
+	
 		stmtList.add(skIfStmt);
+		insertState(ifStmt, "bit", stmtList);
 		return stmtList;
 	}
 
@@ -279,6 +270,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 		StmtBlock block = new StmtBlock(method.getMethodContext(), updates);
 		StmtWhile skWhile = new StmtWhile(method.getMethodContext(), (Expression) exprAdapter.transform(cond), block);
 		initList.add(skWhile);
+		insertState(forStmt, "bit", initList);
 		return initList;
 	}
 
@@ -293,12 +285,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return method.getVarOfType(type);
 	}
 
-	public void insertState(org.eclipse.jdt.core.dom.Statement stmt, String type, Statement skStmt) {
+	public void insertState(org.eclipse.jdt.core.dom.Statement stmt, String type, Object skStmt) {
 		method.getStateMapper().insertStmt(stmt, type, skStmt);
 	}
 
 	public void setOverloadMap(HashMap<String, String> overload) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

@@ -8,11 +8,13 @@ import java.util.List;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
+import ece.utexas.edu.sketchFix.stateRevert.ConditionTraceReplacer;
 import ece.utexas.edu.sketchFix.stateRevert.TransformPostProcessor;
+import sketch.compiler.ast.core.Program;
 
 public class SketchTransformProcessor {
 	private Argument arg = null;
-//	private Vector<LinePy> trace;
+	// private Vector<LinePy> trace;
 
 	public SketchTransformProcessor(Argument argument) {
 		arg = argument;
@@ -39,6 +41,10 @@ public class SketchTransformProcessor {
 		TransformPostProcessor reverter = new TransformPostProcessor(sourceTran);
 		reverter.writeToFile(outputFile);
 
+		Program prog = reverter.getProgram();
+		ConditionTraceReplacer replacer = new ConditionTraceReplacer(assertTran.getStateMapper().getLinePyList(),
+				sourceTran.getStateMapper().getLinePyList());
+		prog = (Program) replacer.visitProgram(prog);
 		// assertTran.mergeAnotherTransformer(sourceTran);
 		// assertTran.writeToFile(outputFile);
 	}

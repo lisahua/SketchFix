@@ -21,7 +21,7 @@ public class TransformPostProcessor {
 	Program prog = null;
 
 	public TransformPostProcessor(AbstractSketchTransformer transformer) {
-		
+
 		Program empty = Program.emptyProgram();
 		sketch.compiler.ast.core.Package pkg = new sketch.compiler.ast.core.Package(empty, AbstractASTAdapter.pkgName,
 				transformer.getMergeStructs(), new ArrayList<FieldDecl>(), transformer.getMergeMethods(),
@@ -47,4 +47,7 @@ public class TransformPostProcessor {
 
 	}
 
+	public Program getProgram() {
+		return prog;
+	}
 }

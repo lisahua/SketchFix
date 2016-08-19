@@ -3,13 +3,15 @@
  */
 package ece.utexas.edu.sketchFix.instrument;
 
+import org.junit.Test;
+
 import ece.utexas.edu.sketchFix.instrument.restoreState.DynamicStateMapper;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.StaticSourceMapper;
 
 public class TestStateParser {
-
-	public static void testParseTraceFile() {
+@Test
+	public  void testParseTraceFile() {
 		String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart1_buggy/";
 		DynamicStateMapper dynamicParser = new DynamicStateMapper();
 		String[] args = { baseDir + ".trace_state.txt", baseDir + ".tests_instrumented/",
@@ -19,7 +21,7 @@ public class TestStateParser {
 		String file = "";
 
 		StaticSourceMapper staticParser = new StaticSourceMapper(dynamicParser);
-		String[] arg= {baseDir+"source/", baseDir+"tests/"};
+		String[] arg= {baseDir+"work_dir/", baseDir+"test_dir/"};
 
 		staticParser.parseFiles(arg);
 
