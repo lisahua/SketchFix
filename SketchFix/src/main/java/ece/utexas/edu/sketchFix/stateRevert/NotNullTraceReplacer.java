@@ -46,6 +46,7 @@ public class NotNullTraceReplacer extends FEReplacer {
 
 	}
 
+
 	public Object visitStmtExpr(StmtExpr stmt) {
 		Expression expr = stmt.getExpression();
 		List<Statement> list = new ArrayList<Statement>();
