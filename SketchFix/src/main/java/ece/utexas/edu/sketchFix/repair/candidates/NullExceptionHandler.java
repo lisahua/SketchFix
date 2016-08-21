@@ -8,6 +8,7 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.repair.processor.SkCandidateGenerator;
 import ece.utexas.edu.sketchFix.repair.processor.SkLinePy;
+import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.FEReplacer;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Parameter;
@@ -29,6 +30,8 @@ public class NullExceptionHandler extends FEReplacer {
 	private Function func = null;
 	protected SkCandidateGenerator candGenerator = null;
 	protected List<SkLinePy> scope;
+	private FENode addedStmt = null;
+
 	public NullExceptionHandler(AbstractRepairCandidate superClass) {
 		scope = superClass.scope;
 		candGenerator = superClass.candGenerator;
@@ -72,10 +75,15 @@ public class NullExceptionHandler extends FEReplacer {
 				StmtIfThen ifThen = new StmtIfThen(stmt.getOrigin(), exprBin, new StmtBlock(stmt.getOrigin(), stmts),
 						null);
 				list.add(ifThen);
+				addedStmt = ifThen;
 				list.add(stmt);
 				return new StmtBlock(stmt.getOrigin(), list);
 			}
 		}
 		return super.visitStmtExpr(stmt);
+	}
+
+	public FENode getAddedNode() {
+		return addedStmt;
 	}
 }

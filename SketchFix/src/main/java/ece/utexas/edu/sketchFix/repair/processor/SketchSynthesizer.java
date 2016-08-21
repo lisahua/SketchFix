@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
+import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Program;
 
 public class SketchSynthesizer {
@@ -23,7 +24,7 @@ public class SketchSynthesizer {
 		repair = new RepairGenerator(prog);
 	}
 
-	public void process(String skInput) {
+	public Program process(String skInput) {
 		String resultFile = skInput.replace("2", "3");
 		try {
 			PrintWriter writer = new PrintWriter(resultFile);
@@ -51,7 +52,7 @@ public class SketchSynthesizer {
 		}
 		Program prog = repair.setOutputParser(parser);
 		writeFile(prog, resultFile);
-
+		return prog;
 	}
 
 	/**
@@ -76,11 +77,16 @@ public class SketchSynthesizer {
 		}
 
 	}
-private void writeFile(Program prog, String outputFile) {
-	try {
-		prog.accept(new SimpleSketchFilePrinter(outputFile ));
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
+
+	private void writeFile(Program prog, String outputFile) {
+		try {
+			prog.accept(new SimpleSketchFilePrinter(outputFile));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
-}
+	
+	public FENode getAddedNode() {
+		return repair.getAddedNode();
+	}
 }

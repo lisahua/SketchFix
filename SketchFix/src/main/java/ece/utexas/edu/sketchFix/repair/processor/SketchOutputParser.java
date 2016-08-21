@@ -23,19 +23,13 @@ public class SketchOutputParser {
 		SkLineMapper lineParser = new SkLineMapper(output);
 		lineParser.visitProgram(prog);
 		return lineParser.postProcess();
-		
-		
 	}
 
-//	private int isAssert(String line) {
-//		if (line.contains("//Assert at ")) {
-//			String[] tokens = line.split(":");
-//			line = tokens[tokens.length - 1];
-//			line = line.substring(0, line.indexOf("("));
-//			return Integer.parseInt(line.trim());
-//		}
-//		return -1;
-//	}
+	public List<SkLinePy> parseRepairOutput(Program prog) {
+		SkLineMapper lineParser = new SkLineMapper(output);
+		lineParser.visitProgram(prog);
+		return lineParser.getSkLineList();
+	}
 
 	public int parseError(String line) {
 		if (line.contains("- ERROR] [SKETCH]")) {
@@ -53,10 +47,5 @@ public class SketchOutputParser {
 
 	public int getUnsat() {
 		return unsat;
-	}
-
-	public String getSuspLine() {
-		//FIXME buggy
-		return output.get(unsat - 1);
 	}
 }

@@ -8,14 +8,22 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.List;
 
+import ece.utexas.edu.sketchFix.repair.processor.SketchOutputParser;
+import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
+import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Program;
 
 public class SketchRepairValidator {
+	SkRepairProcessor repairProcessor;
+	SketchOutputParser parser = new SketchOutputParser();
+	Program prog;
 
-	public SketchRepairValidator() {
-
+	public SketchRepairValidator(Program prog, List<ASTLinePy> assList, List<ASTLinePy> codeList, FENode feNode) {
+		this.prog = prog;
+		repairProcessor = new SkRepairProcessor(assList, codeList,feNode);
 	}
 
 	public void process(String skInput) {
@@ -26,12 +34,13 @@ public class SketchRepairValidator {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "";
 			while ((line = reader.readLine()) != null) {
+				parser.append(line);
 				writer.println(line);
 			}
 			reader.close();
 			writer.close();
+			repairProcessor.setScope(parser.parseRepairOutput(prog));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

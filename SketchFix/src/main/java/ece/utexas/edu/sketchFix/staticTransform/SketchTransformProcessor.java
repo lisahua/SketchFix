@@ -60,10 +60,12 @@ public class SketchTransformProcessor {
 		SketchSynthesizer processor = new SketchSynthesizer(prog);
 //		processor.forTest( "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
 		
-		processor.process(outputFile+"2");
+		prog = processor.process(outputFile+"2");
 		
-		SketchRepairValidator validator = new SketchRepairValidator();
+		SketchRepairValidator validator = new SketchRepairValidator(prog,assertTran.getStateMapper().getLinePyList(),
+				sourceTran.getStateMapper().getLinePyList(),processor.getAddedNode());
 		validator.process(outputFile + "3");
+		
 		
 	}
 

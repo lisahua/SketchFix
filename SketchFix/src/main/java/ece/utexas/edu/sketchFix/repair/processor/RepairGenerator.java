@@ -6,13 +6,14 @@ package ece.utexas.edu.sketchFix.repair.processor;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.repair.candidates.AbstractRepairCandidate;
+import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Program;
 
 public class RepairGenerator {
 	Program prog = null;
 	int unsatLineNum = 0;
-
+	private FENode addedStmt = null;
 	public RepairGenerator(Program prog) {
 		this.prog = prog;
 	}
@@ -21,6 +22,7 @@ public class RepairGenerator {
 		List<SkLinePy> lines = parser.parseOutput(prog);
 		SkCandidateGenerator generator = new SkCandidateGenerator(prog);
 		AbstractRepairCandidate candidate = new AbstractRepairCandidate(generator);
+		addedStmt = candidate.getAddedNode();
 		return (Program) candidate.setScope(process(lines));
 		
 
@@ -43,5 +45,7 @@ public class RepairGenerator {
 		unsatLineNum = unsat;
 
 	}
-
+	public FENode getAddedNode() {
+		return addedStmt;
+	}
 }

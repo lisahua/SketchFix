@@ -113,4 +113,15 @@ public class SkLineMapper extends FEReplacer {
 		}
 		return lines;
 	}
+	public List<SkLinePy> getSkLineList() {
+		List<SkLinePy> lines = new ArrayList<SkLinePy>();
+		
+		for (int i : lineItems.keySet()) {
+			SkLinePy line = lineItems.get(i);
+			line.setLineNo(i);
+			lines.add(line);
+		}
+		return lines;
+	}
+	
 }
