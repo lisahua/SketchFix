@@ -26,9 +26,8 @@ public class NotNullTraceReplacer extends FEReplacer {
 	int lastCallID = 0;
 	// String state;
 
-	public NotNullTraceReplacer(List<ASTLinePy> assLines, List<ASTLinePy> codeLines) {
-		allLines.addAll(assLines);
-		allLines.addAll(codeLines);
+	public NotNullTraceReplacer(List<ASTLinePy> allLines) {
+		this.allLines = allLines;
 		for (int i = allLines.size() - 1; i >= 0; i--) {
 			// FIXME I know its buggy
 			for (Statement stmt : allLines.get(i).getSkStmts()) {
@@ -45,7 +44,6 @@ public class NotNullTraceReplacer extends FEReplacer {
 		}
 
 	}
-
 
 	public Object visitStmtExpr(StmtExpr stmt) {
 		Expression expr = stmt.getExpression();

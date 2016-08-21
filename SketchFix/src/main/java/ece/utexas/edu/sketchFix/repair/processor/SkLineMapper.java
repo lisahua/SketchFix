@@ -1,7 +1,7 @@
 /**
  * @author Lisa Aug 20, 2016 SkLineType.java 
  */
-package ece.utexas.edu.sketchFix.repair.candidates;
+package ece.utexas.edu.sketchFix.repair.processor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class SkLineMapper extends FEReplacer {
 	private Vector<String> output;
 	List<String> funcs = new ArrayList<String>();
 	List<Integer> funcStart = new ArrayList<Integer>();
-	private int funcTmp = 0;
+
 	private TreeMap<Integer, SkLinePy> lineItems = new TreeMap<Integer, SkLinePy>();
 
 	public SkLineMapper(Vector<String> output) {
@@ -30,12 +30,12 @@ public class SkLineMapper extends FEReplacer {
 
 	public Object visitFunction(Function func) {
 		String decl = "void" + func.getName();
-		for (int i = funcTmp; i < output.size(); i++) {
+		for (int i = 0; i < output.size(); i++) {
 			String line = output.get(i).replace(" ", "").replace("\t", "");
-			if (line.contains(decl)) {
+//			 System.out.println(decl+"--"+line);
+			if (line.indexOf(decl) > -1) {
 				funcs.add(func.getName());
 				funcStart.add(i);
-				funcTmp = i;
 				lineItems.put(i, new SkLinePy(output.get(i), func));
 				break;
 			}
@@ -89,9 +89,28 @@ public class SkLineMapper extends FEReplacer {
 	public Object visitStmtExpr(StmtExpr stmt) {
 		for (int i = 0; i < output.size(); i++) {
 			if (output.get(i).contains(stmt.toString())) {
-				lineItems.put(i, new SkLinePy(output.get(i), stmt));
+//				if (!lineItems.containsKey(i))
+					lineItems.put(i, new SkLinePy(output.get(i), stmt));
 			}
 		}
 		return super.visitStmtExpr(stmt);
+	}
+
+	public List<SkLinePy> postProcess() {
+		List<SkLinePy> lines = new ArrayList<SkLinePy>();
+		int offset = 0;
+		for (int i : lineItems.keySet()) {
+			int id = lineItems.get(i).getAssLine();
+			if (id > 0) {
+				offset = i - id;
+				break;
+			}
+		}
+		for (int i : lineItems.keySet()) {
+			SkLinePy line = lineItems.get(i);
+			line.setLineNo(i - offset);
+			lines.add(line);
+		}
+		return lines;
 	}
 }

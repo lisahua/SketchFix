@@ -12,7 +12,7 @@ import sketch.compiler.ast.core.exprs.ExprConstInt;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtIfThen;
 
-
+@Deprecated
 public class ConditionTraceReplacer extends FEReplacer {
 	List<ASTLinePy> allLines = new ArrayList<ASTLinePy>();
 	StmtIfThen atomIf = null;

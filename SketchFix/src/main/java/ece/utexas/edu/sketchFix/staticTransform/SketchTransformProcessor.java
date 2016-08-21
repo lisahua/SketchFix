@@ -8,8 +8,9 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
+import ece.utexas.edu.sketchFix.repair.processor.SketchSynthesizer;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
-import ece.utexas.edu.sketchFix.stateRevert.NotNullTraceReplacer;
+import ece.utexas.edu.sketchFix.stateRevert.StateInsertProcessor;
 import ece.utexas.edu.sketchFix.stateRevert.TransformPostProcessor;
 import sketch.compiler.ast.core.Program;
 
@@ -47,17 +48,20 @@ public class SketchTransformProcessor {
 		// ConditionTraceReplacer(assertTran.getStateMapper().getLinePyList(),
 		// sourceTran.getStateMapper().getLinePyList());
 		// prog = (Program) replacer.visitProgram(prog);
-		NotNullTraceReplacer replacer = new NotNullTraceReplacer(assertTran.getStateMapper().getLinePyList(),
+		StateInsertProcessor replacer = new StateInsertProcessor(assertTran.getStateMapper().getLinePyList(),
 				sourceTran.getStateMapper().getLinePyList());
 		prog = (Program) replacer.visitProgram(prog);
-
 		try {
 			prog.accept(new SimpleSketchFilePrinter(outputFile + "2"));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		// assertTran.mergeAnotherTransformer(sourceTran);
-		// assertTran.writeToFile(outputFile);
+		SketchSynthesizer processor = new SketchSynthesizer(prog);
+		processor.forTest( "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
+		
+//		processor.process(outputFile+"2");
+		
+		
 	}
 
 }
