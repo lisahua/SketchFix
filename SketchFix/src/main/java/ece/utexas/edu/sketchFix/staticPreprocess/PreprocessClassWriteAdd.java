@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
-
+@Deprecated
 public class PreprocessClassWriteAdd {
 	private HashMap<String, File> namePathMap = new HashMap<String, File>();
 	private String replacedPath = null;

@@ -8,6 +8,7 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
+import ece.utexas.edu.sketchFix.repair.postProcessor.SketchRepairValidator;
 import ece.utexas.edu.sketchFix.repair.processor.SketchSynthesizer;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.stateRevert.StateInsertProcessor;
@@ -57,10 +58,12 @@ public class SketchTransformProcessor {
 			e.printStackTrace();
 		}
 		SketchSynthesizer processor = new SketchSynthesizer(prog);
-		processor.forTest( "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
+//		processor.forTest( "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
 		
-//		processor.process(outputFile+"2");
+		processor.process(outputFile+"2");
 		
+		SketchRepairValidator validator = new SketchRepairValidator();
+		validator.process(outputFile + "3");
 		
 	}
 

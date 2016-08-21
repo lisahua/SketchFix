@@ -50,7 +50,7 @@ public class SketchSynthesizer {
 			e.printStackTrace();
 		}
 		Program prog = repair.setOutputParser(parser);
-		writeFile(prog, skInput);
+		writeFile(prog, resultFile);
 
 	}
 
