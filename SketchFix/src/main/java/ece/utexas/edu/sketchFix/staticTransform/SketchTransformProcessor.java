@@ -58,14 +58,14 @@ public class SketchTransformProcessor {
 			e.printStackTrace();
 		}
 		SketchSynthesizer processor = new SketchSynthesizer(prog);
-//		processor.forTest( "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
+		prog = processor.forTest( "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
 		
-		prog = processor.process(outputFile+"2");
+//		prog = processor.process(outputFile+"2");
 		
 		SketchRepairValidator validator = new SketchRepairValidator(prog,assertTran.getStateMapper().getLinePyList(),
-				sourceTran.getStateMapper().getLinePyList(),processor.getAddedNode());
-		validator.process(outputFile + "3");
-		
+				sourceTran.getStateMapper().getLinePyList(),processor.getScope());
+//		validator.process(outputFile + "4");
+		validator.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk5");
 		
 	}
 

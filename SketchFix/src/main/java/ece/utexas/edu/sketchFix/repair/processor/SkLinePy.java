@@ -10,9 +10,10 @@ import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.stmts.StmtAssert;
 
 public class SkLinePy {
-	public SkLinePy(String string, FENode stmt) {
+	public SkLinePy(String string, FENode stmt, SkLineType type) {
 		lineString = string;
 		skStmt = stmt;
+		this.type = type;
 	}
 
 	String func;
@@ -20,6 +21,8 @@ public class SkLinePy {
 	String lineString;
 	FENode skStmt;
 	TreeMap<String, HashSet<String>> availExprs = new TreeMap<String, HashSet<String>>();
+	boolean isHole = false;
+	SkLineType type;
 
 	public String toString() {
 		return lineString;
@@ -31,7 +34,13 @@ public class SkLinePy {
 				String[] tokens = lineString.split(":");
 				String line = tokens[tokens.length - 1];
 				line = line.substring(0, line.indexOf("("));
-				return Integer.parseInt(line.trim());
+				int index = 0;
+				try {
+					index = Integer.parseInt(line.trim());
+				} catch (Exception e) {
+
+				}
+				return index;
 			}
 		}
 		return -1;
@@ -76,7 +85,21 @@ public class SkLinePy {
 	public void setAvailExprs(TreeMap<String, HashSet<String>> availExprs) {
 		this.availExprs = availExprs;
 	}
-	
-	
-	
+
+	public void setHole(boolean b) {
+		isHole = b;
+	}
+
+	public boolean isHole() {
+		return isHole;
+	}
+
+	public SkLineType getType() {
+		return type;
+	}
+
+	public void setType(SkLineType type) {
+		this.type = type;
+	}
+
 }

@@ -13,7 +13,7 @@ import sketch.compiler.ast.core.Program;
 public class RepairGenerator {
 	Program prog = null;
 	int unsatLineNum = 0;
-	private FENode addedStmt = null;
+	private List<SkLinePy> beforeRepair = null;
 	public RepairGenerator(Program prog) {
 		this.prog = prog;
 	}
@@ -22,9 +22,9 @@ public class RepairGenerator {
 		List<SkLinePy> lines = parser.parseOutput(prog);
 		SkCandidateGenerator generator = new SkCandidateGenerator(prog);
 		AbstractRepairCandidate candidate = new AbstractRepairCandidate(generator);
-		addedStmt = candidate.getAddedNode();
-		return (Program) candidate.setScope(process(lines));
-		
+	Program prog =  (Program) candidate.setScope(process(lines));
+	beforeRepair = candidate.getScope();
+	return prog;
 
 	}
 
@@ -45,7 +45,8 @@ public class RepairGenerator {
 		unsatLineNum = unsat;
 
 	}
-	public FENode getAddedNode() {
-		return addedStmt;
+
+	public List<SkLinePy> getScope() {
+		return beforeRepair;
 	}
 }

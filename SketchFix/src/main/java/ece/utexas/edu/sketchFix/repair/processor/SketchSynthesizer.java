@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.List;
 
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
 import sketch.compiler.ast.core.FENode;
@@ -25,7 +26,7 @@ public class SketchSynthesizer {
 	}
 
 	public Program process(String skInput) {
-		String resultFile = skInput.replace("2", "3");
+		String resultFile = skInput.substring(0, skInput.length() - 1) + "3";
 		try {
 			PrintWriter writer = new PrintWriter(resultFile);
 			Process p = Runtime.getRuntime().exec("sketch " + skInput);
@@ -51,16 +52,17 @@ public class SketchSynthesizer {
 			e.printStackTrace();
 		}
 		Program prog = repair.setOutputParser(parser);
-		writeFile(prog, resultFile);
+		writeFile(prog, resultFile.substring(0, resultFile.length() - 1) + "4");
 		return prog;
 	}
 
-	/**
+	/**:q
+	 * 
 	 * This is for test purpose
 	 * 
 	 * @param outputFile
 	 */
-	public void forTest(String outputFile) {
+	public Program forTest(String outputFile) {
 		BufferedReader reader;
 		try {
 			reader = new BufferedReader(new FileReader(outputFile));
@@ -70,12 +72,14 @@ public class SketchSynthesizer {
 				parser.append(line);
 			}
 			repair.setUnSatLineNum(68);
-			Program prog = repair.setOutputParser(parser);
-			writeFile(prog, outputFile);
+		
+		
+			
+//			writeFile(prog, outputFile.substring(0, outputFile.length() - 1) + "4");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		return  repair.setOutputParser(parser);
 	}
 
 	private void writeFile(Program prog, String outputFile) {
@@ -85,8 +89,10 @@ public class SketchSynthesizer {
 			e.printStackTrace();
 		}
 	}
-	
-	public FENode getAddedNode() {
-		return repair.getAddedNode();
+
+	public List<SkLinePy> getScope() {
+
+		return repair.getScope();
 	}
+
 }

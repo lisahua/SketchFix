@@ -8,7 +8,6 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.repair.processor.SkCandidateGenerator;
 import ece.utexas.edu.sketchFix.repair.processor.SkLinePy;
-import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.FEReplacer;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Parameter;
@@ -30,7 +29,7 @@ public class NullExceptionHandler extends FEReplacer {
 	private Function func = null;
 	protected SkCandidateGenerator candGenerator = null;
 	protected List<SkLinePy> scope;
-	private FENode addedStmt = null;
+	private int lastCallID = 0;
 
 	public NullExceptionHandler(AbstractRepairCandidate superClass) {
 		scope = superClass.scope;
@@ -44,11 +43,12 @@ public class NullExceptionHandler extends FEReplacer {
 			if (param.getName().equals("returnObj"))
 				returnObj = param;
 		}
-		for (SkLinePy line : scope) {
-			if (line.getSkStmt() instanceof StmtExpr) {
-				StmtExpr lastExpr = (StmtExpr) line.getSkStmt();
+		for (int i = 0; i < scope.size(); i++) {
+			if (scope.get(i).getSkStmt() instanceof StmtExpr) {
+				StmtExpr lastExpr = (StmtExpr) scope.get(i).getSkStmt();
 				if (lastExpr.getExpression() instanceof ExprFunCall) {
 					lastCall = (ExprFunCall) lastExpr.getExpression();
+					lastCallID = i;
 				}
 			}
 		}
@@ -75,15 +75,18 @@ public class NullExceptionHandler extends FEReplacer {
 				StmtIfThen ifThen = new StmtIfThen(stmt.getOrigin(), exprBin, new StmtBlock(stmt.getOrigin(), stmts),
 						null);
 				list.add(ifThen);
-				addedStmt = ifThen;
 				list.add(stmt);
-				return new StmtBlock(stmt.getOrigin(), list);
+				StmtBlock block = new StmtBlock(stmt.getOrigin(), list);
+				scope.get(lastCallID).setSkStmt(block);
+				scope.get(lastCallID).setHole(true);
+				return block;
 			}
 		}
 		return super.visitStmtExpr(stmt);
 	}
 
-	public FENode getAddedNode() {
-		return addedStmt;
+	public List<SkLinePy> getScope() {
+		return scope;
 	}
+
 }
