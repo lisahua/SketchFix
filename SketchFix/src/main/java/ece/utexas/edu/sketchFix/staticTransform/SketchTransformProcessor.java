@@ -8,7 +8,9 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.repair.Argument;
+import ece.utexas.edu.sketchFix.repair.postProcessor.RepairTransformer;
 import ece.utexas.edu.sketchFix.repair.postProcessor.SketchRepairValidator;
+import ece.utexas.edu.sketchFix.repair.postProcessor.SketchRewriterProcessor;
 import ece.utexas.edu.sketchFix.repair.processor.SketchSynthesizer;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.stateRevert.StateInsertProcessor;
@@ -58,15 +60,19 @@ public class SketchTransformProcessor {
 			e.printStackTrace();
 		}
 		SketchSynthesizer processor = new SketchSynthesizer(prog);
-		prog = processor.forTest( "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
-		
-//		prog = processor.process(outputFile+"2");
-		
-		SketchRepairValidator validator = new SketchRepairValidator(prog,assertTran.getStateMapper().getLinePyList(),
-				sourceTran.getStateMapper().getLinePyList(),processor.getScope());
-//		validator.process(outputFile + "4");
-		validator.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk5");
-		
+		prog = processor.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
+
+		// prog = processor.process(outputFile+"2");
+
+		SketchRepairValidator validator = new SketchRepairValidator(prog, assertTran.getStateMapper().getLinePyList(),
+				sourceTran.getStateMapper().getLinePyList(), processor.getScope());
+		// RepairRewriter rewriter = validator.process(outputFile + "4");
+		RepairTransformer rewriter = validator
+				.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk5");
+		// validator.runSketchMain(prog, outputFile+"4");
+
+		SketchRewriterProcessor skRewriter = new SketchRewriterProcessor(rewriter, data);
+		skRewriter.process();
 	}
 
 }

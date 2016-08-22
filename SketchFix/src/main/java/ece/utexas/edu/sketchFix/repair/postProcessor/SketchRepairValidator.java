@@ -16,6 +16,8 @@ import ece.utexas.edu.sketchFix.repair.processor.SketchOutputParser;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.main.seq.SequentialSketchMain;
+import sketch.compiler.main.seq.SequentialSketchMain.SynthesisResult;
 
 public class SketchRepairValidator {
 	SkRepairProcessor repairProcessor;
@@ -28,8 +30,8 @@ public class SketchRepairValidator {
 		repairProcessor = new SkRepairProcessor(assList, codeList, beforeRepair);
 	}
 
-	public void process(String skInput) {
-		String resultFile = skInput.substring(0,skInput.length()-1)+"5";
+	public RepairTransformer process(String skInput) {
+		String resultFile = skInput.substring(0, skInput.length() - 1) + "5";
 		try {
 			PrintWriter writer = new PrintWriter(resultFile);
 			Process p = Runtime.getRuntime().exec("sketch " + skInput);
@@ -41,18 +43,30 @@ public class SketchRepairValidator {
 			}
 			reader.close();
 			writer.close();
-			repairProcessor.setScope(parser.parseRepairOutput(prog));
+			return repairProcessor.setScope(parser.parseRepairOutput(prog));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return null;
+	}
+
+	@Deprecated
+	// FIXME unknown exception
+	private void runSketchMain(Program prog, String output) {
+		String[] arg = new String[1];
+		arg[0] = output;
+		SequentialSketchMain mainRunner = new SequentialSketchMain(arg);
+		SynthesisResult synthResult = mainRunner.partialEvalAndSolve(prog);
+		prog = synthResult.lowered.result;
 	}
 
 	/**
 	 * This is for test purpose
 	 * 
 	 * @param outputFile
+	 * @return
 	 */
-	public void forTest(String outputFile) {
+	public RepairTransformer forTest(String outputFile) {
 		BufferedReader reader;
 		try {
 			reader = new BufferedReader(new FileReader(outputFile));
@@ -60,11 +74,13 @@ public class SketchRepairValidator {
 			while ((line = reader.readLine()) != null) {
 				parser.append(line);
 			}
-			repairProcessor.setScope(parser.parseRepairOutput(prog));
-			writeFile(prog, outputFile);
+			reader.close();
+			return repairProcessor.setScope(parser.parseRepairOutput(prog));
+			// writeFile(prog, outputFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 
 	private void writeFile(Program prog, String outputFile) {

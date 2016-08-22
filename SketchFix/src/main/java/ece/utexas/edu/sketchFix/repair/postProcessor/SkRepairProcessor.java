@@ -19,9 +19,9 @@ public class SkRepairProcessor {
 		mapper = new SkRepairMapper(lineStates, beoforeRepair);
 	}
 
-	public Object setScope(List<SkLinePy> scope) {
-		mapper.setNewScope(scope);
-		return null;
+	public RepairTransformer setScope(List<SkLinePy> scope) {
+		
+		return mapper.setNewScope(scope);
 	}
 
 	private void matchStmts() {

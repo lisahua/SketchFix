@@ -16,7 +16,7 @@ public class SketchOutputParser {
 		if (output.contains("/* BEGIN PACKAGE sketchFix*/")) {
 			output.clear();
 		}
-		output.add(line);
+		output.add(line.replace("@sketchFix", ""));
 	}
 
 	public List<SkLinePy> parseOutput(Program prog) {

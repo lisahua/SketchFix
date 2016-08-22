@@ -1,9 +1,10 @@
 /**
- * @author Lisa Jul 24, 2016 StaticMethodVisitor.java 
+ * @author Lisa Aug 22, 2016 SketchRewriterProcessor.java 
  */
 package ece.utexas.edu.sketchFix.repair.postProcessor;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -18,30 +19,43 @@ import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.ImportDeclaration;
-import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
-import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.core.dom.TypeLiteral;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
 
-public class RepairRewriter {
+import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
+
+public class SketchRewriterProcessor {
 	ASTRewrite rewriter = null;
 	Document document = null;
 //	AST ast = null;
 	PrintWriter writer = null;
-	final String paraName = "__tmp__";
 	
+	public SketchRewriterProcessor(RepairTransformer rewriter, MethodData data, String outputFile) {
+		File file = new File(data.getClassFullPath());
+		try {
+			PrintWriter writer = new PrintWriter(outputFile);
+			process(file, writer);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 
-	public void process(File file, PrintWriter writer) {
+	}
+
+	public void process() {
+
+	}
+	
+	private void process(File file, PrintWriter writer) {
 		this.writer = writer;
 		try {
 			document = new Document(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
@@ -160,7 +174,7 @@ public class RepairRewriter {
 
 		SingleVariableDeclaration para = methodNode.getAST().newSingleVariableDeclaration();
 		// para.setType(field.getType());
-		para.setName(methodNode.getAST().newSimpleName(paraName));
+//		para.setName(methodNode.getAST().newSimpleName(paraName));
 		para.setVarargs(false);
 		para.setExtraDimensions(0);
 
@@ -175,7 +189,7 @@ public class RepairRewriter {
 
 		Assignment aStmt = methodNode.getAST().newAssignment();
 		aStmt.setLeftHandSide(methodNode.getAST().newSimpleName(fName));
-		aStmt.setRightHandSide(methodNode.getAST().newSimpleName(paraName));
+//		aStmt.setRightHandSide(methodNode.getAST().newSimpleName(paraName));
 		Statement stmt = methodNode.getAST().newExpressionStatement(aStmt);
 		stmts.add(stmt);
 		methodNode.setBody(block);
@@ -184,5 +198,6 @@ public class RepairRewriter {
 
 		bodylrw.insertLast(methodNode, null);
 	}
+
 
 }

@@ -8,6 +8,7 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.repair.processor.SkCandidateGenerator;
 import ece.utexas.edu.sketchFix.repair.processor.SkLinePy;
+import ece.utexas.edu.sketchFix.repair.processor.SkLineType;
 import sketch.compiler.ast.core.FEReplacer;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Parameter;
@@ -79,6 +80,7 @@ public class NullExceptionHandler extends FEReplacer {
 				StmtBlock block = new StmtBlock(stmt.getOrigin(), list);
 				scope.get(lastCallID).setSkStmt(block);
 				scope.get(lastCallID).setHole(true);
+				scope.get(lastCallID).setType(SkLineType.STBLOCK);
 				return block;
 			}
 		}
