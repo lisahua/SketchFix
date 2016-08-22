@@ -13,13 +13,15 @@ public class RepairPatch {
 	Statement originStmt;
 
 	public void getUpdatedNode(Statement originStmt, Statement newStmt, RepairOpType type) {
-switch (type) {
-case ADD:
+		switch (type) {
+		case ADD:
 
-	break;
-case DELETE: break;
-case REPLACE: break;
-}
+			break;
+		case DELETE:
+			break;
+		case REPLACE:
+			break;
+		}
 	}
 
 }

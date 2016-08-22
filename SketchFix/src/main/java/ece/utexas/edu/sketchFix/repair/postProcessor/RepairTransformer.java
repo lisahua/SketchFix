@@ -54,6 +54,7 @@ public class RepairTransformer {
 	List<Statement> delta;
 	org.eclipse.jdt.core.dom.Statement origDOMStmt;
 
+	// MethodDeclaration mtdDecl ;
 	public RepairTransformer(Function func, SkLinePy[] isHole, ASTLinePy astHole) {
 		String[] token = func.getName().split("_");
 		funcName = token[0];
@@ -120,31 +121,32 @@ public class RepairTransformer {
 		return newDeltaList;
 	}
 
-	public boolean matchMethod(MethodDeclaration mtd) {
+	public MethodDeclaration matchMethod(MethodDeclaration mtd) {
 		if (!mtd.getName().toString().equals(funcName))
-			return false;
+			return null;
 		List<SingleVariableDeclaration> paramList = mtd.parameters();
 		if (params.length != paramList.size())
-			return false;
+			return null;
 		for (int i = 0; i < paramList.size(); i++) {
 			if (!paramList.get(i).getType().toString().equals(params[i]))
-				return false;
+				return null;
 		}
-		buildNewNode(mtd);
-		return true;
+		return buildNewNode(mtd);
+
 	}
 
 	public String getFuncName() {
 		return funcName;
 	}
 
-	private void buildNewNode(MethodDeclaration methodNode) {
+	private MethodDeclaration buildNewNode(MethodDeclaration methodNode) {
 		Block block = methodNode.getAST().newBlock();
 		List<org.eclipse.jdt.core.dom.Statement> stmts = block.statements();
 		for (Statement stmt : delta) {
 			stmts.add(buildStatement(methodNode, stmt));
 		}
-
+		methodNode.setBody(block);
+		return methodNode;
 	}
 
 	private org.eclipse.jdt.core.dom.Statement buildStatement(MethodDeclaration methodNode, Statement stmt) {

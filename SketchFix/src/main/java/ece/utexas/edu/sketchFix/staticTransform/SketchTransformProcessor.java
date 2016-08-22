@@ -71,7 +71,7 @@ public class SketchTransformProcessor {
 				.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk5");
 		// validator.runSketchMain(prog, outputFile+"4");
 
-		SketchRewriterProcessor skRewriter = new SketchRewriterProcessor(rewriter, data);
+		SketchRewriterProcessor skRewriter = new SketchRewriterProcessor(rewriter, data, outputFile + ".java");
 		skRewriter.process();
 	}
 
