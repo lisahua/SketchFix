@@ -196,9 +196,9 @@ public class PreprocessClassRewriter {
 		TextEdit edits = rewriter.rewriteAST(document, null);
 		edits.apply(document);
 		String str = document.get();
-		PrintWriter tmp = new PrintWriter("tmp.txt");
-		tmp.print(str);
-		tmp.close();
+//		PrintWriter tmp = new PrintWriter("tmp.txt");
+//		tmp.print(str);
+//		tmp.close();
 		for (String funcName : fixGetReturn.keySet())
 			str = str.replace("void " + "get" + funcName + "(", fixGetReturn.get(funcName) + " get" + funcName + "(");
 		for (String funcName : fixSetReturn.keySet())

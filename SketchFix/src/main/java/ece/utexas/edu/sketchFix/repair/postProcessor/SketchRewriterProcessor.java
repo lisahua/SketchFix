@@ -31,11 +31,12 @@ public class SketchRewriterProcessor {
 		this.transformer = rewriter;
 		File file = new File(data.getClassAbsolutePath());
 		try {
-			File output = new File(data.getClassName() + ".java");
+			File output = new File("Repair-" + data.getClassName() + ".java");
 			int i = 0;
 			while (output.exists()) {
-				output = new File(data.getClassName() + (i++) + ".java");
+				output = new File("Repair-" + data.getClassName() + (i++) + ".java");
 			}
+			System.out.println("[Repaired file:]" + output);
 			PrintWriter writer = new PrintWriter(output);
 			process(file, writer);
 		} catch (FileNotFoundException e) {
@@ -72,7 +73,7 @@ public class SketchRewriterProcessor {
 		for (MethodDeclaration mtd : tNode.getMethods()) {
 			RepairPatch transformed = transformer.matchMethod(mtd, cu.getAST());
 			if (transformed != null) {
-				
+
 				String str = document.get();
 
 				String replace = transformed.replaceBody(str);
