@@ -30,7 +30,7 @@ public class SketchRewriterProcessor {
 
 	public SketchRewriterProcessor(RepairTransformer rewriter, MethodData data, String outputFile) {
 		this.transformer = rewriter;
-		File file = new File(data.getClassFullPath());
+		File file = new File(data.getClassAbsolutePath());
 		try {
 			PrintWriter writer = new PrintWriter(outputFile);
 			process(file, writer);
@@ -65,10 +65,10 @@ public class SketchRewriterProcessor {
 		rewriter = ASTRewrite.create(ast);
 		TypeDeclaration tNode = (TypeDeclaration) cu.types().get(0);
 		for (MethodDeclaration mtd : tNode.getMethods()) {
-			MethodDeclaration transformed = transformer.matchMethod(mtd);
+			StringBuilder transformed = transformer.matchMethod(mtd,cu.getAST());
 			if (transformed != null) {
-				ListRewrite bodylrw = rewriter.getListRewrite(tNode, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-				bodylrw.replace(mtd, transformed, null);;
+//				ListRewrite bodylrw = rewriter.getListRewrite(tNode, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
+//				bodylrw.replace(mtd, transformed, null);;
 				return;
 			}
 		}

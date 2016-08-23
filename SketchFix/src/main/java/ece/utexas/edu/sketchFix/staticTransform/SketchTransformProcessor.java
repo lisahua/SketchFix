@@ -62,11 +62,11 @@ public class SketchTransformProcessor {
 		SketchSynthesizer processor = new SketchSynthesizer(prog);
 		prog = processor.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
 
-		// prog = processor.process(outputFile+"2");
+//		 prog = processor.process(outputFile+"2");
 
 		SketchRepairValidator validator = new SketchRepairValidator(prog, assertTran.getStateMapper().getLinePyList(),
 				sourceTran.getStateMapper().getLinePyList(), processor.getScope());
-		// RepairRewriter rewriter = validator.process(outputFile + "4");
+//		RepairTransformer rewriter = validator.process(outputFile + "4");
 		RepairTransformer rewriter = validator
 				.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk5");
 		// validator.runSketchMain(prog, outputFile+"4");

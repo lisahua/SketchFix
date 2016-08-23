@@ -36,6 +36,7 @@ public class SkRepairMapper {
 		return mapNewScope(scope, beforeRepair);
 	}
 
+	@Deprecated
 	private void mapNewScope(List<SkLinePy> scope) {
 		List<Statement> holeStmts = new ArrayList<Statement>();
 		if (hole.getSkStmt() instanceof StmtBlock) {
@@ -78,22 +79,125 @@ public class SkRepairMapper {
 	}
 
 	private RepairTransformer startMappingFuncs(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
-		SkLinePy[] isHole = new SkLinePy[2];
-		int[] scopeMatch = new int[scope.size()];
-		// RepairTransformer transformer = new RepairTransformer();
+		List<SkLinePy> holes = new ArrayList<SkLinePy>();
+		List<Integer> ids = new ArrayList<Integer>();
 		for (int i = 0; i < scope.size(); i++) {
 			for (int j = 0; j < beforeRepair.size(); j++) {
 				if (matchTwoSkLinePy(scope.get(i), beforeRepair.get(j))) {
-					scopeMatch[i] = j;
+					// if (scopeMatch[i] != 0)
+					// continue;
+					// scopeMatch[i] = j;
 					if (beforeRepair.get(j).isHole()) {
-						isHole[0] = scope.get(i);
-						isHole[1] = beforeRepair.get(j);
+						ids.add(i);
 					}
-					System.out.println(i + "-" + j + " (" + isHole + "):" + scope.get(i) + "--" + beforeRepair.get(j));
+					// System.out.println(i + "-" + j + " (" + isHole + "):" +
+					// scope.get(i) + "--" + beforeRepair.get(j));
 				}
 			}
 		}
-		return new RepairTransformer(func, isHole, astHole);
+		if (ids.size() > 1) {
+			for (int i = ids.get(0); i <= ids.get(1); i++)
+				holes.add(scope.get(i));
+		} else if (ids.size() == 1)
+			holes.add(scope.get(ids.get(0)));
+		holes = convertHolesToSoln(holes);
+		return new RepairTransformer(func, findDelta(holes), astHole);
+	}
+
+	private List<SkLinePy> convertHolesToSoln(List<SkLinePy> holes) {
+		List<SkLinePy> result = new ArrayList<SkLinePy>();
+		if (holes.get(0).getSkStmt() instanceof StmtIfThen) {
+			StmtIfThen ifStmt = (StmtIfThen) holes.get(0).getSkStmt();
+			Statement condStmt = ifStmt.getCons();
+			Statement altStmt = ifStmt.getAlt();
+			List<Statement> newList = convertStmt(condStmt);
+			newList.addAll(convertStmt(altStmt));
+			List<Statement> oldList = new ArrayList<Statement>();
+			for (int i = 1; i < holes.size() - 1; i++) {
+				oldList.addAll(convertStmt((Statement) holes.get(i).getSkStmt()));
+			}
+			StmtBlock block = new StmtBlock(ifStmt.getOrigin(), oldList);
+			StmtIfThen newIf = new StmtIfThen(ifStmt.getOrigin(), ifStmt.getCond(), block, ifStmt.getAlt());
+			holes.get(0).setSkStmt(newIf);
+			result.add(holes.get(0));
+			result.add(holes.get(holes.size() - 1));
+		}
+
+		return result;
+
+	}
+
+	private List<Statement> convertStmt(Statement stmt) {
+		List<Statement> newList = new ArrayList<Statement>();
+		if (stmt instanceof StmtBlock)
+			newList.addAll(((StmtBlock) stmt).getStmts());
+		else
+			newList.add(stmt);
+		return newList;
+	}
+
+	private List<Statement> findDelta(List<SkLinePy> isHole) {
+
+		List<Statement> newList = new ArrayList<Statement>();
+		List<Statement> oldList = astHole.getSkStmts();
+
+		for (SkLinePy newLine : isHole) {
+			if (newLine.getType().equals(SkLineType.STBLOCK))
+				newList.addAll(((StmtBlock) newLine.getSkStmt()).getStmts());
+			else
+				newList.add((Statement) newLine.getSkStmt());
+		}
+
+		return findDelta(newList, oldList);
+
+	}
+
+	private List<Statement> findDelta(List<Statement> newList, List<Statement> oldList) {
+		List<Statement> newDeltaList = new ArrayList<Statement>();
+		newDeltaList.addAll(newList);
+		List<Statement> oldDeltaList = new ArrayList<Statement>();
+		oldDeltaList.addAll(oldList);
+
+		for (Statement oldS : oldList) {
+			for (Statement newS : newList) {
+				if (oldS instanceof StmtExpr && newS instanceof StmtExpr) {
+					if (((StmtExpr) newS).getExpression().toString()
+							.equals(((StmtExpr) oldS).getExpression().toString())) {
+						oldDeltaList.remove(oldS);
+						newDeltaList.remove(newS);
+						break;
+					}
+				} else if (oldS instanceof StmtIfThen && newS instanceof StmtIfThen) {
+					if (((StmtIfThen) newS).getCond().toString().equals(((StmtIfThen) oldS).getCond().toString())) {
+						oldDeltaList.remove(oldS);
+						newDeltaList.remove(newS);
+						break;
+					}
+				} else if (oldS instanceof StmtWhile && newS instanceof StmtWhile) {
+					if (((StmtWhile) newS).getCond().toString().equals(((StmtWhile) oldS).getCond().toString())) {
+						oldDeltaList.remove(oldS);
+						newDeltaList.remove(newS);
+						break;
+					}
+				} else if (oldS instanceof StmtVarDecl && newS instanceof StmtVarDecl) {
+					if (((StmtVarDecl) newS).getName(0).toString().equals(((StmtVarDecl) oldS).getName(0).toString())) {
+						oldDeltaList.remove(oldS);
+						newDeltaList.remove(newS);
+						break;
+					}
+				} else if (oldS instanceof StmtAssert && newS instanceof StmtAssert) {
+					if (((StmtAssert) newS).getCond().toString().equals(((StmtAssert) oldS).getCond().toString())) {
+						oldDeltaList.remove(oldS);
+						newDeltaList.remove(newS);
+						break;
+					}
+				}
+			}
+
+		}
+		// newDeltaList.addAll(oldDeltaList);
+		return newDeltaList;
+
 	}
 
 	private boolean matchTwoSkLinePy(SkLinePy newLine, SkLinePy oldLine) {
