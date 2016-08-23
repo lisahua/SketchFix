@@ -16,7 +16,6 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
-import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
 
@@ -28,11 +27,16 @@ public class SketchRewriterProcessor {
 	PrintWriter writer;
 	RepairTransformer transformer;
 
-	public SketchRewriterProcessor(RepairTransformer rewriter, MethodData data, String outputFile) {
+	public SketchRewriterProcessor(RepairTransformer rewriter, MethodData data) {
 		this.transformer = rewriter;
 		File file = new File(data.getClassAbsolutePath());
 		try {
-			PrintWriter writer = new PrintWriter(outputFile);
+			File output = new File(data.getClassName() + ".java");
+			int i = 0;
+			while (output.exists()) {
+				output = new File(data.getClassName() + (i++) + ".java");
+			}
+			PrintWriter writer = new PrintWriter(output);
 			process(file, writer);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -64,11 +68,16 @@ public class SketchRewriterProcessor {
 		AST ast = cu.getAST();
 		rewriter = ASTRewrite.create(ast);
 		TypeDeclaration tNode = (TypeDeclaration) cu.types().get(0);
+
 		for (MethodDeclaration mtd : tNode.getMethods()) {
-			StringBuilder transformed = transformer.matchMethod(mtd,cu.getAST());
+			RepairPatch transformed = transformer.matchMethod(mtd, cu.getAST());
 			if (transformed != null) {
-//				ListRewrite bodylrw = rewriter.getListRewrite(tNode, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-//				bodylrw.replace(mtd, transformed, null);;
+				
+				String str = document.get();
+
+				String replace = transformed.replaceBody(str);
+				writer.println(replace);
+				writer.flush();
 				return;
 			}
 		}

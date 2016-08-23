@@ -8,6 +8,7 @@ import java.util.List;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.BlockComment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
@@ -51,6 +52,7 @@ public class RepairTransformer {
 	org.eclipse.jdt.core.dom.Statement origDOMStmt;
 	MethodDeclaration methodDecl;
 	AST typeNode;
+	org.eclipse.jdt.core.dom.Statement comment;
 
 	// MethodDeclaration mtdDecl ;
 	public RepairTransformer(Function func, List<Statement> delta, ASTLinePy astHole) {
@@ -70,7 +72,7 @@ public class RepairTransformer {
 
 	}
 
-	public StringBuilder matchMethod(MethodDeclaration mtd, AST node) {
+	public RepairPatch matchMethod(MethodDeclaration mtd, AST node) {
 		if (!mtd.getName().toString().equals(funcName))
 			return null;
 		List<SingleVariableDeclaration> paramList = mtd.parameters();
@@ -82,7 +84,7 @@ public class RepairTransformer {
 		}
 		this.methodDecl = mtd;
 		this.typeNode = node;
-	
+//		this.comment = comment;
 		return buildNewNode(mtd);
 
 	}
@@ -91,21 +93,28 @@ public class RepairTransformer {
 		return funcName;
 	}
 
-	private StringBuilder buildNewNode(MethodDeclaration methodNode) {
+	private RepairPatch buildNewNode(MethodDeclaration methodNode) {
 		Block block = methodNode.getBody();
-//		Block newBlock = typeNode.newBlock();
-//		List<org.eclipse.jdt.core.dom.Statement> newstmts = newBlock.statements();
+		RepairPatch patch = new RepairPatch(block,typeNode);
+		// Block newBlock = typeNode.newBlock();
+		// List<org.eclipse.jdt.core.dom.Statement> newstmts =
+		// newBlock.statements();
 		List<org.eclipse.jdt.core.dom.Statement> stmts = block.statements();
 		for (int i = 0; i < stmts.size(); i++) {
 			if (stmts.get(i).toString().equals(origDOMStmt.toString())) {
-				for (Statement stmt : delta)
-					stmts.add(i++, buildStatement(stmt));
-				break;
+				patch.setInsertPoint(i);
+				for (Statement stmt : delta) {
+//					patch.insertStatement(comment);
+					patch.insertStatement(buildStatement(stmt));
+				}
+				return patch;
 			}
-//			newstmts.add(stmts.get(i));
+			// newstmts.add(stmts.get(i));
 		}
-//		methodNode.setBody(block);
-		return new StringBuilder(block.toString());
+		// BlockComment comment = typeNode.newBlockComment();
+
+		// methodNode.setBody(block);
+		return null;
 	}
 
 	private org.eclipse.jdt.core.dom.Statement buildStatement(Statement stmt) {
@@ -114,21 +123,21 @@ public class RepairTransformer {
 		else if (stmt instanceof StmtAssign)
 			return buildStmtAssign((StmtAssign) stmt);
 		else if (stmt instanceof StmtVarDecl)
-			return buildStmtVarDecl( (StmtVarDecl) stmt);
+			return buildStmtVarDecl((StmtVarDecl) stmt);
 		else if (stmt instanceof StmtReturn)
 			return buildStmtReturn();
 		else if (stmt instanceof StmtBlock)
-			return buildStmtBlock( (StmtBlock) stmt);
+			return buildStmtBlock((StmtBlock) stmt);
 		return null;
 	}
 
 	private org.eclipse.jdt.core.dom.Statement buildStmtIfThen(StmtIfThen ifStmt) {
 		Expression expr = ifStmt.getCond();
-		org.eclipse.jdt.core.dom.Expression domExpr = buildExpression( expr);
+		org.eclipse.jdt.core.dom.Expression domExpr = buildExpression(expr);
 		IfStatement domIfStmt = typeNode.newIfStatement();
 		domIfStmt.setExpression(domExpr);
 
-		org.eclipse.jdt.core.dom.Statement domConsStmt = buildStatement( ifStmt.getCons());
+		org.eclipse.jdt.core.dom.Statement domConsStmt = buildStatement(ifStmt.getCons());
 		domIfStmt.setThenStatement(domConsStmt);
 
 		org.eclipse.jdt.core.dom.Statement domAltStmt = buildStatement(ifStmt.getAlt());
@@ -137,20 +146,20 @@ public class RepairTransformer {
 		return domIfStmt;
 	}
 
-	private org.eclipse.jdt.core.dom.Statement buildStmtBlock( StmtBlock block) {
+	private org.eclipse.jdt.core.dom.Statement buildStmtBlock(StmtBlock block) {
 		Block domBlock = typeNode.newBlock();
 		List<org.eclipse.jdt.core.dom.Statement> stmts = domBlock.statements();
 
 		for (Statement stmt : block.getStmts()) {
-			stmts.add(buildStatement( stmt));
+			stmts.add(buildStatement(stmt));
 		}
 		return domBlock;
 	}
 
 	private org.eclipse.jdt.core.dom.Statement buildStmtAssign(StmtAssign assignStmt) {
 		Assignment exprAssign = typeNode.newAssignment();
-		exprAssign.setLeftHandSide(buildExpression( assignStmt.getLHS()));
-		exprAssign.setRightHandSide(buildExpression( assignStmt.getRHS()));
+		exprAssign.setLeftHandSide(buildExpression(assignStmt.getLHS()));
+		exprAssign.setRightHandSide(buildExpression(assignStmt.getRHS()));
 		ExpressionStatement exprStmt = typeNode.newExpressionStatement(exprAssign);
 		return exprStmt;
 	}
@@ -162,7 +171,7 @@ public class RepairTransformer {
 			PrimitiveType.Code type = ((PrimitiveType) rtnType).getPrimitiveTypeCode();
 			if (type == PrimitiveType.BOOLEAN) {
 				// FIXME based on pre-stmts
-				BooleanLiteral rtnExp =typeNode.newBooleanLiteral(false);
+				BooleanLiteral rtnExp = typeNode.newBooleanLiteral(false);
 				rtnStmt.setExpression(rtnExp);
 			} else if (type == PrimitiveType.INT || type == PrimitiveType.DOUBLE) {
 				// FIXME
@@ -173,7 +182,7 @@ public class RepairTransformer {
 		return rtnStmt;
 	}
 
-	private org.eclipse.jdt.core.dom.Statement buildStmtVarDecl( StmtVarDecl declStmt) {
+	private org.eclipse.jdt.core.dom.Statement buildStmtVarDecl(StmtVarDecl declStmt) {
 		VariableDeclarationFragment varfrag = typeNode.newVariableDeclarationFragment();
 		SimpleName name = typeNode.newSimpleName(declStmt.getName(0));
 		varfrag.setName(name);
@@ -182,21 +191,21 @@ public class RepairTransformer {
 		return varStmt;
 	}
 
-	private org.eclipse.jdt.core.dom.Expression buildExpression( Expression exp) {
+	private org.eclipse.jdt.core.dom.Expression buildExpression(Expression exp) {
 		if (exp instanceof ExprBinary)
 			return buildExprBinary((ExprBinary) exp);
 		else if (exp instanceof ExprConstant)
 			return buildExprConstant((ExprConstant) exp);
 		else if (exp instanceof ExprNew)
-			return buildExprNew( (ExprNew) exp);
+			return buildExprNew((ExprNew) exp);
 		else if (exp instanceof ExprNullPtr)
-			return buildNullPtr( (ExprNullPtr) exp);
+			return buildNullPtr((ExprNullPtr) exp);
 		else if (exp instanceof ExprVar)
-			return buildVar( (ExprVar) exp);
+			return buildVar((ExprVar) exp);
 		return null;
 	}
 
-	private org.eclipse.jdt.core.dom.Expression buildVar( ExprVar exp) {
+	private org.eclipse.jdt.core.dom.Expression buildVar(ExprVar exp) {
 		return typeNode.newSimpleName(exp.getName());
 	}
 
@@ -205,7 +214,7 @@ public class RepairTransformer {
 	}
 
 	private org.eclipse.jdt.core.dom.Expression buildExprNew(ExprNew exp) {
-		ClassInstanceCreation cInst =typeNode.newClassInstanceCreation();
+		ClassInstanceCreation cInst = typeNode.newClassInstanceCreation();
 		Type nType = typeNode.newSimpleType(typeNode.newName(exp.getTypeToConstruct().toString()));
 		cInst.setType(nType);
 		return cInst;

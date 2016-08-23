@@ -187,6 +187,7 @@ public class PreprocessClassRewriter {
 		// FIXME hacky to fix it
 		// methodNode.setReturnType2( field.getType());
 		ListRewrite bodylrw = rewriter.getListRewrite(node, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
+		
 		bodylrw.insertLast(methodNode, null);
 
 	}
