@@ -5,12 +5,12 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class InstrumentClassVisitor extends ClassVisitor implements Opcodes {
+public class LineNumberClassVisitor extends ClassVisitor implements Opcodes {
 	public static String className = "";
 	public static String methodName = "";
 	public static String params = "";
 
-	public InstrumentClassVisitor(ClassVisitor cv) {
+	public LineNumberClassVisitor(ClassVisitor cv) {
 		super(ASM5);
 		this.cv = cv;
 	}
@@ -25,7 +25,7 @@ public class InstrumentClassVisitor extends ClassVisitor implements Opcodes {
 			final String[] exceptions) {
 		methodName = name;
 		params = desc;
-		InstrumentMethodVisitor mv = new InstrumentMethodVisitor(
+		LineNumMethodVisitor mv = new LineNumMethodVisitor(
 				cv.visitMethod(access, name, desc, signature, exceptions));
 
 		return mv;

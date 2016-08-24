@@ -230,7 +230,11 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			Expression exp = (Expression) transform(arg.get(i));
 			if (exp != null) {
 				expArg.add(exp);
-				name += "_" + resolveType(exp).toString();
+				Type type = resolveType(exp);
+				if (type.equals(TypePrimitive.nulltype))
+					name += "_null";
+				else
+					name += "_" + type.toString();
 			}
 		}
 		mtdModel = stmtAdapter.getMethodModel(invokerType, name);
@@ -338,9 +342,12 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (expr instanceof ExprConstFloat) {
 			return TypePrimitive.floattype;
 		} else if (expr instanceof ExprConstInt) {
-			return TypePrimitive.int32type;
+			return TypePrimitive.bittype;
+//			return TypePrimitive.int32type;
 		} else if (expr instanceof ExprConstChar) {
 			return TypePrimitive.chartype;
+		} else if (expr instanceof ExprNullPtr) {
+			return TypePrimitive.nulltype;
 		}
 		return null;
 	}
@@ -440,10 +447,10 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		ClassInstanceCreation instNew = (ClassInstanceCreation) expr;
 		// org.eclipse.jdt.core.dom.Type type = instNew.getType();
 		String sType = null;
-//		if (currVarType == null)
-			sType = instNew.getType().toString();
-//		else
-//			sType = currVarType.toString();
+		// if (currVarType == null)
+		sType = instNew.getType().toString();
+		// else
+		// sType = currVarType.toString();
 
 		List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
 		List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
@@ -510,8 +517,20 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		Type type = stmtAdapter.getVarType(name);
 		if (type != null)
 			return new ExprVar(stmtAdapter.getMethodContext(), name);
-		ExprField field = new ExprField(stmtAdapter.getMethodContext(), thisObj, name, false);
-		return field;
+		else if (name.charAt(0) >= 'A' && name.charAt(0) <= 'Z') {
+			// FIXME Field
+			String var = getNextName();
+			ExprNew newInt = new ExprNew(stmtAdapter.getMethodContext(), TypeAdapter.getType(name),
+					new ArrayList<ExprNamedParam>(), false);
+			StmtVarDecl decl = new StmtVarDecl(stmtAdapter.getMethodContext(), TypeAdapter.getType(name), var, newInt);
+			stmtAdapter.insertVarDecl(decl.getName(0), decl.getType(0));
+			stmtAdapter.insertStmt(decl);
+			ExprVar varExp = new ExprVar(stmtAdapter.getMethodContext(), var);
+			return varExp;
+		} else {
+			ExprField field = new ExprField(stmtAdapter.getMethodContext(), thisObj, name, false);
+			return field;
+		}
 
 	}
 }

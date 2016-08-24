@@ -7,7 +7,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -18,11 +19,15 @@ import ece.utexas.edu.sketchFix.instrument.visitors.InstrumentClassVisitor;
 public class InstrumentModel {
 	private Arguments args;
 	// private CodeInstrumentationTask instrumentationTask;
-	private HashSet<File> files = new HashSet<File>();
+	private List<File> files = new ArrayList<File>();
+
+	public InstrumentModel() {
+
+	}
 
 	public InstrumentModel(String[] arg) {
 		args = new Arguments(arg);
-//		LineNumberRecorder.setTraceFile(args.getTraceFile());
+		// LineNumberRecorder.setTraceFile(args.getTraceFile());
 		cleanUp();
 	}
 
@@ -30,40 +35,35 @@ public class InstrumentModel {
 
 		File base = new File(args.getSrcDir());
 		recurAddFile(base);
-		for (File file : files) {
-			try {
-
-				FileInputStream is = new FileInputStream(file);
-				ClassReader cr = new ClassReader(is);
-				// ClassNode cn = new ClassNode();
-				// cr.accept(new StateClassVisitor(cn), 0);
-				ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
-				cr.accept(new InstrumentClassVisitor(cw), ClassReader.EXPAND_FRAMES);
-				FileOutputStream fos = new FileOutputStream(getInstrumentDir(file));
-				fos.write(cw.toByteArray());
-				fos.close();
-
-				is = new FileInputStream(getInstrumentDir(file));
-				cr = new ClassReader(is);
-				FileOutputStream fcos = new FileOutputStream(getInstrumentDir(file) + ".txt", true);
-				CheckClassAdapter.verify(cr, true, new PrintWriter(fcos));
-			} catch (Exception e) {
-				System.out.println("[Tracer Error] " + file.getAbsolutePath());
-//				e.printStackTrace();
-			}
-		}
+		// for (File file : files) {
+		// System.out.println("[add file]"+file.getPath() + "-" +
+		// getInstrumentDir(file));
+		// instrumentSingle(file);
+		// }
 		return this;
 	}
 
-	private void recurAddFile(File file) {
-		if (!file.isDirectory()) {
-			if (file.getName().endsWith(".class"))
-				files.add(file);
-		} else {
+	public InstrumentModel instrumentCode(File base) {
+
+		// File base = new File(args.getSrcDir());
+		recurAddFile(base);
+		// for (File file : files) {
+		// instrumentSingle(file);
+		// }
+		return this;
+	}
+
+	public void recurAddFile(File file) {
+		if (file.isDirectory()) {
 			File[] list = file.listFiles();
 			for (File f : list) {
 				recurAddFile(f);
 			}
+		}
+		else if (file.getName().endsWith(".class")) {
+			instrumentSingle(file);
+//			if (file.getPath().contains("build/org/jfree/data/"))
+//				System.out.println("[add file]" + file.getPath() + "-" + getInstrumentDir(file));
 		}
 	}
 
@@ -84,4 +84,45 @@ public class InstrumentModel {
 		if (trace.exists())
 			trace.delete();
 	}
+
+	public void instrumentSingle(File file) {
+		try {
+//			System.out.println(file.getPath() + "-" + getInstrumentDir(file));
+			FileInputStream is = new FileInputStream(file);
+			ClassReader cr = new ClassReader(is);
+			ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+			cr.accept(new InstrumentClassVisitor(cw), ClassReader.EXPAND_FRAMES);
+			FileOutputStream fos = new FileOutputStream(getInstrumentDir(file));
+			fos.write(cw.toByteArray());
+			fos.close();
+
+			is = new FileInputStream(getInstrumentDir(file));
+			cr = new ClassReader(is);
+			cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+			FileOutputStream fcos = new FileOutputStream(getInstrumentDir(file) + ".txt", true);
+			fcos.write(cw.toByteArray());
+			fcos.close();
+			CheckClassAdapter.verify(cr, true, new PrintWriter(fcos));
+
+			// is = new FileInputStream(file);
+			// cr = new ClassReader(is);
+			// cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+			// cr.accept(new InstrumentClassVisitor(cw),
+			// ClassReader.EXPAND_FRAMES);
+			// fos = new FileOutputStream(getInstrumentDir(file));
+			// fos.write(cw.toByteArray());
+			// fos.close();
+			//
+			// is = new FileInputStream(getInstrumentDir(file));
+			// cr = new ClassReader(is);
+			// fcos = new FileOutputStream(getInstrumentDir(file) + ".txt",
+			// true);
+			// CheckClassAdapter.verify(cr, true, new PrintWriter(fcos));
+
+		} catch (Exception e) {
+			System.out.println("[Tracer Error] " + file.getAbsolutePath());
+			e.printStackTrace();
+		}
+	}
+
 }

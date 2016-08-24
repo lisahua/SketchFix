@@ -68,7 +68,7 @@ public class OverloadHandler {
 		HashSet<String> destSet = new HashSet<String>(destParam);
 		for (String pType : testPara) {
 			if (destSet.contains(pType)) {
-				mark[destParam.indexOf(pType)] = testPara.indexOf(pType)+1;
+				mark[destParam.indexOf(pType)] = testPara.indexOf(pType) + 1;
 				destSet.remove(pType);
 				continue;
 			}
@@ -83,7 +83,7 @@ public class OverloadHandler {
 			}
 			if (!maxType.equals("")) {
 				destSet.remove(maxType);
-				mark[destParam.indexOf(maxType)] = testPara.indexOf(pType)+1;
+				mark[destParam.indexOf(maxType)] = testPara.indexOf(pType) + 1;
 				replaceMap.put(maxType, pType);
 				continue;
 			}
@@ -222,7 +222,10 @@ public class OverloadHandler {
 	}
 
 	public String convertParam(int i) {
-		return replaceDestParam.get(i);
+		if (i < replaceDestParam.size())
+			return replaceDestParam.get(i);
+		else
+			return destParam.get(i);
 	}
 
 	public List<Function> getMethods(List<Function> sourceFun) {

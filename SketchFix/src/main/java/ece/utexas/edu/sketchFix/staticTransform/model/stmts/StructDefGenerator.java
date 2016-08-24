@@ -53,7 +53,7 @@ public class StructDefGenerator {
 
 	private void initStructDef(String typeName, HashSet<String> fields, HashMap<String, String> constructor) {
 		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("[") || typeName.contains("bit")
-				|| typeName.contains("boolean")|| typeName.contains("char"))
+				|| typeName.contains("boolean") || typeName.contains("char") || typeName.contains("null"))
 			return;
 
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
@@ -66,7 +66,7 @@ public class StructDefGenerator {
 				types.add(TypeAdapter.getType(resolver.getFieldType(typeName, field)));
 			}
 		}
-		//FIXME mann, I know it's buggy
+		// FIXME mann, I know it's buggy
 		if (constructor != null) {
 			for (String type : constructor.keySet()) {
 				names.add(constructor.get(type));

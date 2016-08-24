@@ -4,14 +4,14 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class instrumentMethodVisitor extends MethodVisitor implements Opcodes {
+public class InstrumentMethodVisitor extends MethodVisitor implements Opcodes {
 	// private String lineRecorder =
 	// LineNumberRecorder.class.getCanonicalName().replace(".", "/");
 	private String stateRecorder = StateRecorder.class.getCanonicalName().replace(".", "/");
-	// private String lineRecordMtd = "_sketchFix_recordLine";
+	 private String lineRecordMtd = "_sketchFix_recordLine";
 	private String stateRecordMtd = "_sketchFix_recordState";
 
-	public instrumentMethodVisitor(MethodVisitor mv) {
+	public InstrumentMethodVisitor(MethodVisitor mv) {
 		super(ASM5);
 		this.mv = mv;
 	}
@@ -19,11 +19,11 @@ public class instrumentMethodVisitor extends MethodVisitor implements Opcodes {
 	@Override
 	public void visitLineNumber(int line, Label start) {
 		
-		// mv.visitLdcInsn(InstrumentClassVisitor.className + "-" +
-		// InstrumentClassVisitor.methodName + "-"
-		// + String.valueOf(line));
-		// mv.visitMethodInsn(INVOKESTATIC, lineRecorder, lineRecordMtd,
-		// "(Ljava/lang/String;)V", false);
+//		 mv.visitLdcInsn(InstrumentClassVisitor.className + "-" +
+//		 InstrumentClassVisitor.methodName + "-"
+//		 + String.valueOf(line));
+//		 mv.visitMethodInsn(INVOKESTATIC, stateRecorder, lineRecordMtd,
+//		 "(Ljava/lang/String;)V", false);
 		mv.visitLdcInsn(InstrumentClassVisitor.className + "-" + InstrumentClassVisitor.methodName + "-"
 				+ InstrumentClassVisitor.params + "-" + String.valueOf(line));
 		mv.visitMethodInsn(INVOKESTATIC, stateRecorder, stateRecordMtd, "(Ljava/lang/Object;)V", false);

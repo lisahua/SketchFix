@@ -17,6 +17,7 @@ import ece.utexas.edu.sketchFix.instrument.InstrumentUtility;
 public class StateRecorder {
 	private static FileOutputStream writer = null;
 	private static String traceFile = "";
+	private static String stateFile = "";
 	private static int count = 0;
 
 	private StateRecorder() {
@@ -28,10 +29,11 @@ public class StateRecorder {
 	}
 
 	public static void _sketchFix_recordState(Object line) {
-		if (traceFile.equals(""))
-			traceFile = InstrumentUtility.stateFile;
+		if (stateFile.equals(""))
+			stateFile = InstrumentUtility.stateFile;
+		stateFile = ".trace_state.txt";
 		try {
-			FileWriter fw = new FileWriter(traceFile, true);
+			FileWriter fw = new FileWriter(stateFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			PrintWriter out = new PrintWriter(bw);
 			if (line instanceof String) {
@@ -45,22 +47,22 @@ public class StateRecorder {
 			count++;
 			out.println(count + "------------");
 			out.flush();
-			
+
 			ObjectMapper mapper = new ObjectMapper();
 			String jsonInString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(line);
 			out.println(jsonInString);
 			out.println("------------");
 			out.close();
 		} catch (Exception e) {
-//		e.printStackTrace();
+			// e.printStackTrace();
 		}
-		
+
 	}
 
 	private static boolean isLineNumberRecord(String line) {
 		if (line.contains("/") && line.contains("-")) {
 			try {
-				 Integer.parseInt(line.substring(line.lastIndexOf("-") + 1));
+				Integer.parseInt(line.substring(line.lastIndexOf("-") + 1));
 				return true;
 			} catch (Exception e) {
 				return false;
@@ -71,17 +73,16 @@ public class StateRecorder {
 
 	public static void _sketchFix_recordLine(String line) {
 		if (traceFile.equals(""))
-			traceFile = InstrumentUtility.stateFile;
+			traceFile = InstrumentUtility.lineNumberTraceFile;
+		traceFile = ".trace.txt";
 		try {
 			writer = new FileOutputStream(traceFile, true);
 			PrintWriter pw = new PrintWriter(writer);
-			pw.println("------------");
 			pw.println(line);
-			pw.println("------------");
 			writer.close();
 			pw.close();
 		} catch (Exception e) {
-//			e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 
