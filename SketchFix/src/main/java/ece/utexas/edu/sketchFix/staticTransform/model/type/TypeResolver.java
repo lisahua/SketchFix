@@ -6,6 +6,7 @@ package ece.utexas.edu.sketchFix.staticTransform.model.type;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -19,12 +20,15 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import ece.utexas.edu.sketchFix.staticTransform.model.FieldWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
+import sketch.compiler.ast.core.exprs.ExprNamedParam;
 
 public class TypeResolver {
 
 	HashMap<String, String> importFiles = new HashMap<String, String>();
 	HashMap<String, FieldWrapper> fieldMap = new HashMap<String, FieldWrapper>();
 	HashMap<String, HashMap<String, MethodWrapper>> methodMap = new HashMap<String, HashMap<String, MethodWrapper>>();
+	// HashMap<String, HashSet<List<String>>> constructors = new HashMap<String,
+	// HashSet<List<String>>>();
 
 	public TypeResolver(List<ImportDeclaration> imports, TypeDeclaration clazz, String[] dir) {
 		initType(clazz);
@@ -96,6 +100,7 @@ public class TypeResolver {
 		if (methodMap.containsKey(type) && methodMap.get(type).containsKey(method)) {
 			return methodMap.get(type).get(method);
 		}
+
 		if (methodMap.containsKey(type)) {
 			HashSet<MethodWrapper> overload = new HashSet<MethodWrapper>();
 			String mName = method;
@@ -106,14 +111,34 @@ public class TypeResolver {
 				if (name.contains("_")) {
 					name = name.substring(0, name.indexOf("_"));
 					// FIXME I know its hacky
-					if (name.equals(mName) && method.split("_").length == mtdWrap.getMethodName().split("_").length) {
-						MethodWrapper wrap = new MethodWrapper(type, method);
-						wrap.setReturnType(mtdWrap.getReturnType());
-						return wrap;
+					if (name.equals(mName) ) {
+						// MethodWrapper wrap = new MethodWrapper(type, method);
+						// wrap.setReturnType(mtdWrap.getReturnType());
+						// return wrap;
+						overload.add(mtdWrap);
+						// return mtdWrap;
 					}
 
 				}
 			}
+			if (overload.size() == 1)
+				return overload.iterator().next();
+			if (overload.size() > 1) {
+				Iterator<MethodWrapper> mItr = overload.iterator();
+				while (mItr.hasNext()) {
+					MethodWrapper wrap = mItr.next();
+					String[] realTokens = method.split("_");
+					if (wrap.getParamList().size() != realTokens.length - 1)
+						continue;
+					List<String> paraStrings = wrap.getParamList();
+					for (int i = 0; i < paraStrings.size(); i++) {
+						if (!matchType(paraStrings.get(i), realTokens[i + 1]))
+							continue;
+					}
+					return wrap;
+				}
+			}
+
 		}
 
 		MethodWrapper wrap = new MethodWrapper(type, method);
@@ -124,6 +149,55 @@ public class TypeResolver {
 
 		return wrap;
 	}
+
+	private boolean matchType(String declType, String realType) {
+		if (declType.equals(realType))
+			return true;
+		else if (realType.equals("int"))
+			return declType.equals("bit") || declType.equals("boolean");
+		else if (realType.equals("char"))
+			return declType.equals("String");
+		else if (realType.equals("null"))
+			return !declType.equals("bit") && !declType.equals("int") && declType.equals("double");
+		return false;
+	}
+
+	// private List<String> getConstructors(String type, List<String> types) {
+	// if (!constructors.containsKey(type)) {
+	// if (importFiles.containsKey(type)) {
+	// try {
+	// parseFile(new File(importFiles.get(type)));
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// }
+	// if (constructors.containsKey(type)) {
+	// HashSet<List<String>> consts = constructors.get(type);
+	// for (List<String> params : consts) {
+	// if (params.size() != types.size())
+	// continue;
+	// boolean flag = true;
+	// for (int i = 0; i < params.size(); i++) {
+	// if (params.get(i).equals("null"))
+	// continue;
+	// else if (params.get(i).equals("bit")) {
+	// if (!types.get(i).equals("boolean")) {
+	// flag = false;
+	// break;
+	// }
+	// } else if (!params.get(i).equals(types.get(i))) {
+	// flag = false;
+	// break;
+	// }
+	// }
+	// if (flag == true)
+	// return params;
+	// }
+	// }
+	//
+	// return null;
+	// }
 
 	private void parseFile(File code) throws Exception {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
@@ -171,5 +245,47 @@ public class TypeResolver {
 		methods.put(method, wrap);
 		methodMap.put(classType, methods);
 
+	}
+
+	public List<ExprNamedParam> validateParams(String type, List<ExprNamedParam> skParam) {
+		if (!methodMap.containsKey(type)) {
+			if (importFiles.containsKey(type)) {
+				try {
+					parseFile(new File(importFiles.get(type)));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		if (!methodMap.containsKey(type))
+			return skParam;
+		HashMap<String, MethodWrapper> methods = methodMap.get(type);
+		for (String mtdName : methods.keySet()) {
+			if (mtdName.startsWith(type)) {
+				// do sth
+			}
+		}
+		return skParam;
+	}
+
+	public List<String> validateFunCallParam(String type, List<String> skParam) {
+		if (!methodMap.containsKey(type)) {
+			if (importFiles.containsKey(type)) {
+				try {
+					parseFile(new File(importFiles.get(type)));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		if (!methodMap.containsKey(type))
+			return skParam;
+		HashMap<String, MethodWrapper> methods = methodMap.get(type);
+		for (String mtdName : methods.keySet()) {
+			if (mtdName.startsWith(type)) {
+				// do sth
+			}
+		}
+		return skParam;
 	}
 }

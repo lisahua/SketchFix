@@ -61,22 +61,26 @@ public class TypeAdapter {
 	// }
 
 	public static Type getType(String name) {
-		if (name == null || name.equals("void"))
+		if (name == null || name.equals("void") || name.equals(""))
 			return null;
-		Type type;
+		Type type = null;
 		if (name.equals("int"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.inttype;
 		else if (name.equals("bit"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.bittype;
-		else if (name.equals("float"))
+		else if (name.equals("float") || name.equals("double"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.doubletype;
 		else if (name.equals("bit") || name.equals("boolean"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.bittype;
-		else if (name.equals("char")||name.equals("String"))
+		else if (name.equals("char") || name.equals("String"))
 			type = (typeMap.containsKey(name)) ? typeMap.get(name) : TypePrimitive.chartype;
-			else if (name.contains("null"))
-				type = TypePrimitive.nulltype;
-		else
+		else if (name.contains("null"))
+			type = TypePrimitive.nulltype;
+		else if (name.contains(".")||name.contains("_")) {
+			name = name.replace(".", "").replace("_", "");
+			type = (typeMap.containsKey(name)) ? typeMap.get(name)
+					: new sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.UNDEFINED, name, false);
+		} else
 			type = (typeMap.containsKey(name)) ? typeMap.get(name)
 					: new sketch.compiler.ast.core.typs.TypeStructRef(CudaMemoryType.UNDEFINED, name, false);
 		typeMap.put(name, type);

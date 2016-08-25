@@ -27,6 +27,7 @@ public class MethodWrapper {
 		for (SingleVariableDeclaration para : params) {
 			paramType.put(para.getName().toString(), para.getType().toString());
 			methodName += "_" + para.getType().toString();
+			paramList.add(para.getType().toString());
 		}
 	}
 
@@ -36,8 +37,9 @@ public class MethodWrapper {
 	}
 
 	public void updateParam(int id, String type) {
-
-		if (id >= paramList.size()  )
+		if (paramList.size() > 0)
+			return;
+		if (id >= paramList.size())
 			paramList.add(type);
 		else if (!paramList.get(id).equals(type))
 			paramList.add(id, type);

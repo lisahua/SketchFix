@@ -26,6 +26,7 @@ import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FcnType;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
+import sketch.compiler.ast.core.exprs.ExprNamedParam;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.Type;
@@ -221,5 +222,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 	public void setOverloadHandler(OverloadHandler handler) {
 		this.overloadHandler = handler;
+	}
+
+	public List<ExprNamedParam> validateParams(String type, List<ExprNamedParam> skParam) {
+		
+		return typeResolver.validateParams(type, skParam);
 	}
 }

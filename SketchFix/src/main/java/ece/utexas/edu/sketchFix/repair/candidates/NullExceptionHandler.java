@@ -60,7 +60,7 @@ public class NullExceptionHandler extends FEReplacer {
 		Expression expr = stmt.getExpression();
 
 		if (expr instanceof ExprFunCall) {
-			if (expr.toString().equals(lastCall.toString())) {
+			if (lastCall != null && expr.toString().equals(lastCall.toString())) {
 				List<Statement> list = new ArrayList<Statement>();
 				Expression invoker = ((ExprFunCall) expr).getParams().get(0);
 				Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_EQ, invoker,

@@ -34,6 +34,8 @@ public class TypeUsageRecorder {
 	}
 
 	public String insertUseConstructor(String type, String varType) {
+		type = type.replace(".", "");
+		
 		HashMap<String, String> typeMatch = (constructors.containsKey(type)) ? constructors.get(type)
 				: new HashMap<String, String>();
 		if (typeMatch.containsKey(varType)) {

@@ -23,6 +23,7 @@ import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.StructDef;
 import sketch.compiler.ast.core.typs.StructDef.TStructCreator;
 import sketch.compiler.ast.core.typs.Type;
+import sketch.compiler.ast.core.typs.TypePrimitive;
 import sketch.util.datastructures.HashmapList;
 
 public class StructDefGenerator {
@@ -52,10 +53,10 @@ public class StructDefGenerator {
 	}
 
 	private void initStructDef(String typeName, HashSet<String> fields, HashMap<String, String> constructor) {
-		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("[") || typeName.contains("bit")
-				|| typeName.contains("boolean") || typeName.contains("char") || typeName.contains("null"))
+		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("double")
+				|| typeName.contains("[") || typeName.contains("bit") || typeName.contains("boolean")
+				|| typeName.contains("char") || typeName.contains("null"))
 			return;
-
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
 		creator.name(typeName);
 		List<String> names = new ArrayList<String>();
@@ -63,14 +64,16 @@ public class StructDefGenerator {
 		if (fields != null) {
 			for (String field : fields) {
 				names.add(field);
-				types.add(TypeAdapter.getType(resolver.getFieldType(typeName, field)));
+				Type t = TypeAdapter.getType(resolver.getFieldType(typeName, field));
+				types.add(t == null ? TypePrimitive.int32type : t);
 			}
 		}
 		// FIXME mann, I know it's buggy
 		if (constructor != null) {
 			for (String type : constructor.keySet()) {
 				names.add(constructor.get(type));
-				types.add(TypeAdapter.getType(type));
+				Type t = TypeAdapter.getType(type);
+				types.add(t == null ? TypePrimitive.int32type : t);
 			}
 		}
 		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();

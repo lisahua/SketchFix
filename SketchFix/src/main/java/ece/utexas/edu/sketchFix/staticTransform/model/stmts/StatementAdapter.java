@@ -9,25 +9,27 @@ import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
-import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
-import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.expr.ExpressionAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.ast.core.FENode;
-import sketch.compiler.ast.core.exprs.ExprNew;
+import sketch.compiler.ast.core.exprs.ExprConstInt;
+import sketch.compiler.ast.core.exprs.ExprNamedParam;
+import sketch.compiler.ast.core.exprs.ExprVar;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtAssign;
@@ -80,11 +82,15 @@ public class StatementAdapter extends AbstractASTAdapter {
 			insertState(stmt, exprAdapter.resolveType(left).toString(), stmtList);
 			return stmtList;
 		} else if (stmt instanceof WhileStatement) {
+			List<Statement> list = new ArrayList<Statement>();
+
 			WhileStatement whileStmt = (WhileStatement) stmt;
-			StmtWhile skWhile = new StmtWhile(method.getMethodContext(),
-					(Expression) exprAdapter.transform(whileStmt.getExpression()),
+			Expression exp = (Expression) exprAdapter.transform(whileStmt.getExpression());
+			list.addAll(stmtList);
+			StmtWhile skWhile = new StmtWhile(method.getMethodContext(), exp,
 					(Statement) transform(whileStmt.getBody()));
-			return skWhile;
+			list.add(skWhile);
+			return list;
 		} else if (stmt instanceof ForStatement) {
 			ForStatement forStmt = (ForStatement) stmt;
 			return handleForStmt(forStmt);
@@ -112,11 +118,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 				stmtList.add((Statement) obj);
 				// FIXME buggy
 			}
-				insertState(exprStmt, "", stmtList);
+			insertState(exprStmt, "", stmtList);
 			// if (sExpr != null)
 			// return new StmtExpr(method.getMethodContext(), sExpr);
 		} else if (stmt instanceof ThrowStatement) {
 			// mapper.insertStmt(stmt, AbstractASTAdapter.excepType.toString());
+
 			ThrowStatement throwStmt = (ThrowStatement) stmt;
 			Object obj = exprAdapter.transform(throwStmt.getExpression());
 
@@ -124,10 +131,21 @@ public class StatementAdapter extends AbstractASTAdapter {
 			// TypeAdapter.getType(name),
 			// AbstractASTAdapter.excepName, (Expression) obj);
 			// stmtList.add(decl);
-			
+
 			stmtList.add(new StmtReturn(method.getMethodContext(), null));
-			insertState(throwStmt,"Exception", stmtList);
+			insertState(throwStmt, "Exception", stmtList);
 			return stmtList;
+		} else if (stmt instanceof TryStatement) {
+			List<Statement> skList = new ArrayList<Statement>();
+			TryStatement tryStmt = (TryStatement) stmt;
+			skList.addAll(addIfBitBlock(tryStmt.getBody()));
+			List<CatchClause> catches = tryStmt.catchClauses();
+			for (CatchClause catchItem : catches) {
+				skList.addAll(addIfBitBlock(catchItem.getBody()));
+			}
+			if (tryStmt.getFinally() != null)
+				skList.add((StmtBlock) transform(tryStmt.getFinally()));
+			return skList;
 		}
 		// TODO more stmts such as for stmt
 
@@ -204,7 +222,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 		}
 		StmtVarDecl varDecl = new StmtVarDecl(method.getMethodContext(), types, names, inits);
 		stmtList.add(varDecl);
-//		for (Statement stmt: stmtList)
+		// for (Statement stmt: stmtList)
 		insertState(vds, sType.toString(), stmtList);
 	}
 
@@ -234,7 +252,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 		exprAdapter.setCurrVarType(TypePrimitive.bittype);
 		Expression skExp = (Expression) exprAdapter.transform(exp);
 		StmtIfThen skIfStmt = new StmtIfThen(method.getMethodContext(), skExp, thenStatement, elseStatement);
-	
+
 		stmtList.add(skIfStmt);
 		insertState(ifStmt, "bit", stmtList);
 		return stmtList;
@@ -292,5 +310,21 @@ public class StatementAdapter extends AbstractASTAdapter {
 	public void setOverloadMap(HashMap<String, String> overload) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private List<Statement> addIfBitBlock(ASTNode node) {
+		List<Statement> skList = new ArrayList<Statement>();
+		StmtVarDecl try1 = new StmtVarDecl(getMethodContext(), TypePrimitive.bittype, getNextName(), ExprConstInt.one);
+		skList.add(try1);
+		Expression tryIf = new ExprVar(getMethodContext(), try1.getName(0));
+		StmtBlock tryBlock = (StmtBlock) transform(node);
+		StmtIfThen tryIfStmt = new StmtIfThen(getMethodContext(), tryIf, tryBlock, null);
+		skList.add(tryIfStmt);
+		return skList;
+	}
+
+	public List<ExprNamedParam> validateParams(String type, List<ExprNamedParam> skParam) {
+		
+		return method.validateParams(type, skParam);
 	}
 }
