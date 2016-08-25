@@ -30,6 +30,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import ece.utexas.edu.sketchFix.staticTransform.model.AbstractASTAdapter;
+import ece.utexas.edu.sketchFix.staticTransform.model.ConstructorWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.MethodWrapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
@@ -236,6 +237,20 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			}
 		}
 		mtdModel = stmtAdapter.getMethodModel(invokerType, name);
+		// for (int i = 1; i < expArg.size() - 1; i++) {
+		// if (expArg.get(i) instanceof ExprNullPtr) {
+		// Type t = TypeAdapter.getType(mtdModel.getParamList().get(i - 1));
+		// StmtVarDecl decl = new StmtVarDecl(stmtAdapter.getMethodContext(), t,
+		// getNextName(), expArg.get(i));
+		// stmtAdapter.insertStmt(decl);
+		// expArg.add(i, new ExprVar(stmtAdapter.getMethodContext(),
+		// decl.getName(0)));
+		// expArg.remove(i + 1);
+		// }
+		// }
+		for (String paraType : mtdModel.getParamList()) {
+			TypeAdapter.getType(paraType);
+		}
 		// expArg.add(stmtAdapter.getNewException());
 		useRecorder.insertMethod(invokerType, mtdModel.getMethodName());
 		int size = expArg.size();
@@ -362,50 +377,56 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		return currVarType;
 	}
 
-	private ExprNamedParam convExprParam(Expression exp, String type) {
-		ExprNamedParam param = null;
-		if (exp instanceof ExprVar) {
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
-		} else if (exp instanceof ExprConstInt) {
-			// StmtVarDecl varDecl = new
-			// StmtVarDecl(stmtAdapter.getMethodContext(),
-			// TypePrimitive.int32type,
-			// stmtAdapter.insertUseConstructor(type,
-			// resolveType(exp).toString()), exp);
-			// stmtAdapter.insertStmt(varDecl);
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
-		} else if (exp instanceof ExprConstChar) {
-			// ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
-			// getNextName());
-			// StmtVarDecl varDecl = new
-			// StmtVarDecl(stmtAdapter.getMethodContext(),
-			// TypePrimitive.chartype, var.getName(),
-			// exp);
-			// stmtAdapter.insertStmt(varDecl);
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
-		} else if (exp instanceof ExprConstFloat) {
-			// ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
-			// getNextName());
-			// StmtVarDecl varDecl = new
-			// StmtVarDecl(stmtAdapter.getMethodContext(),
-			// TypePrimitive.floattype,
-			// var.getName(), exp);
-			// stmtAdapter.insertStmt(varDecl);
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
-		} else if (exp instanceof ExprField) {
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					useRecorder.insertUseConstructor(type, resolveType(exp).toString()), exp);
-		} else if (exp instanceof ExprNew) {
-			ExprNew newExp = (ExprNew) exp;
-			param = new ExprNamedParam(stmtAdapter.getMethodContext(),
-					useRecorder.insertUseConstructor(type, newExp.getTypeToConstruct().toString()), exp);
-		}
-		return param;
-	}
+	// private ExprNamedParam convExprParam(Expression exp, String type) {
+	// ExprNamedParam param = null;
+	// if (exp instanceof ExprVar) {
+	// param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+	// useRecorder.insertUseConstructor(type, resolveType(exp).toString()),
+	// exp);
+	// } else if (exp instanceof ExprConstInt) {
+	// // StmtVarDecl varDecl = new
+	// // StmtVarDecl(stmtAdapter.getMethodContext(),
+	// // TypePrimitive.int32type,
+	// // stmtAdapter.insertUseConstructor(type,
+	// // resolveType(exp).toString()), exp);
+	// // stmtAdapter.insertStmt(varDecl);
+	// param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+	// useRecorder.insertUseConstructor(type, resolveType(exp).toString()),
+	// exp);
+	// } else if (exp instanceof ExprConstChar) {
+	// // ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
+	// // getNextName());
+	// // StmtVarDecl varDecl = new
+	// // StmtVarDecl(stmtAdapter.getMethodContext(),
+	// // TypePrimitive.chartype, var.getName(),
+	// // exp);
+	// // stmtAdapter.insertStmt(varDecl);
+	// param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+	// useRecorder.insertUseConstructor(type, resolveType(exp).toString()),
+	// exp);
+	// } else if (exp instanceof ExprConstFloat) {
+	// // ExprVar var = new ExprVar(stmtAdapter.getMethodContext(),
+	// // getNextName());
+	// // StmtVarDecl varDecl = new
+	// // StmtVarDecl(stmtAdapter.getMethodContext(),
+	// // TypePrimitive.floattype,
+	// // var.getName(), exp);
+	// // stmtAdapter.insertStmt(varDecl);
+	// param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+	// useRecorder.insertUseConstructor(type, resolveType(exp).toString()),
+	// exp);
+	// } else if (exp instanceof ExprField) {
+	// param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+	// useRecorder.insertUseConstructor(type, resolveType(exp).toString()),
+	// exp);
+	// } else if (exp instanceof ExprNew) {
+	// ExprNew newExp = (ExprNew) exp;
+	// param = new ExprNamedParam(stmtAdapter.getMethodContext(),
+	// useRecorder.insertUseConstructor(type,
+	// newExp.getTypeToConstruct().toString()), exp);
+	// }
+	// return param;
+	// }
 
 	private Object handleStringLiteral(ASTNode expr) {
 		String strName = getNextName();
@@ -453,19 +474,44 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 		List<org.eclipse.jdt.core.dom.Expression> param = instNew.arguments();
 		List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
+		List<String> typeS = new ArrayList<String>();
+		List<Expression> exprList = new ArrayList<Expression>();
 		for (org.eclipse.jdt.core.dom.Expression e : param) {
-			Expression para = (Expression) transform(e);
-			skParam.add((convExprParam(para, sType)));
+			Expression ep = (Expression) transform(e);
+			exprList.add(ep);
+			typeS.add(resolveType(ep).toString());
 		}
-		skParam = validateParams(sType, skParam);
-		sketch.compiler.ast.core.exprs.Expression skExpr = new ExprNew(stmtAdapter.getMethodContext(),
-				(Type) TypeAdapter.getType(sType), skParam, false);
-		return skExpr;
+		MethodWrapper wrap = validateParams(sType, typeS);
+		Expression skExpr = new ExprNew(stmtAdapter.getMethodContext(), (Type) TypeAdapter.getType(sType), skParam,
+				false);
+		String declName = stmtAdapter.getVarDecl();
+		if (declName.equals("")) {
+			declName = getNextName();
+			StmtVarDecl declStmt = new StmtVarDecl(stmtAdapter.getMethodContext(), TypeAdapter.getType(sType), declName,
+					skExpr);
+			stmtAdapter.insertStmt(declStmt);
+			stmtAdapter.insertVarDecl(declName, declStmt.getType(0));
+			addConstExprs(sType, declName, typeS, exprList);
+			return new ExprVar(stmtAdapter.getMethodContext(), declStmt.getName(0));
+		} else {
+			addConstExprs(sType, declName, typeS, exprList);
+			return skExpr;
+		}
 	}
 
-	private List<ExprNamedParam> validateParams(String type, List<ExprNamedParam> skParam) {
+	private void addConstExprs(String type, String declName, List<String> typeS, List<Expression> exprList) {
+		ConstructorWrapper constr = useRecorder.insertUseConstructor(type, typeS);
 
-		return stmtAdapter.validateParams(type, skParam);
+		for (int i = 0; i < exprList.size(); i++) {
+			ExprField field = new ExprField(stmtAdapter.getMethodContext(),
+					new ExprVar(stmtAdapter.getMethodContext(), declName), constr.getNames().get(i), false);
+			StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(), field, exprList.get(i));
+			stmtAdapter.insertStmt(assign);
+		}
+	}
+
+	private MethodWrapper validateParams(String type, List<String> paramTypes) {
+		return stmtAdapter.validateParams(type, paramTypes);
 	}
 
 	private Object handleMethodInvoke(ASTNode node) {

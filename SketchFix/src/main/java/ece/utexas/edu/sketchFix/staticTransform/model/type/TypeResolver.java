@@ -111,7 +111,7 @@ public class TypeResolver {
 				if (name.contains("_")) {
 					name = name.substring(0, name.indexOf("_"));
 					// FIXME I know its hacky
-					if (name.equals(mName) ) {
+					if (name.equals(mName)) {
 						// MethodWrapper wrap = new MethodWrapper(type, method);
 						// wrap.setReturnType(mtdWrap.getReturnType());
 						// return wrap;
@@ -247,7 +247,7 @@ public class TypeResolver {
 
 	}
 
-	public List<ExprNamedParam> validateParams(String type, List<ExprNamedParam> skParam) {
+	public MethodWrapper validateParams(String type, List<String> types) {
 		if (!methodMap.containsKey(type)) {
 			if (importFiles.containsKey(type)) {
 				try {
@@ -257,15 +257,49 @@ public class TypeResolver {
 				}
 			}
 		}
-		if (!methodMap.containsKey(type))
-			return skParam;
-		HashMap<String, MethodWrapper> methods = methodMap.get(type);
-		for (String mtdName : methods.keySet()) {
-			if (mtdName.startsWith(type)) {
-				// do sth
+		
+		if (methodMap.containsKey(type)) {
+			HashSet<MethodWrapper> overload = new HashSet<MethodWrapper>();
+			String mName = type;
+			for (MethodWrapper mtdWrap : methodMap.get(type).values()) {
+				String name = mtdWrap.getMethodName();
+				if (name.contains("_")) {
+					name = name.substring(0, name.indexOf("_"));
+					// FIXME I know its hacky
+					if (name.equals(mName)) {
+						overload.add(mtdWrap);
+					}
+
+				}
 			}
+			if (overload.size() == 1)
+				return overload.iterator().next();
+			if (overload.size() > 1) {
+				Iterator<MethodWrapper> mItr = overload.iterator();
+				while (mItr.hasNext()) {
+					MethodWrapper wrap = mItr.next();
+					if (wrap.getParamList().size() != types.size())
+						continue;
+					List<String> paraStrings = wrap.getParamList();
+					for (int i = 0; i < paraStrings.size(); i++) {
+						if (!matchType(paraStrings.get(i),types.get(i)))
+							continue;
+					}
+					return wrap;
+				}
+			}
+
 		}
-		return skParam;
+//		String method = type;
+//		for (String t: types)
+//			method += "_"+t;
+//		MethodWrapper wrap = new MethodWrapper(type, method);
+//		HashMap<String, MethodWrapper> methods = methodMap.containsKey(type) ? methodMap.get(type)
+//				: new HashMap<String, MethodWrapper>();
+//		methods.put(method, wrap);
+//		methodMap.put(type, methods);
+		
+		return null;
 	}
 
 	public List<String> validateFunCallParam(String type, List<String> skParam) {

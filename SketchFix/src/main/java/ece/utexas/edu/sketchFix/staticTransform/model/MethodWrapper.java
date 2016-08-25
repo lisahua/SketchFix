@@ -10,6 +10,8 @@ import java.util.List;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
+
 public class MethodWrapper {
 
 	String className;
@@ -37,12 +39,16 @@ public class MethodWrapper {
 	}
 
 	public void updateParam(int id, String type) {
-		if (paramList.size() > 0)
+		// if (paramList.size() > 0)
+		// return;
+		if (type.contains("null") || type.contains("int") || type.contains("bit"))
 			return;
 		if (id >= paramList.size())
 			paramList.add(type);
-		else if (!paramList.get(id).equals(type))
+		else if (!paramList.get(id).equals(type)) {
 			paramList.add(id, type);
+			paramList.remove(id + 1);
+		}
 
 	}
 

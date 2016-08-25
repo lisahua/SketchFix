@@ -224,8 +224,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		this.overloadHandler = handler;
 	}
 
-	public List<ExprNamedParam> validateParams(String type, List<ExprNamedParam> skParam) {
+	public MethodWrapper validateParams(String type, List<String> paramTypes) {
 		
-		return typeResolver.validateParams(type, skParam);
+		return typeResolver.validateParams(type, paramTypes);
 	}
 }

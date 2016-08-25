@@ -46,6 +46,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 	MethodDeclarationAdapter method;
 	ExpressionAdapter exprAdapter;
 	List<Statement> stmtList = new ArrayList<Statement>();
+	String varDeclName = "";
 
 	public StatementAdapter(MethodDeclarationAdapter node) {
 		method = node;
@@ -63,10 +64,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 	public Object transform(ASTNode node) {
 		org.eclipse.jdt.core.dom.Statement stmt = (org.eclipse.jdt.core.dom.Statement) node;
 		stmtList.clear();
+		varDeclName = "";
 		if (stmt instanceof VariableDeclarationStatement) {
 			VariableDeclarationStatement vds = (VariableDeclarationStatement) node;
-			handleVarDecl(vds);
-			return stmtList;
+			return handleVarDecl(vds);
+//			return stmtList;
 		} else if (stmt instanceof IfStatement) {
 			IfStatement ifStmt = (IfStatement) stmt;
 			return handleIfStmt(ifStmt);
@@ -202,7 +204,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void handleVarDecl(VariableDeclarationStatement vds) {
+	private List<Statement> handleVarDecl(VariableDeclarationStatement vds) {
+		List<Statement> lists = new ArrayList<Statement>();
 		org.eclipse.jdt.core.dom.Type jType = vds.getType();
 		Type sType = TypeAdapter.getType(jType.toString());
 
@@ -212,18 +215,29 @@ public class StatementAdapter extends AbstractASTAdapter {
 		List<String> names = new ArrayList<String>();
 		List<Expression> inits = new ArrayList<Expression>();
 		types.add(sType);
+		boolean initFirst = false;
 		for (VariableDeclarationFragment frag : list) {
 			String name = frag.getName().getIdentifier();
+			varDeclName = name;
 			method.insertVarDecl(name, sType);
 			names.add(name);
 			org.eclipse.jdt.core.dom.Expression init = frag.getInitializer();
-
 			inits.add((Expression) exprAdapter.transform(init));
+			if (initFirst == false && stmtList.toString().contains("_const"))
+				initFirst = true;
 		}
 		StmtVarDecl varDecl = new StmtVarDecl(method.getMethodContext(), types, names, inits);
-		stmtList.add(varDecl);
+		if (initFirst==true) {
+			lists.add(varDecl);
+			lists.addAll(stmtList);
+		
+		}else {
+			lists.addAll(stmtList);
+			lists.add(varDecl);
+		}
 		// for (Statement stmt: stmtList)
-		insertState(vds, sType.toString(), stmtList);
+		insertState(vds, sType.toString(), lists);
+		return lists;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -323,8 +337,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 		return skList;
 	}
 
-	public List<ExprNamedParam> validateParams(String type, List<ExprNamedParam> skParam) {
-		
-		return method.validateParams(type, skParam);
+	public MethodWrapper validateParams(String type, List<String> paramTypes) {
+		return method.validateParams(type, paramTypes);
+	}
+
+	public String getVarDecl() {
+		return varDeclName;
 	}
 }

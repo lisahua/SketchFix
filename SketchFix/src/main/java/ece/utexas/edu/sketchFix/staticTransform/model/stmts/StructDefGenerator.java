@@ -35,15 +35,16 @@ public class StructDefGenerator {
 		this.resolver = resolver;
 		HashMap<String, HashSet<String>> fields = recorder.getFieldMap();
 		HashMap<String, HashSet<String>> methods = recorder.getMethodMap();
+		HashMap<String, HashMap<String, String>> constructor = recorder.getConstructors();
 
-		for (String type : fields.keySet()) {
-			initStructDef(type, fields.get(type), recorder.getConstructors().get(type));
-		}
-		for (String type : recorder.getConstructors().keySet()) {
-			initStructDef(type, fields.get(type), recorder.getConstructors().get(type));
-		}
 		for (String type : TypeAdapter.getTypeMap().keySet()) {
 			initStructDef(type, null, null);
+		}
+		for (String type : fields.keySet()) {
+			initStructDef(type, fields.get(type), constructor.get(type));
+		}
+		for (String type : constructor.keySet()) {
+			initStructDef(type, fields.get(type), constructor.get(type));
 		}
 		for (String type : methods.keySet()) {
 			for (String mtd : methods.get(type)) {
@@ -53,16 +54,25 @@ public class StructDefGenerator {
 	}
 
 	private void initStructDef(String typeName, HashSet<String> fields, HashMap<String, String> constructor) {
-		if (typeName.contains("int") || typeName.contains("float") || typeName.contains("double")
-				|| typeName.contains("[") || typeName.contains("bit") || typeName.contains("boolean")
-				|| typeName.contains("char") || typeName.contains("null"))
+		if (typeName.equals("int") || typeName.equals("float") || typeName.equals("double")
+				|| typeName.contains("[") || typeName.equals("bit") || typeName.equals("boolean")
+				|| typeName.equals("char") || typeName.contains("null"))
 			return;
 		TStructCreator creator = new TStructCreator(AbstractASTAdapter.getContext2());
 		creator.name(typeName);
 		List<String> names = new ArrayList<String>();
 		List<Type> types = new ArrayList<Type>();
+		StructDef oldDef = structDefMap.get(typeName);
+		if (oldDef != null) {
+			for (String key : oldDef.getFieldTypMap().keySet()) {
+				names.add(key);
+				types.add(oldDef.getFieldTypMap().get(key));
+			}
+		}
 		if (fields != null) {
 			for (String field : fields) {
+				if (names.contains(field))
+					continue;
 				names.add(field);
 				Type t = TypeAdapter.getType(resolver.getFieldType(typeName, field));
 				types.add(t == null ? TypePrimitive.int32type : t);
@@ -70,18 +80,21 @@ public class StructDefGenerator {
 		}
 		// FIXME mann, I know it's buggy
 		if (constructor != null) {
-			for (String type : constructor.keySet()) {
-				names.add(constructor.get(type));
-				Type t = TypeAdapter.getType(type);
+			for (String name : constructor.keySet()) {
+				if (names.contains(name))
+					continue;
+				names.add(name);
+				Type t = TypeAdapter.getType(constructor.get(name));
 				types.add(t == null ? TypePrimitive.int32type : t);
 			}
 		}
+
 		HashmapList<String, Annotation> annotations = new HashmapList<String, Annotation>();
 		creator.annotations(annotations);
 		creator.fields(names, types);
 		StructDef def = creator.create();
 		if (!structDefMap.containsKey(typeName)
-				|| structDefMap.get(typeName).toString().length() < def.toString().length())
+				|| structDefMap.get(typeName).getNumFields() < def.getNumFields())
 			structDefMap.put(typeName, def);
 	}
 
