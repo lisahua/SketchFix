@@ -77,6 +77,8 @@ public class TraceConnectionReplacer extends FEReplacer {
 				break;
 			}
 		}
+	
+		
 		return super.visitProgram(prog);
 	}
 
@@ -89,33 +91,21 @@ public class TraceConnectionReplacer extends FEReplacer {
 		return super.visitFunction(func);
 	}
 
-	public Object visitExprFunCall(ExprFunCall call) {
-		if (atomCall == null || directCalled)
-			return super.visitExprFunCall(call);
-		if (call.getName().equals(atomCall.getName())) {
-			List<Expression> param = call.getParams();
-			List<Expression> newParam = new ArrayList<Expression>();
-			for (int i = 0; i < param.size() - 2; i++)
-				newParam.add(param.get(i));
-			if (param.get(param.size() - 2).toString().equals(AbstractASTAdapter.excepName)
-					|| param.get(param.size() - 1).toString().equals(AbstractASTAdapter.excepName))
-				return super.visitExprFunCall(call);
-			else
-				newParam.add(param.get(param.size() - 2));
-			if (param.get(param.size() - 1).toString().equals(AbstractASTAdapter.returnObj)) {
-				newParam.add(new ExprVar(call.getOrigin(), AbstractASTAdapter.excepName));
-				newParam.add(param.get(param.size() - 1));
-			} else {
-				newParam.add(param.get(param.size() - 1));
-				newParam.add(new ExprVar(call.getOrigin(), AbstractASTAdapter.excepName));
-			}
-
-			return new ExprFunCall(call.getOrigin(), call.getName(), newParam);
-		}
-
-		return super.visitExprFunCall(call);
-
-	}
+//	public Object visitExprFunCall(ExprFunCall call) {
+//		if (atomCall == null || directCalled)
+//			return super.visitExprFunCall(call);
+//		if (call.getName().equals(atomCall.getName())) {
+//			List<Expression> param = call.getParams();
+//			List<Expression> newParam = new ArrayList<Expression>();
+//			for (int i = 0; i < param.size() ; i++)
+//				newParam.add(param.get(i));
+//
+//			return new ExprFunCall(call.getOrigin(), call.getName(), newParam);
+//		}
+//
+//		return super.visitExprFunCall(call);
+//
+//	}
 
 	private Object handleConnectFunction(Function func) {
 		List<Statement> body = ((StmtBlock) func.getBody()).getStmts();
@@ -124,34 +114,20 @@ public class TraceConnectionReplacer extends FEReplacer {
 
 		List<Expression> declParam = new ArrayList<Expression>();
 		List<Statement> stmts = new ArrayList<Statement>();
-		for (int i = 0; i < suspFunc.getParams().size() - 2; i++) {
+		for (int i = 0; i < suspFunc.getParams().size(); i++) {
 			Parameter param = suspFunc.getParams().get(i);
 			Type type = param.getType();
 			StmtVarDecl stmt = new StmtVarDecl(func.getOrigin(), type, param.getName(), type.defaultValue());
 			declParam.add(new ExprVar(func.getOrigin(), stmt.getName(0)));
 			stmts.add(stmt);
 		}
-		Parameter param = suspFunc.getParams().get(suspFunc.getParams().size() - 2);
-		if (!param.getName().equals(AbstractASTAdapter.excepName)) {
-			Type type = param.getType();
-			StmtVarDecl stmt = new StmtVarDecl(func.getOrigin(), type, param.getName(), type.defaultValue());
-			stmts.add(stmt);
-		}
-		declParam.add(new ExprVar(func.getOrigin(), param.getName()));
-		param = suspFunc.getParams().get(suspFunc.getParams().size() - 1);
-		if (!param.getName().equals(AbstractASTAdapter.excepName)) {
-			Type type = param.getType();
-			StmtVarDecl stmt = new StmtVarDecl(func.getOrigin(), type, param.getName(), type.defaultValue());
-			stmts.add(stmt);
-		}
-		declParam.add(new ExprVar(func.getOrigin(), param.getName()));
-
+		
 		ExprFunCall funCall = new ExprFunCall(func.getOrigin(), suspFunc.getName(), declParam);
 		stmts.add(new StmtExpr(func.getOrigin(), funCall));
-		ExprBinary bin = new ExprBinary(func.getOrigin(), ExprBinary.BINOP_EQ,
-				new ExprVar(func.getOrigin(), AbstractASTAdapter.excepName), ExprConstInt.zero);
-		StmtAssert assExcp = new StmtAssert(func.getOrigin(), bin, false, false);
-		stmts.add(assExcp);
+//		ExprBinary bin = new ExprBinary(func.getOrigin(), ExprBinary.BINOP_EQ,
+//				new ExprVar(func.getOrigin(), AbstractASTAdapter.excepName), ExprConstInt.zero);
+//		StmtAssert assExcp = new StmtAssert(func.getOrigin(), bin, false, false);
+//		stmts.add(assExcp);
 		StmtBlock block = new StmtBlock(func.getOrigin(), stmts);
 
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
@@ -160,29 +136,11 @@ public class TraceConnectionReplacer extends FEReplacer {
 		creator.body(block);
 
 		List<Parameter> funcParam = new ArrayList<Parameter>();
-		for (int i = 0; i < func.getParams().size() - 1; i++)
+		for (int i = 0; i < func.getParams().size() ; i++)
 			funcParam.add(func.getParams().get(i));
-		if (func.getParams().get(func.getParams().size() - 1).getName().equals(AbstractASTAdapter.returnObj)) {
-			funcParam.add(new Parameter(func.getOrigin(), TypePrimitive.bittype, AbstractASTAdapter.excepName));
-			funcParam.add(func.getParams().get(func.getParams().size() - 1));
-		} else {
-			funcParam.add(func.getParams().get(func.getParams().size() - 1));
-			funcParam.add(new Parameter(func.getOrigin(), TypePrimitive.bittype, AbstractASTAdapter.excepName));
-		}
+		
 		creator.params(funcParam);
 		return creator.create();
 	}
 
-	private List<ASTLinePy> isTouched(StmtAssign stmt) {
-		List<ASTLinePy> candidates = new ArrayList<ASTLinePy>();
-		for (ASTLinePy line : allLines) {
-			for (Statement st : line.getSkStmts()) {
-				if (st instanceof StmtAssign) {
-					if (((StmtAssign) st).getLHS().toString().equals(stmt.getLHS().toString()))
-						candidates.add(line);
-				}
-			}
-		}
-		return candidates;
-	}
 }

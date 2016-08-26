@@ -64,7 +64,7 @@ public abstract class AbstractSketchTransformer {
 		File code = new File(method.getClassAbsolutePath());
 		if (!code.exists())
 			return;
-		System.out.println("[Checking suspicious location:]" + method.getClassFullPath());
+		System.out.println("[Step 1: Checking suspicious location:]" + method.getClassFullPath());
 		parseFile(code, method);
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, method, utility);
 		mtdDecl.setHarness(harness);

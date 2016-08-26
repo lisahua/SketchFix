@@ -12,10 +12,10 @@ import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 public class SkRepairProcessor {
 	SkRepairMapper mapper;
 
-	public SkRepairProcessor(List<ASTLinePy> assList, List<ASTLinePy> codeList, List<SkLinePy> beoforeRepair) {
+	public SkRepairProcessor(List<ASTLinePy> assList, List<SkLinePy> beoforeRepair) {
 		List<ASTLinePy> lineStates = new ArrayList<ASTLinePy>();
 		lineStates.addAll(assList);
-		lineStates.addAll(codeList);
+	
 		mapper = new SkRepairMapper(lineStates, beoforeRepair);
 	}
 

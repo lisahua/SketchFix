@@ -4,6 +4,7 @@
 package ece.utexas.edu.sketchFix.staticTransform;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
@@ -20,12 +21,13 @@ import sketch.compiler.ast.core.Program;
 public class SketchTransformProcessor {
 	private Argument arg = null;
 	// private Vector<LinePy> trace;
-
+List<ASTLinePy> lines = new ArrayList<ASTLinePy>();
+Program prog ;
 	public SketchTransformProcessor(Argument argument) {
 		arg = argument;
 	}
 
-	public void process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod,
+	public Program process(LinePyGenerator generator, List<MethodData> locations, MethodData testMethod,
 			String outputFile) {
 		AbstractSketchTransformer assertTran = new SketchAssertTransformer(testMethod);
 		// FIXME buggy
@@ -44,35 +46,28 @@ public class SketchTransformProcessor {
 		// StmtStateMapper sourceState = sourceTran.getStateMapper();
 
 		TransformPostProcessor reverter = new TransformPostProcessor(sourceTran);
-		reverter.writeToFile(outputFile);
-
+//		reverter.writeToFile(outputFile);
 		Program prog = reverter.getProgram();
-		// ConditionTraceReplacer replacer = new
-		// ConditionTraceReplacer(assertTran.getStateMapper().getLinePyList(),
-		// sourceTran.getStateMapper().getLinePyList());
-		// prog = (Program) replacer.visitProgram(prog);
 		StateInsertProcessor replacer = new StateInsertProcessor(assertTran.getStateMapper().getLinePyList(),
 				sourceTran.getStateMapper().getLinePyList());
+		lines = replacer.getAllLines();
 		prog = (Program) replacer.visitProgram(prog);
+		
 		try {
-			prog.accept(new SimpleSketchFilePrinter(outputFile + "2"));
+			prog.accept(new SimpleSketchFilePrinter(outputFile ));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		SketchSynthesizer processor = new SketchSynthesizer(prog);
-		prog = processor.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk3");
+		return prog;
+		
+	}
 
-//		 prog = processor.process(outputFile+"2");
+	public List<ASTLinePy> getLines() {
+		return lines;
+	}
 
-		SketchRepairValidator validator = new SketchRepairValidator(prog, assertTran.getStateMapper().getLinePyList(),
-				sourceTran.getStateMapper().getLinePyList(), processor.getScope());
-//		RepairTransformer rewriter = validator.process(outputFile + "4");
-		RepairTransformer rewriter = validator
-				.forTest("/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/.tmp/sketchOrig3.sk5");
-		// validator.runSketchMain(prog, outputFile+"4");
-
-		SketchRewriterProcessor skRewriter = new SketchRewriterProcessor(rewriter, data);
-		skRewriter.process();
+	public Program getProg() {
+		return prog;
 	}
 
 }

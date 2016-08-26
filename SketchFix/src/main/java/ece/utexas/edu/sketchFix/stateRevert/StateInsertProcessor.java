@@ -31,4 +31,8 @@ public class StateInsertProcessor extends FEReplacer {
 		return prog;
 	}
 
+	public List<ASTLinePy> getAllLines() {
+		return allLines;
+	}
+
 }

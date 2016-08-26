@@ -15,7 +15,9 @@ import sketch.compiler.Directive;
 import sketch.compiler.ast.core.FieldDecl;
 import sketch.compiler.ast.core.Program;
 import sketch.compiler.ast.core.Program.ProgramCreator;
+import sketch.compiler.ast.core.exprs.ExprConstInt;
 import sketch.compiler.ast.core.stmts.StmtSpAssert;
+import sketch.compiler.ast.core.typs.TypePrimitive;
 
 public class TransformPostProcessor {
 	Program prog = null;
@@ -23,8 +25,10 @@ public class TransformPostProcessor {
 	public TransformPostProcessor(AbstractSketchTransformer transformer) {
 
 		Program empty = Program.emptyProgram();
+		List<FieldDecl> vars = new ArrayList<FieldDecl>();
+		vars.add(new FieldDecl(empty.getOrigin(), TypePrimitive.bittype, AbstractASTAdapter.excepName, ExprConstInt.zero));
 		sketch.compiler.ast.core.Package pkg = new sketch.compiler.ast.core.Package(empty, AbstractASTAdapter.pkgName,
-				transformer.getMergeStructs(), new ArrayList<FieldDecl>(), transformer.getMergeMethods(),
+				transformer.getMergeStructs(), vars, transformer.getMergeMethods(),
 				new ArrayList<StmtSpAssert>());
 		List<sketch.compiler.ast.core.Package> pkgList = new ArrayList<sketch.compiler.ast.core.Package>();
 		pkgList.add(pkg);

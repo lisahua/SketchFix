@@ -324,10 +324,10 @@ public class StatementAdapter extends AbstractASTAdapter {
 	private List<Statement> handleTryStmt(TryStatement tryStmt) {
 		List<Statement> skList = new ArrayList<Statement>();
 		// catch bit
-		StmtVarDecl try1 = new StmtVarDecl(getMethodContext(), TypePrimitive.bittype, AbstractASTAdapter.excepName,
+		StmtAssign try1 = new StmtAssign(getMethodContext(), new ExprVar(getMethodContext(), AbstractASTAdapter.excepName),
 				ExprConstInt.zero);
 		skList.add(try1);
-		Expression tryIf = new ExprVar(getMethodContext(), try1.getName(0));
+		Expression tryIf = new ExprVar(getMethodContext(), AbstractASTAdapter.excepName);
 		// try block
 		skList.add((Statement) transform(tryStmt.getBody()));
 		// catch block

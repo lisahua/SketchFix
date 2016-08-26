@@ -6,14 +6,12 @@ package ece.utexas.edu.sketchFix.repair.processor;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.List;
 
+import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
-import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.Program;
 
 public class SketchSynthesizer {
@@ -26,7 +24,11 @@ public class SketchSynthesizer {
 	}
 
 	public Program process(String skInput) {
-		String resultFile = skInput.substring(0, skInput.length() - 1) + "3";
+		String resultFile = skInput + "_";
+		if (LocalizerUtility.DEBUG) {
+			forTest(resultFile);
+			return repair.setOutputParser(parser);
+		}
 		try {
 			PrintWriter writer = new PrintWriter(resultFile);
 			Process p = Runtime.getRuntime().exec("sketch " + skInput);
@@ -42,21 +44,29 @@ public class SketchSynthesizer {
 			writer.close();
 			int unsat = 0;
 			reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			String firstLine = null;
 			while ((line = reader.readLine()) != null) {
 				int i = parser.parseError(line);
 				unsat = Math.max(i, unsat);
+				if (firstLine == null) {
+					firstLine = line;
+					System.out.println("[Sketch Synthesizer] " + line);
+				}
 			}
 			repair.setUnSatLineNum(unsat);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			if (LocalizerUtility.DEBUG)
+				e.printStackTrace();
 		}
 		Program prog = repair.setOutputParser(parser);
-		writeFile(prog, resultFile.substring(0, resultFile.length() - 1) + "4");
+		if (prog != null)
+			writeFile(prog, resultFile + "_");
+		if (repair.unsatLineNum <= 0)
+			return null;
 		return prog;
 	}
 
-	/**:q
+	/**
 	 * 
 	 * This is for test purpose
 	 * 
@@ -65,21 +75,19 @@ public class SketchSynthesizer {
 	public Program forTest(String outputFile) {
 		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader(outputFile));
-
+			reader = new BufferedReader(new FileReader(LocalizerUtility.baseDir + outputFile));
 			String line = "";
 			while ((line = reader.readLine()) != null) {
 				parser.append(line);
 			}
-			repair.setUnSatLineNum(68);
-		
-		
-			
-//			writeFile(prog, outputFile.substring(0, outputFile.length() - 1) + "4");
+			// repair.setUnSatLineNum(68);
+
+			// writeFile(prog, outputFile.substring(0, outputFile.length() - 1)
+			// + "4");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return  repair.setOutputParser(parser);
+		return repair.setOutputParser(parser);
 	}
 
 	private void writeFile(Program prog, String outputFile) {

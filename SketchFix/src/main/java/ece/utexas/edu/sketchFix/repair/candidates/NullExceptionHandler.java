@@ -35,14 +35,16 @@ public class NullExceptionHandler extends FEReplacer {
 	public NullExceptionHandler(AbstractRepairCandidate superClass) {
 		scope = superClass.scope;
 		candGenerator = superClass.candGenerator;
-		if (scope == null)
+		if (scope == null || scope.size() == 0)
 			return;
 		if (scope.get(0).getSkStmt() instanceof Function) {
 			func = (Function) scope.get(0).getSkStmt();
 			List<Parameter> params = func.getParams();
-			Parameter param = params.get(params.size() - 1);
-			if (param.getName().equals("returnObj"))
-				returnObj = param;
+			if (params.size() > 0) {
+				Parameter param = params.get(params.size() - 1);
+				if (param.getName().equals("returnObj"))
+					returnObj = param;
+			}
 		}
 		for (int i = 0; i < scope.size(); i++) {
 			if (scope.get(i).getSkStmt() instanceof StmtExpr) {
