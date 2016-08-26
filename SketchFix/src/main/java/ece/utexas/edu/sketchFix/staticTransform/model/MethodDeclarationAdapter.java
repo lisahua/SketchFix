@@ -30,6 +30,7 @@ import sketch.compiler.ast.core.exprs.ExprNamedParam;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.Type;
+import sketch.compiler.ast.core.typs.TypePrimitive;
 
 public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeDeclaration clazz;
@@ -130,7 +131,10 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		// AbstractASTAdapter.excepType);
 
 		// return value;
-
+//		Parameter excpParam = new Parameter(getMethodContext(), TypePrimitive.bittype, AbstractASTAdapter.excepName);
+//		AbstractASTAdapter.excepName += AbstractASTAdapter.excepName + 1;
+//		param.add(excpParam);
+//		varType.put(excpParam.getName(), excpParam.getType());
 		rtnType = (Type) TypeAdapter.getType(returnType.toString());
 		if (rtnType != null) {
 			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
@@ -225,7 +229,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	}
 
 	public MethodWrapper validateParams(String type, List<String> paramTypes) {
-		
+
 		return typeResolver.validateParams(type, paramTypes);
 	}
 }

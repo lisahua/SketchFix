@@ -28,7 +28,6 @@ import ece.utexas.edu.sketchFix.staticTransform.model.expr.ExpressionAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.exprs.ExprConstInt;
-import sketch.compiler.ast.core.exprs.ExprNamedParam;
 import sketch.compiler.ast.core.exprs.ExprVar;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
@@ -68,7 +67,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 		if (stmt instanceof VariableDeclarationStatement) {
 			VariableDeclarationStatement vds = (VariableDeclarationStatement) node;
 			return handleVarDecl(vds);
-//			return stmtList;
+			// return stmtList;
 		} else if (stmt instanceof IfStatement) {
 			IfStatement ifStmt = (IfStatement) stmt;
 			return handleIfStmt(ifStmt);
@@ -87,6 +86,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 			List<Statement> list = new ArrayList<Statement>();
 
 			WhileStatement whileStmt = (WhileStatement) stmt;
+			exprAdapter.setCurrVarType(TypePrimitive.bittype);
 			Expression exp = (Expression) exprAdapter.transform(whileStmt.getExpression());
 			list.addAll(stmtList);
 			StmtWhile skWhile = new StmtWhile(method.getMethodContext(), exp,
@@ -116,9 +116,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 			ExpressionStatement exprStmt = (ExpressionStatement) stmt;
 			org.eclipse.jdt.core.dom.Expression expr = exprStmt.getExpression();
 			Object obj = exprAdapter.transform(expr);
-			if (obj instanceof Statement) {
-				stmtList.add((Statement) obj);
+			if (stmtList.size() == 0 && obj instanceof Statement) {
+				return obj;
 				// FIXME buggy
+			} else if (obj instanceof Statement) {
+				stmtList.add((Statement) obj);
 			}
 			insertState(exprStmt, "", stmtList);
 			// if (sExpr != null)
@@ -128,7 +130,9 @@ public class StatementAdapter extends AbstractASTAdapter {
 
 			ThrowStatement throwStmt = (ThrowStatement) stmt;
 			Object obj = exprAdapter.transform(throwStmt.getExpression());
-
+			StmtAssign assign = new StmtAssign(getMethodContext(),
+					new ExprVar(getMethodContext(), AbstractASTAdapter.excepName), ExprConstInt.one);
+			stmtList.add(assign);
 			// StmtVarDecl decl = new StmtVarDecl(method.getMethodContext(),
 			// TypeAdapter.getType(name),
 			// AbstractASTAdapter.excepName, (Expression) obj);
@@ -138,16 +142,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 			insertState(throwStmt, "Exception", stmtList);
 			return stmtList;
 		} else if (stmt instanceof TryStatement) {
-			List<Statement> skList = new ArrayList<Statement>();
-			TryStatement tryStmt = (TryStatement) stmt;
-			skList.addAll(addIfBitBlock(tryStmt.getBody()));
-			List<CatchClause> catches = tryStmt.catchClauses();
-			for (CatchClause catchItem : catches) {
-				skList.addAll(addIfBitBlock(catchItem.getBody()));
-			}
-			if (tryStmt.getFinally() != null)
-				skList.add((StmtBlock) transform(tryStmt.getFinally()));
-			return skList;
+			return handleTryStmt((TryStatement) stmt);
 		}
 		// TODO more stmts such as for stmt
 
@@ -227,11 +222,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 				initFirst = true;
 		}
 		StmtVarDecl varDecl = new StmtVarDecl(method.getMethodContext(), types, names, inits);
-		if (initFirst==true) {
+		if (initFirst == true) {
 			lists.add(varDecl);
 			lists.addAll(stmtList);
-		
-		}else {
+
+		} else {
 			lists.addAll(stmtList);
 			lists.add(varDecl);
 		}
@@ -326,14 +321,26 @@ public class StatementAdapter extends AbstractASTAdapter {
 
 	}
 
-	private List<Statement> addIfBitBlock(ASTNode node) {
+	private List<Statement> handleTryStmt(TryStatement tryStmt) {
 		List<Statement> skList = new ArrayList<Statement>();
-		StmtVarDecl try1 = new StmtVarDecl(getMethodContext(), TypePrimitive.bittype, getNextName(), ExprConstInt.one);
+		// catch bit
+		StmtVarDecl try1 = new StmtVarDecl(getMethodContext(), TypePrimitive.bittype, AbstractASTAdapter.excepName,
+				ExprConstInt.zero);
 		skList.add(try1);
 		Expression tryIf = new ExprVar(getMethodContext(), try1.getName(0));
-		StmtBlock tryBlock = (StmtBlock) transform(node);
-		StmtIfThen tryIfStmt = new StmtIfThen(getMethodContext(), tryIf, tryBlock, null);
+		// try block
+		skList.add((Statement) transform(tryStmt.getBody()));
+		// catch block
+		List<Statement> catchBlock = new ArrayList<Statement>();
+		List<CatchClause> catches = tryStmt.catchClauses();
+		for (CatchClause catchItem : catches) {
+			catchBlock.add((Statement) transform(catchItem.getBody()));
+		}
+		StmtIfThen tryIfStmt = new StmtIfThen(getMethodContext(), tryIf, new StmtBlock(getMethodContext(), catchBlock),
+				null);
 		skList.add(tryIfStmt);
+		if (tryStmt.getFinally() != null)
+			skList.add((StmtBlock) transform(tryStmt.getFinally()));
 		return skList;
 	}
 

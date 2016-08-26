@@ -88,6 +88,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			// InfixExpression -->ExprBinary
 			InfixExpression condExpr = (InfixExpression) expr;
 			Expression left = (Expression) transform(condExpr.getLeftOperand());
+			currVarType = resolveType(left);
 			Expression right = (Expression) transform(condExpr.getRightOperand());
 			ExprBinary exprBin = new ExprBinary(stmtAdapter.getMethodContext(), resolveOperator(condExpr.getOperator()),
 					left, right);
@@ -124,8 +125,12 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			try {
 				if (!num.contains(".")) {
 					// FIXME I know it's bug
-					int number = Integer.parseInt(num);
-					return new ExprConstInt(stmtAdapter.getMethodContext(), number);
+					if (currVarType.equals(TypePrimitive.doubletype) || currVarType.equals(TypePrimitive.floattype)) {
+						return new ExprConstFloat(stmtAdapter.getMethodContext(), num + ".0");
+					} else {
+						int number = Integer.parseInt(num);
+						return new ExprConstInt(stmtAdapter.getMethodContext(), number);
+					}
 				} else {
 					double number = Double.parseDouble(num);
 					return new ExprConstFloat(stmtAdapter.getMethodContext(), number);

@@ -33,7 +33,7 @@ public abstract class AbstractASTAdapter {
 	protected static TypeUsageRecorder useRecorder = new TypeUsageRecorder();
 
 
-	// public static final String excepName = "_exceptionObj";
+	 public static final String excepName = "_exceptionObj";
 	// public static final Type excepType = TypeAdapter.getType("Exception");
 	/**
 	 * Transform a ASTNode to Sketch Node
