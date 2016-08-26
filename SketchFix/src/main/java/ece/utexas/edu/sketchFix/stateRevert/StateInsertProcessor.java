@@ -21,6 +21,9 @@ public class StateInsertProcessor extends FEReplacer {
 
 	public Object visitProgram(Program prog) {
 		//FIXME more replacer goes here
+		TraceConnectionReplacer traceConnect = new TraceConnectionReplacer (allLines);
+		prog = (Program) traceConnect.visitProgram(prog);
+		
 		NotNullTraceReplacer replacer = new NotNullTraceReplacer(allLines);
 		prog = (Program) replacer.visitProgram(prog);
 		
