@@ -8,26 +8,34 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
+import ece.utexas.edu.sketchFix.staticTransform.TransformResult;
 import sketch.compiler.ast.core.Program;
 
 public class SketchSynthesizer {
 
 	SketchOutputParser parser = new SketchOutputParser();
 	RepairGenerator repair = null;
+	List<SkCandidate> candList = new ArrayList<SkCandidate>();
 
 	public SketchSynthesizer(Program prog) {
 		repair = new RepairGenerator(prog);
 	}
 
-	public Program process(String skInput) {
+	public SketchSynthesizer(List<TransformResult> suspLoc) {
+		// TODO Auto-generated constructor stub
+	}
+
+	public List<SkCandidate> process(String skInput) {
 		String resultFile = skInput + "_";
 		if (LocalizerUtility.DEBUG) {
 			forTest(resultFile);
-			return repair.setOutputParser(parser);
+			return candList;
+			// return repair.setOutputParser(parser);
 		}
 		try {
 			PrintWriter writer = new PrintWriter(resultFile);
@@ -50,8 +58,12 @@ public class SketchSynthesizer {
 				unsat = Math.max(i, unsat);
 				if (firstLine == null) {
 					firstLine = line;
-					System.out.println("[Sketch Synthesizer] " + line);
+					System.out.println("[Step 3: Sketch Synthesizer] " + line);
 				}
+			}
+			if (firstLine == null) {
+				System.out.println("[Step 3: Sketch Synthesizer] No error");
+				return null;
 			}
 			repair.setUnSatLineNum(unsat);
 		} catch (Exception e) {
@@ -63,7 +75,8 @@ public class SketchSynthesizer {
 			writeFile(prog, resultFile + "_");
 		if (repair.unsatLineNum <= 0)
 			return null;
-		return prog;
+		return candList;
+		// return prog;
 	}
 
 	/**
@@ -103,4 +116,7 @@ public class SketchSynthesizer {
 		return repair.getScope();
 	}
 
+	private void invokeSketch(TransformResult loc) {
+
+	}
 }

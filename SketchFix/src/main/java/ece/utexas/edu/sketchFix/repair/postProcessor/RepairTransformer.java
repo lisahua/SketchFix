@@ -65,7 +65,8 @@ public class RepairTransformer {
 		}
 		// init(isHole, astHole);
 		this.delta = delta;
-		origDOMStmt = astHole.getStatement();
+		if (astHole != null)
+			origDOMStmt = astHole.getStatement();
 	}
 
 	public RepairTransformer() {
@@ -84,7 +85,7 @@ public class RepairTransformer {
 		}
 		this.methodDecl = mtd;
 		this.typeNode = node;
-//		this.comment = comment;
+		// this.comment = comment;
 		return buildNewNode(mtd);
 
 	}
@@ -95,7 +96,7 @@ public class RepairTransformer {
 
 	private RepairPatch buildNewNode(MethodDeclaration methodNode) {
 		Block block = methodNode.getBody();
-		RepairPatch patch = new RepairPatch(block,typeNode);
+		RepairPatch patch = new RepairPatch(block, typeNode);
 		// Block newBlock = typeNode.newBlock();
 		// List<org.eclipse.jdt.core.dom.Statement> newstmts =
 		// newBlock.statements();
@@ -104,7 +105,7 @@ public class RepairTransformer {
 			if (stmts.get(i).toString().equals(origDOMStmt.toString())) {
 				patch.setInsertPoint(i);
 				for (Statement stmt : delta) {
-//					patch.insertStatement(comment);
+					// patch.insertStatement(comment);
 					patch.insertStatement(buildStatement(stmt));
 				}
 				return patch;

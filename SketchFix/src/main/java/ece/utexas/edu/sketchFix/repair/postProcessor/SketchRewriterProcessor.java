@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.AST;
@@ -25,23 +26,10 @@ public class SketchRewriterProcessor {
 	ASTRewrite rewriter = null;
 	Document document = null;
 	PrintWriter writer;
-	RepairTransformer transformer;
+	List<RepairResult> repairs;
 
-	public SketchRewriterProcessor(RepairTransformer rewriter, MethodData data) {
-		this.transformer = rewriter;
-		File file = new File(data.getClassAbsolutePath());
-		try {
-			File output = new File("Repair-" + data.getClassName() + ".java");
-			int i = 0;
-			while (output.exists()) {
-				output = new File("Repair-" + data.getClassName() + (i++) + ".java");
-			}
-			System.out.println("[Repaired file:]" + output);
-			PrintWriter writer = new PrintWriter(output);
-			process(file, writer);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+	public SketchRewriterProcessor(List<RepairResult> rewriter) {
+		repairs = rewriter;
 	}
 
 	public void process() {
@@ -71,16 +59,16 @@ public class SketchRewriterProcessor {
 		TypeDeclaration tNode = (TypeDeclaration) cu.types().get(0);
 
 		for (MethodDeclaration mtd : tNode.getMethods()) {
-			RepairPatch transformed = transformer.matchMethod(mtd, cu.getAST());
-			if (transformed != null) {
-
-				String str = document.get();
-
-				String replace = transformed.replaceBody(str);
-				writer.println(replace);
-				writer.flush();
-				return;
-			}
+//			RepairPatch transformed = transformer.matchMethod(mtd, cu.getAST());
+//			if (transformed != null) {
+//
+//				String str = document.get();
+//
+//				String replace = transformed.replaceBody(str);
+//				writer.println(replace);
+//				writer.flush();
+//				return;
+//			}
 		}
 	}
 }

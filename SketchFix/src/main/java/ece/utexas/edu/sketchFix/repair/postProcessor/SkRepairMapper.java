@@ -139,6 +139,8 @@ public class SkRepairMapper {
 	private List<Statement> findDelta(List<SkLinePy> isHole) {
 
 		List<Statement> newList = new ArrayList<Statement>();
+		if (astHole == null)
+			return newList;
 		List<Statement> oldList = astHole.getSkStmts();
 
 		for (SkLinePy newLine : isHole) {

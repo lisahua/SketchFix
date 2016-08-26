@@ -15,8 +15,8 @@ public class StateInsertProcessor extends FEReplacer {
 	List<ASTLinePy> allLines = new ArrayList<ASTLinePy>();
 
 	public StateInsertProcessor(List<ASTLinePy> assLines, List<ASTLinePy> codeLines) {
-		allLines.addAll(assLines);
 		allLines.addAll(codeLines);
+		allLines.addAll(assLines);
 	}
 
 	public Object visitProgram(Program prog) {

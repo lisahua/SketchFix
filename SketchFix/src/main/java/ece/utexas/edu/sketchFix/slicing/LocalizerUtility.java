@@ -9,7 +9,7 @@ public class LocalizerUtility {
 	public static final double textPrioritize = 0.5;
 	public static final int MAX_REPAIR_LOC = 4;
 	// FOR DEBUG
-	public static final boolean DEBUG = false;
+	public static boolean DEBUG = false;
 	public static String baseDir = "";
 	// "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/work_dir/";
 	// public static String testDir =
