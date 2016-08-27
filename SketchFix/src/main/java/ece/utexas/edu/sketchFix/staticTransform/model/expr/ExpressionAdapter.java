@@ -318,8 +318,9 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else {
 			List<ExprNamedParam> skParam = new ArrayList<ExprNamedParam>();
 			// Type newType = TypeAdapter.getType(type);
-			ExprNew newExpr = new ExprNew(stmtAdapter.getMethodContext(), newType, skParam, false);
-			stmt = new StmtVarDecl(stmtAdapter.getMethodContext(), newType, getNextName(), newExpr);
+			// ExprNew newExpr = new ExprNew(stmtAdapter.getMethodContext(),
+			// newType, skParam, false);
+			stmt = new StmtVarDecl(stmtAdapter.getMethodContext(), newType, getNextName(), newType.defaultValue());
 		}
 		stmtAdapter.insertVarDecl(stmt.getName(0), newType);
 		return stmt;
@@ -347,7 +348,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			ExprFunCall funCall = (ExprFunCall) expr;
 			Expression rtnExp = funCall.getParams().get(funCall.getParams().size() - 1);
 			Type type = resolveType(rtnExp);
-			return type;
+			return (type == null) ? TypePrimitive.int32type : type;
 		} else if (expr instanceof ExprBinary) {
 			// TODO
 		} else if (expr instanceof ExprVar) {
@@ -355,7 +356,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			type = (type == null) ? TypeAdapter.getType(expr.toString()) : type;
 			return type;
 		} else if (expr instanceof ExprArrayInit) {
-			return arrayTypes.get(expr.toString());
+			// return arrayTypes.get(expr.toString());
 
 		} else if (expr instanceof ExprConstFloat) {
 			return TypePrimitive.floattype;
@@ -559,6 +560,12 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 					TypeAdapter.getType(staticQ.getQualifier().toString()), var, newInt);
 			stmtAdapter.insertVarDecl(decl.getName(0), decl.getType(0));
 			stmtAdapter.insertStmt(decl);
+		} else {
+			ExprNew newInt = new ExprNew(stmtAdapter.getMethodContext(), qualifier, new ArrayList<ExprNamedParam>(),
+					false);
+			StmtAssign assign = new StmtAssign(stmtAdapter.getMethodContext(),
+					new ExprVar(stmtAdapter.getMethodContext(), var), newInt);
+			stmtAdapter.insertStmt(assign);
 		}
 		ExprVar varExp = new ExprVar(stmtAdapter.getMethodContext(), var);
 		ExprField field = new ExprField(stmtAdapter.getMethodContext(), varExp, staticQ.getName().toString(), false);

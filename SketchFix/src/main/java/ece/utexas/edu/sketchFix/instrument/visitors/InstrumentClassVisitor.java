@@ -27,7 +27,6 @@ public class InstrumentClassVisitor extends ClassVisitor implements Opcodes {
 		params = desc;
 		InstrumentMethodVisitor mv = new InstrumentMethodVisitor(
 				cv.visitMethod(access, name, desc, signature, exceptions));
-
 		return mv;
 	}
 

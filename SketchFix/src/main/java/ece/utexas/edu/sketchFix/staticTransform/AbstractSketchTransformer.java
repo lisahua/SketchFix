@@ -26,6 +26,7 @@ import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.OverloadHandler;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.Annotation;
 import sketch.compiler.ast.core.FieldDecl;
@@ -58,19 +59,20 @@ public abstract class AbstractSketchTransformer {
 
 	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
+		AbstractASTAdapter.setUseRecorder(new TypeUsageRecorder());
 		// FIXME no test method executed...
 		if (method == null)
 			return;
 		File code = new File(method.getClassAbsolutePath());
 		if (!code.exists())
 			return;
-		System.out.println("[Step 1: Checking suspicious location:]" + method.getClassFullPath());
 		parseFile(code, method);
 		MethodDeclarationAdapter mtdDecl = new MethodDeclarationAdapter(cu, method, utility);
 		mtdDecl.setHarness(harness);
 		if (overloadHandler != null)
 			mtdDecl.setOverloadHandler(overloadHandler);
-		
+		if (currentMtd == null)
+			return;
 		currMethod = (Function) mtdDecl.transform(currentMtd);
 		overloadHandler = mtdDecl.getOverloadHandler();
 		StructDefGenerator generator = new StructDefGenerator(AbstractASTAdapter.getUseRecorder(),
@@ -101,8 +103,11 @@ public abstract class AbstractSketchTransformer {
 		List<String> param = method.getParams();
 		// HashSet<MethodDeclaration> overloadMtd = new
 		// HashSet<MethodDeclaration>();
+		String mName = method.getMethodName();
+		if (mName.equals("<init>"))
+			mName = method.getClassName();
 		for (MethodDeclaration mtd : methods) {
-			if (mtd.getName().toString().equals(method.getMethodName())) {
+			if (mtd.getName().toString().equals(mName)) {
 				// check param
 				List<SingleVariableDeclaration> params = mtd.parameters();
 				if (params.size() != param.size())

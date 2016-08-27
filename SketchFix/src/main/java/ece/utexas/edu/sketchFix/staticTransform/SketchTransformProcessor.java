@@ -3,7 +3,6 @@
  */
 package ece.utexas.edu.sketchFix.staticTransform;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,12 +13,13 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.stateRevert.StateInsertProcessor;
 import ece.utexas.edu.sketchFix.stateRevert.TransformPostProcessor;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.stmts.StmtBlock;
 
 public class SketchTransformProcessor {
 	private Argument arg = null;
 	// private Vector<LinePy> trace;
-//	List<ASTLinePy> lines = new ArrayList<ASTLinePy>();
-//	Program prog;
+	// List<ASTLinePy> lines = new ArrayList<ASTLinePy>();
+	// Program prog;
 	List<TransformResult> suspLocations = new ArrayList<TransformResult>();
 
 	public SketchTransformProcessor(Argument argument) {
@@ -37,31 +37,40 @@ public class SketchTransformProcessor {
 		try {
 			assertTran.transform(testMethod, generator, locations);
 
-			for (int i = 0; i < LocalizerUtility.MAX_REPAIR_LOC; i++) {
+			for (int i = 0, index = 0; index < LocalizerUtility.MAX_REPAIR_LOC
+					&& i < LocalizerUtility.MAX_METHOD_THRESHOLD; i++) {
 				List<ASTLinePy> lines = new ArrayList<ASTLinePy>();
 				AbstractSketchTransformer sourceTran = new SketchSourceTransformer();
-				MethodData data = locations.get(0);
+				MethodData data = locations.get(i);
+				if (data.getTouchLinesList().size() < 2)
+					continue;
 				data.setBaseDir(arg.getSourceDir()[0]);
 				data.setBasrDirs(arg.getSourceDir());
 				sourceTran.setRefTransformer(assertTran);
-				sourceTran.transform(locations.get(0), generator, locations);
+				sourceTran.transform(data, generator, locations);
 				// StmtStateMapper sourceState = sourceTran.getStateMapper();
+				if (sourceTran.getCurrMethod() == null
+						|| ((StmtBlock) sourceTran.getCurrMethod().getBody()).getStmts().size() < 2)
+					continue;
 
 				TransformPostProcessor reverter = new TransformPostProcessor(sourceTran);
 				// reverter.writeToFile(outputFile);
 				Program prog = reverter.getProgram();
+				if (sourceTran.getStateMapper() == null)
+					continue;
+
 				StateInsertProcessor replacer = new StateInsertProcessor(assertTran.getStateMapper().getLinePyList(),
-						sourceTran.getStateMapper().getLinePyList());
+						sourceTran.getStateMapper().getLinePyList(),sourceTran.getCurrMethod());
 				lines = replacer.getAllLines();
 				prog = (Program) replacer.visitProgram(prog);
 				if (prog == null)
 					continue;
-				try {
-					prog.accept(new SimpleSketchFilePrinter(outputFile+"i"));
-					suspLocations.add(new TransformResult(prog, lines, outputFile+"i"));
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
+				index++;
+				prog.accept(new SimpleSketchFilePrinter(outputFile + index));
+				suspLocations.add(new TransformResult(prog, lines, outputFile + index));
+				System.out.println("[Step 1: Checking suspicious location:]" + data.getClassFullPath() + ":"
+						+ data.getMethodNameWithParam());
+
 			}
 		} catch (Exception e) {
 			if (LocalizerUtility.DEBUG)

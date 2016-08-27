@@ -47,6 +47,10 @@ public class OverloadHandler {
 	}
 
 	public OverloadHandler(AbstractSketchTransformer refTransformer) {
+		// for (Function func : refTransformer.getMethods())
+		// refFunctions.add(func);
+		// for (StructDef strt : refTransformer.getStructs())
+		// structs.add(strt);
 		refFunctions = refTransformer.getMethods();
 		structs = refTransformer.getStructs();
 	}
@@ -239,7 +243,9 @@ public class OverloadHandler {
 		for (Function func : sourceFun) {
 			if (refNames.contains(func.getName())) {
 				int index = refNames.indexOf(func.getName());
-				if (refFunctions.get(index).toString().length() < func.toString().length()) {
+				int refLen = ((StmtBlock) refFunctions.get(index).getBody()).getStmts().size();
+				int funcLen = ((StmtBlock) func.getBody()).getStmts().size();
+				if (refLen < funcLen) {
 					refFunctions.remove(index);
 				} else {
 					continue;

@@ -30,8 +30,8 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 
 	private Vector<MethodData> textPrioritize(Vector<LinePy> trace) {
 		MethodComparator comp = null;
-		//init test method
-		for (int i = methodOrder.size()-1; i >=0; i--) {
+		// init test method
+		for (int i = methodOrder.size() - 1; i >= 0; i--) {
 			MethodData mdata = methodMap.get(methodOrder.get(i));
 			// MethodData mdata = methodMap.get(methodOrder.peek());
 			if (mdata.isTestMethod()) {
@@ -47,7 +47,8 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 			MethodData data = methodMap.get(methodOrder.pop());
 			if (data.isTestMethod())
 				continue;
-			list.add(data);
+			if (!list.contains(data))
+				list.add(data);
 		}
 		if (comp != null)
 			list.sort(comp);
@@ -58,7 +59,7 @@ public class TextualFaultLocalizer extends FaultLocalizerStrategy {
 	public Vector<MethodData> locateFaultyMethods(Vector<LinePy> trace) {
 		// System.out.println(trace.lastElement());
 		for (LinePy oneLine : trace) {
-			String key = oneLine.getFilePath() + "-" + oneLine.getMethodName()+"-"+oneLine.getParams();
+			String key = oneLine.getFilePath() + "-" + oneLine.getMethodName() + "-" + oneLine.getParams();
 			MethodData data = (methodMap.containsKey(key)) ? methodMap.get(key) : new MethodData(key);
 			data = data.setLinePy(oneLine);
 			methodMap.put(key, data);

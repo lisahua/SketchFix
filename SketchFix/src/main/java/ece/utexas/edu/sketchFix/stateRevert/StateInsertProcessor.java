@@ -8,23 +8,25 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import sketch.compiler.ast.core.FEReplacer;
+import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Program;
 
 public class StateInsertProcessor extends FEReplacer {
 
 	List<ASTLinePy> allLines = new ArrayList<ASTLinePy>();
-
-	public StateInsertProcessor(List<ASTLinePy> assLines, List<ASTLinePy> codeLines) {
+Function currentMtd;
+	public StateInsertProcessor(List<ASTLinePy> assLines, List<ASTLinePy> codeLines, Function currentFunc) {
 		allLines.addAll(codeLines);
 		allLines.addAll(assLines);
+		currentMtd = currentFunc;
 	}
 
 	public Object visitProgram(Program prog) {
 		//FIXME more replacer goes here
-		TraceConnectionReplacer traceConnect = new TraceConnectionReplacer (allLines);
+		TraceConnectionReplacer traceConnect = new TraceConnectionReplacer (allLines, currentMtd);
 		prog = (Program) traceConnect.visitProgram(prog);
 		
-		NotNullTraceReplacer replacer = new NotNullTraceReplacer(allLines);
+		NotNullTraceReplacer replacer = new NotNullTraceReplacer(allLines,currentMtd);
 		prog = (Program) replacer.visitProgram(prog);
 		
 		

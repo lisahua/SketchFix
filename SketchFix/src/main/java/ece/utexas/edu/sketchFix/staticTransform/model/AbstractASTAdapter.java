@@ -32,8 +32,8 @@ public abstract class AbstractASTAdapter {
 	public static final String pkgName = "sketchFix";
 	protected static TypeUsageRecorder useRecorder = new TypeUsageRecorder();
 
+	public static final String excepName = "_exceptionObj";
 
-	 public static final String excepName = "_exceptionObj";
 	// public static final Type excepType = TypeAdapter.getType("Exception");
 	/**
 	 * Transform a ASTNode to Sketch Node
@@ -45,6 +45,10 @@ public abstract class AbstractASTAdapter {
 
 	public static TypeUsageRecorder getUseRecorder() {
 		return useRecorder;
+	}
+
+	public static void setUseRecorder(TypeUsageRecorder recorder) {
+		useRecorder = recorder;
 	}
 
 	public static FENode getContext() {

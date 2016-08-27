@@ -8,8 +8,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 
 public class TestReadClassVisitor {
-@Test
-	public  void main() throws Exception {
+
+	public static void main(String[] args) throws Exception {
 		String[] arg = { "--srcDir", "/Users/lisahua/Documents/lisa/project/build/Chart15_buggy/build/",
 				"--instrumentDir", "/Users/lisahua/Documents/lisa/project/build/Chart15_buggy/.classes_instrumented/" };
 		new InstrumentModel(arg).instrumentCode();

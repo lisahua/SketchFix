@@ -8,6 +8,7 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import sketch.compiler.ast.core.FEReplacer;
+import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.exprs.ExprBinary;
 import sketch.compiler.ast.core.exprs.ExprFunCall;
 import sketch.compiler.ast.core.exprs.ExprNullPtr;
@@ -26,10 +27,16 @@ public class NotNullTraceReplacer extends FEReplacer {
 	int lastCallID = 0;
 	// String state;
 
-	public NotNullTraceReplacer(List<ASTLinePy> allLines) {
+	public NotNullTraceReplacer(List<ASTLinePy> allLines, Function data) {
 		this.allLines = allLines;
+		String methodName = data.getName();
+		if (methodName.contains("_"))
+			methodName = methodName.substring(0, methodName.indexOf("_"));
+
 		for (int i = allLines.size() - 1; i >= 0; i--) {
 			// FIXME I know its buggy
+			if (!allLines.get(i).getLinePyList().get(0).getMethodName().equals(methodName))
+				continue;
 			for (Statement stmt : allLines.get(i).getSkStmts()) {
 				if (stmt instanceof StmtExpr) {
 					Expression expr = ((StmtExpr) stmt).getExpression();
@@ -46,18 +53,19 @@ public class NotNullTraceReplacer extends FEReplacer {
 	}
 
 	public Object visitStmtExpr(StmtExpr stmt) {
+		if (atomCall == null)
+			return super.visitStmtExpr(stmt);
 		Expression expr = stmt.getExpression();
 		List<Statement> list = new ArrayList<Statement>();
 		list.add(stmt);
 		if (expr instanceof ExprFunCall) {
-			if (expr.toString().equals(atomCall.toString())) {
-				Expression invoker = ((ExprFunCall) expr).getParams().get(0);
-				Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_NEQ, invoker,
-						ExprNullPtr.nullPtr);
-				StmtAssert ass = new StmtAssert(stmt.getOrigin(), exprBin, false);
-				list.add(ass);
-			}
+			 if (expr.toString().equals(atomCall.toString())) {
+			Expression invoker = ((ExprFunCall) expr).getParams().get(0);
+			Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_NEQ, invoker, ExprNullPtr.nullPtr);
+			StmtAssert ass = new StmtAssert(stmt.getOrigin(), exprBin, false);
+			list.add(ass);
 		}
+		 }
 		return new StmtBlock(stmt.getOrigin(), list);
 	}
 

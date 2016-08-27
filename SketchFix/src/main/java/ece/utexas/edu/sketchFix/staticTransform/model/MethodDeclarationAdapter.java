@@ -135,6 +135,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 //		AbstractASTAdapter.excepName += AbstractASTAdapter.excepName + 1;
 //		param.add(excpParam);
 //		varType.put(excpParam.getName(), excpParam.getType());
+		if (returnType==null )	return param;
 		rtnType = (Type) TypeAdapter.getType(returnType.toString());
 		if (rtnType != null) {
 			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);

@@ -41,7 +41,7 @@ public class MethodWrapper {
 	public void updateParam(int id, String type) {
 		// if (paramList.size() > 0)
 		// return;
-		if (type.contains("null") || type.contains("int") || type.contains("bit"))
+		if (type.contains("null")  )
 			return;
 		if (id >= paramList.size())
 			paramList.add(type);
