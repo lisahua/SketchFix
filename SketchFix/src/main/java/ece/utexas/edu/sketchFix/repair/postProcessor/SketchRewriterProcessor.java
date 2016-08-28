@@ -26,9 +26,9 @@ public class SketchRewriterProcessor {
 	ASTRewrite rewriter = null;
 	Document document = null;
 	PrintWriter writer;
-	List<RepairResult> repairs;
+	private List<RepairItem> repairs;
 
-	public SketchRewriterProcessor(List<RepairResult> rewriter) {
+	public SketchRewriterProcessor(List<RepairItem> rewriter) {
 		repairs = rewriter;
 	}
 

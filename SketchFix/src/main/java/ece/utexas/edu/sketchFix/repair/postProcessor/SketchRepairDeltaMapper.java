@@ -20,19 +20,19 @@ import sketch.compiler.ast.core.stmts.StmtIfThen;
 import sketch.compiler.ast.core.stmts.StmtVarDecl;
 import sketch.compiler.ast.core.stmts.StmtWhile;
 
-public class SkRepairMapper {
+public class SketchRepairDeltaMapper {
 	// List<ASTLinePy> lists;
 	Function func;
 	SkLinePy hole;
 	List<SkLinePy> beforeRepair;
 	ASTLinePy astHole;
 
-	public SkRepairMapper(List<ASTLinePy> lists, List<SkLinePy> beforeRepair) {
+	public SketchRepairDeltaMapper(List<ASTLinePy> lists, List<SkLinePy> beforeRepair) {
 		mapBefore(lists, beforeRepair);
 		this.beforeRepair = beforeRepair;
 	}
 
-	public RepairTransformer setNewScope(List<SkLinePy> scope) {
+	public SketchToDOMTransformer setNewScope(List<SkLinePy> scope) {
 		return mapNewScope(scope, beforeRepair);
 	}
 
@@ -61,7 +61,7 @@ public class SkRepairMapper {
 		// return -1;
 	}
 
-	private RepairTransformer mapNewScope(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
+	private SketchToDOMTransformer mapNewScope(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
 		// System.out.println(scope.size() + "-" + beforeRepair.size());
 		for (int i = 0; i < scope.size(); i++) {
 			for (int j = 0; j < beforeRepair.size(); j++) {
@@ -78,7 +78,7 @@ public class SkRepairMapper {
 		// System.out.println(matchArr);
 	}
 
-	private RepairTransformer startMappingFuncs(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
+	private SketchToDOMTransformer startMappingFuncs(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
 		List<SkLinePy> holes = new ArrayList<SkLinePy>();
 		List<Integer> ids = new ArrayList<Integer>();
 		for (int i = 0; i < scope.size(); i++) {
@@ -101,7 +101,7 @@ public class SkRepairMapper {
 		} else if (ids.size() == 1)
 			holes.add(scope.get(ids.get(0)));
 		holes = convertHolesToSoln(holes);
-		return new RepairTransformer(func, findDelta(holes), astHole);
+		return new SketchToDOMTransformer(func, findDelta(holes), astHole);
 	}
 
 	private List<SkLinePy> convertHolesToSoln(List<SkLinePy> holes) {

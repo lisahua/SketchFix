@@ -44,7 +44,7 @@ import sketch.compiler.ast.core.stmts.StmtIfThen;
 import sketch.compiler.ast.core.stmts.StmtReturn;
 import sketch.compiler.ast.core.stmts.StmtVarDecl;
 
-public class RepairTransformer {
+public class SketchToDOMTransformer {
 
 	String funcName = "";
 	String[] params;
@@ -52,10 +52,10 @@ public class RepairTransformer {
 	org.eclipse.jdt.core.dom.Statement origDOMStmt;
 	MethodDeclaration methodDecl;
 	AST typeNode;
-	org.eclipse.jdt.core.dom.Statement comment;
+//	private org.eclipse.jdt.core.dom.Statement comment;
 
 	// MethodDeclaration mtdDecl ;
-	public RepairTransformer(Function func, List<Statement> delta, ASTLinePy astHole) {
+	public SketchToDOMTransformer(Function func, List<Statement> delta, ASTLinePy astHole) {
 		String[] token = func.getName().split("_");
 		funcName = token[0];
 		if (token.length > 1) {
@@ -69,7 +69,7 @@ public class RepairTransformer {
 			origDOMStmt = astHole.getStatement();
 	}
 
-	public RepairTransformer() {
+	public SketchToDOMTransformer() {
 
 	}
 

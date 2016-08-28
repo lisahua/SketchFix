@@ -27,4 +27,12 @@ public class TransformResult {
 		return lines;
 	}
 
+	public String getOutputFile() {
+		return outputFile;
+	}
+
+	public void setOutputFile(String outputFile) {
+		this.outputFile = outputFile;
+	}
+
 }

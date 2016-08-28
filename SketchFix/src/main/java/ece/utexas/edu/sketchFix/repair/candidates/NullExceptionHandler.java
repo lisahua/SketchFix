@@ -6,7 +6,8 @@ package ece.utexas.edu.sketchFix.repair.candidates;
 import java.util.ArrayList;
 import java.util.List;
 
-import ece.utexas.edu.sketchFix.repair.processor.SkCandidateGenerator;
+import ece.utexas.edu.sketchFix.repair.processor.SkCandidate;
+import ece.utexas.edu.sketchFix.repair.processor.CandidateTemplate;
 import ece.utexas.edu.sketchFix.repair.processor.SkLinePy;
 import ece.utexas.edu.sketchFix.repair.processor.SkLineType;
 import sketch.compiler.ast.core.FEReplacer;
@@ -24,17 +25,17 @@ import sketch.compiler.ast.core.stmts.StmtExpr;
 import sketch.compiler.ast.core.stmts.StmtIfThen;
 import sketch.compiler.ast.core.stmts.StmtReturn;
 
-public class NullExceptionHandler extends FEReplacer {
+public class NullExceptionHandler extends CandidateTemplate {
 	ExprFunCall lastCall = null;
 	Parameter returnObj = null;
 	private Function func = null;
-	protected SkCandidateGenerator candGenerator = null;
-	protected List<SkLinePy> scope;
+	// protected SkCandidateGenerator candGenerator = null;
+
 	private int lastCallID = 0;
 
-	public NullExceptionHandler(AbstractRepairCandidate superClass) {
-		scope = superClass.scope;
-		candGenerator = superClass.candGenerator;
+	public NullExceptionHandler(SkCandidate generator) {
+		super(generator);
+		// candGenerator = superClass.candGenerator;
 		if (scope == null || scope.size() == 0)
 			return;
 		if (scope.get(0).getSkStmt() instanceof Function) {
@@ -68,12 +69,13 @@ public class NullExceptionHandler extends FEReplacer {
 				Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_EQ, invoker,
 						ExprNullPtr.nullPtr);
 				List<Statement> stmts = new ArrayList<Statement>();
-				if (returnObj != null) {
-					Expression rhs = candGenerator.getStmtAssign(func.getName(), returnObj.getType().toString());
-					StmtAssign assign = new StmtAssign(stmt.getOrigin(),
-							new ExprVar(stmt.getOrigin(), returnObj.getName()), rhs);
-					stmts.add(assign);
-				}
+				// if (returnObj != null) {
+				// Expression rhs = candGenerator.getStmtAssign(func.getName(),
+				// returnObj.getType().toString());
+				// StmtAssign assign = new StmtAssign(stmt.getOrigin(),
+				// new ExprVar(stmt.getOrigin(), returnObj.getName()), rhs);
+				// stmts.add(assign);
+				// }
 				stmts.add(new StmtReturn(stmt.getOrigin(), null));
 				StmtIfThen ifThen = new StmtIfThen(stmt.getOrigin(), exprBin, new StmtBlock(stmt.getOrigin(), stmts),
 						null);
@@ -89,8 +91,6 @@ public class NullExceptionHandler extends FEReplacer {
 		return super.visitStmtExpr(stmt);
 	}
 
-	public List<SkLinePy> getScope() {
-		return scope;
-	}
+	
 
 }

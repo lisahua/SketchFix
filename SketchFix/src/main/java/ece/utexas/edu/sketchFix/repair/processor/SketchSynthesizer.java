@@ -18,65 +18,68 @@ import sketch.compiler.ast.core.Program;
 
 public class SketchSynthesizer {
 
-	SketchOutputParser parser = new SketchOutputParser();
-	RepairGenerator repair = null;
 	List<SkCandidate> candList = new ArrayList<SkCandidate>();
 
-	public SketchSynthesizer(Program prog) {
-		repair = new RepairGenerator(prog);
-	}
-
 	public SketchSynthesizer(List<TransformResult> suspLoc) {
-		// TODO Auto-generated constructor stub
+		for (TransformResult location : suspLoc) {
+			RepairGenerator repair = new RepairGenerator(location.getProg());
+			candList = process(location.getOutputFile(), repair);
+		}
 	}
 
-	public List<SkCandidate> process(String skInput) {
+	private List<SkCandidate> process(String skInput, RepairGenerator repair) {
 		String resultFile = skInput + "_";
-		if (LocalizerUtility.DEBUG) {
-			forTest(resultFile);
-			return candList;
-			// return repair.setOutputParser(parser);
-		}
 		try {
-			PrintWriter writer = new PrintWriter(resultFile);
-			Process p = Runtime.getRuntime().exec("sketch " + skInput);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-			String line = "";
-			while ((line = reader.readLine()) != null) {
-				parser.append(line);
-				writer.println(line);
+			SketchOutputParser parser;
+			if (LocalizerUtility.DEBUG) {
+				parser = forTest(resultFile);
+			} else {
+				parser = invokeCmd(skInput);
 			}
-
-			reader.close();
-			writer.close();
-			int unsat = 0;
-			reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-			String firstLine = null;
-			while ((line = reader.readLine()) != null) {
-				int i = parser.parseError(line);
-				unsat = Math.max(i, unsat);
-				if (firstLine == null) {
-					firstLine = line;
-					System.out.println("[Step 3: Sketch Synthesizer] " + line);
-				}
+			List<SkCandidate> candidates = repair.setOutputParser(parser);
+			for (int i = 0; i < candidates.size(); i++) {
+				candidates.get(i).setOutputFile(resultFile + i);
 			}
-			if (firstLine == null) {
-				System.out.println("[Step 3: Sketch Synthesizer] No error");
-				return null;
-			}
-			repair.setUnSatLineNum(unsat);
+			return candList;
 		} catch (Exception e) {
 			if (LocalizerUtility.DEBUG)
 				e.printStackTrace();
 		}
-		Program prog = repair.setOutputParser(parser);
-		if (prog != null)
-			writeFile(prog, resultFile + "_");
-		if (repair.unsatLineNum <= 0)
-			return null;
-		return candList;
-		// return prog;
+		return new ArrayList<SkCandidate>();
+
+	}
+
+	private SketchOutputParser invokeCmd(String skInput) throws Exception {
+		String resultFile = skInput + "_";
+		PrintWriter writer = new PrintWriter(resultFile);
+		Process p = Runtime.getRuntime().exec("sketch " + skInput);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		SketchOutputParser parser = new SketchOutputParser();
+		String line = "";
+		while ((line = reader.readLine()) != null) {
+			parser.append(line);
+			writer.println(line);
+		}
+
+		reader.close();
+		writer.close();
+		int unsat = -1;
+		reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+		String firstLine = null;
+		while ((line = reader.readLine()) != null) {
+			int i = parser.parseError(line);
+			unsat = Math.max(i, unsat);
+			if (firstLine == null) {
+				firstLine = line;
+				System.out.println("[Step 3: Sketch Synthesizer] " + line);
+			}
+		}
+		if (firstLine == null) {
+			System.out.println("[Step 3: Sketch Synthesizer] No error");
+		}
+		parser.setUnsat(unsat);
+
+		return parser;
 	}
 
 	/**
@@ -85,22 +88,20 @@ public class SketchSynthesizer {
 	 * 
 	 * @param outputFile
 	 */
-	public Program forTest(String outputFile) {
+	public SketchOutputParser forTest(String outputFile) throws Exception {
 		BufferedReader reader;
-		try {
-			reader = new BufferedReader(new FileReader(LocalizerUtility.baseDir + outputFile));
-			String line = "";
-			while ((line = reader.readLine()) != null) {
-				parser.append(line);
-			}
-			// repair.setUnSatLineNum(68);
-
-			// writeFile(prog, outputFile.substring(0, outputFile.length() - 1)
-			// + "4");
-		} catch (Exception e) {
-			e.printStackTrace();
+		SketchOutputParser parser = new SketchOutputParser();
+		reader = new BufferedReader(new FileReader(outputFile));
+		// reader = new BufferedReader(new FileReader(LocalizerUtility.baseDir +
+		// outputFile));
+		String line = "";
+		while ((line = reader.readLine()) != null) {
+			parser.append(line);
 		}
-		return repair.setOutputParser(parser);
+		reader.close();
+		parser.setUnsat(85);
+
+		return parser;
 	}
 
 	private void writeFile(Program prog, String outputFile) {
@@ -111,12 +112,7 @@ public class SketchSynthesizer {
 		}
 	}
 
-	public List<SkLinePy> getScope() {
-
-		return repair.getScope();
-	}
-
-	private void invokeSketch(TransformResult loc) {
-
+	public List<SkCandidate> getCandidateList() {
+		return candList;
 	}
 }

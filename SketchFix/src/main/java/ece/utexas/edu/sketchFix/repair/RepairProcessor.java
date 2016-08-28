@@ -10,7 +10,7 @@ import ece.utexas.edu.sketchFix.instrument.restoreState.DynamicStateMapper;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.instrument.restoreState.StaticSourceMapper;
-import ece.utexas.edu.sketchFix.repair.postProcessor.RepairResult;
+import ece.utexas.edu.sketchFix.repair.postProcessor.RepairItem;
 import ece.utexas.edu.sketchFix.repair.postProcessor.SketchRepairValidator;
 import ece.utexas.edu.sketchFix.repair.postProcessor.SketchRewriterProcessor;
 import ece.utexas.edu.sketchFix.repair.processor.SkCandidate;
@@ -36,9 +36,9 @@ public class RepairProcessor {
 		List<MethodData> locations = faultLocalize(trace);
 		// transform to sketch front end
 		SketchTransformProcessor transformer = new SketchTransformProcessor(argument);
-		 transformer.process(generator, locations, testMethod, argument.skOrigin);
-		 List<TransformResult> suspLoc = transformer.getSuspLocations();
-		if (suspLoc.size()==0) {
+		transformer.process(generator, locations, testMethod, argument.skOrigin);
+		List<TransformResult> suspLoc = transformer.getSuspLocations();
+		if (suspLoc.size() == 0) {
 			System.out.println("[Sketch Transformation] Failure!");
 			return;
 		} else {
@@ -46,10 +46,9 @@ public class RepairProcessor {
 		}
 		// first invoke synthesis
 		SketchSynthesizer processor = new SketchSynthesizer(suspLoc);
-		
-		
-List<SkCandidate> candidates= processor.process(argument.skOrigin);
-		if (candidates.size()==0 ) {
+
+		List<SkCandidate> candidates = processor.getCandidateList();
+		if (candidates.size() == 0) {
 			System.out.println("[Sketch Repair] Unable to repair this type of error !");
 			return;
 		} else {
@@ -57,15 +56,15 @@ List<SkCandidate> candidates= processor.process(argument.skOrigin);
 		}
 		// check repair candidates
 		SketchRepairValidator validator = new SketchRepairValidator(candidates);
-		List< RepairResult > rewriter = validator.process(argument.skOrigin + "__");
-		if (rewriter == null) {
-			System.out.println("[Step 3: Sketch Repair] Fail in all repair candidates !");
-			return;
-		} else {
-			System.out.println("[Ste 4: Sketch Repair] Successfully generate repair!");
-		}
-		SketchRewriterProcessor skRewriter = new SketchRewriterProcessor(rewriter);
-		skRewriter.process();
+//		List<RepairItem> rewriter = validator.process(argument.skOrigin + "__");
+//		if (rewriter == null) {
+//			System.out.println("[Step 3: Sketch Repair] Fail in all repair candidates !");
+//			return;
+//		} else {
+//			System.out.println("[Ste 4: Sketch Repair] Successfully generate repair!");
+//		}
+//		SketchRewriterProcessor skRewriter = new SketchRewriterProcessor(rewriter);
+//		skRewriter.process();
 		System.out.println("[Sketch Repair] Done with Repair!");
 
 	}

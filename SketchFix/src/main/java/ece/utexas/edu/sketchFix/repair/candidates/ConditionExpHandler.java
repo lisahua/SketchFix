@@ -6,7 +6,8 @@ package ece.utexas.edu.sketchFix.repair.candidates;
 import java.util.ArrayList;
 import java.util.List;
 
-import ece.utexas.edu.sketchFix.repair.processor.SkCandidateGenerator;
+import ece.utexas.edu.sketchFix.repair.processor.CandidateTemplate;
+import ece.utexas.edu.sketchFix.repair.processor.SkCandidate;
 import ece.utexas.edu.sketchFix.repair.processor.SkLinePy;
 import ece.utexas.edu.sketchFix.repair.processor.SkLineType;
 import sketch.compiler.ast.core.FEReplacer;
@@ -24,19 +25,14 @@ import sketch.compiler.ast.core.stmts.StmtExpr;
 import sketch.compiler.ast.core.stmts.StmtIfThen;
 import sketch.compiler.ast.core.stmts.StmtReturn;
 
-public class ConditionExpHandler extends FEReplacer {
+public class ConditionExpHandler extends CandidateTemplate  {
 	ExprFunCall lastCall = null;
 	Parameter returnObj = null;
 	private Function func = null;
-	protected SkCandidateGenerator candGenerator = null;
-	protected List<SkLinePy> scope;
 	private int lastCallID = 0;
 
-	public ConditionExpHandler(AbstractRepairCandidate superClass) {
-		scope = superClass.scope;
-		candGenerator = superClass.candGenerator;
-		if (scope == null || scope.size() == 0)
-			return;
+	public ConditionExpHandler(SkCandidate generator) {
+		super(generator);
 		if (scope.get(0).getSkStmt() instanceof Function) {
 			func = (Function) scope.get(0).getSkStmt();
 			List<Parameter> params = func.getParams();

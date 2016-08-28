@@ -48,4 +48,15 @@ public class SketchOutputParser {
 	public int getUnsat() {
 		return unsat;
 	}
+
+	public void setOutput(Vector<String> output) {
+		this.output = output;
+	}
+
+	public void setUnsat(int unsat) {
+		this.unsat = unsat;
+	}
+	
+	
+	
 }

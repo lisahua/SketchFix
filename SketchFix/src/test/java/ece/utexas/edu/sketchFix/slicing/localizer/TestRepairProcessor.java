@@ -14,7 +14,7 @@ public class TestRepairProcessor {
 		// String[] arg = {
 		// "org.jfree.chart.renderer.category.junit.AbstractCategoryItemRendererTests",
 		// "test2947660" };
-		String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart15_buggy/";
+		String baseDir = "/Users/lisahua/Documents/lisa/project/build/Chart14_buggy/";
 		LocalizerUtility.baseDir = baseDir;
 		LocalizerUtility.DEBUG = true;
 		// LocalizerUtility.testDir = baseDir + "test_dir/";
