@@ -125,7 +125,8 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			try {
 				if (!num.contains(".")) {
 					// FIXME I know it's bug
-					if (currVarType.equals(TypePrimitive.doubletype) || currVarType.equals(TypePrimitive.floattype)) {
+					if (currVarType != null && (currVarType.equals(TypePrimitive.doubletype)
+							|| currVarType.equals(TypePrimitive.floattype))) {
 						return new ExprConstFloat(stmtAdapter.getMethodContext(), num + ".0");
 					} else {
 						int number = Integer.parseInt(num);

@@ -41,9 +41,10 @@ public class RepairProcessor {
 		if (suspLoc.size() == 0) {
 			System.out.println("[Sketch Transformation] Failure!");
 			return;
-		} else {
-			System.out.println("[Step 2: Sketch Transformation] File: " + argument.skOrigin + ". Done!");
 		}
+//			else {
+//			System.out.println("[Step 2: Sketch Transformation] File: " + argument.skOrigin + ". Done!");
+//		}
 		// first invoke synthesis
 		SketchSynthesizer processor = new SketchSynthesizer(suspLoc);
 
@@ -51,20 +52,24 @@ public class RepairProcessor {
 		if (candidates.size() == 0) {
 			System.out.println("[Sketch Repair] Unable to repair this type of error !");
 			return;
-		} else {
-			System.out.println("[Step 3: Sketch Repair] Start to generate repair candidates!");
 		}
+		for (SkCandidate cand : candidates)
+			cand.setBaseDir(argument.getSourceDir()[0]);
 		// check repair candidates
 		SketchRepairValidator validator = new SketchRepairValidator(candidates);
-//		List<RepairItem> rewriter = validator.process(argument.skOrigin + "__");
-//		if (rewriter == null) {
-//			System.out.println("[Step 3: Sketch Repair] Fail in all repair candidates !");
-//			return;
-//		} else {
-//			System.out.println("[Ste 4: Sketch Repair] Successfully generate repair!");
-//		}
-//		SketchRewriterProcessor skRewriter = new SketchRewriterProcessor(rewriter);
-//		skRewriter.process();
+		// List<RepairItem> rewriter = validator.process(argument.skOrigin +
+		// "__");
+		// if (rewriter == null) {
+		// System.out.println("[Step 3: Sketch Repair] Fail in all repair
+		// candidates !");
+		// return;
+		// } else {
+		// System.out.println("[Ste 4: Sketch Repair] Successfully generate
+		// repair!");
+		// }
+		// SketchRewriterProcessor skRewriter = new
+		// SketchRewriterProcessor(rewriter);
+		// skRewriter.process();
 		System.out.println("[Sketch Repair] Done with Repair!");
 
 	}

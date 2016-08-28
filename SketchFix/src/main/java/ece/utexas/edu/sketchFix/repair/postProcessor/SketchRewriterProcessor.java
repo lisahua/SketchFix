@@ -23,52 +23,42 @@ import org.eclipse.text.edits.TextEdit;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 
 public class SketchRewriterProcessor {
-	ASTRewrite rewriter = null;
-	Document document = null;
 	PrintWriter writer;
-	private List<RepairItem> repairs;
+	File file;
 
-	public SketchRewriterProcessor(List<RepairItem> rewriter) {
-		repairs = rewriter;
+	public SketchRewriterProcessor(String inputFile) throws Exception {
+		file = new File(inputFile + ".java");
+		// if (!file.exists()) return;
+		String fileName = inputFile.substring(inputFile.lastIndexOf("/") + 1);
+		File output = new File("Repair-" + fileName + ".java");
+		int i = 0;
+		while (output.exists()) {
+			output = new File("Repair-" + fileName + (i++) + ".java");
+		}
+		System.out.println("[Repaired file:]" + output);
+		writer = new PrintWriter(output);
 	}
 
-	public void process() {
-		TextEdit edits = rewriter.rewriteAST(document, null);
-		try {
-			edits.apply(document);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		String str = document.get();
-		writer.println(str);
-		writer.flush();
-	}
+	public void process(SketchToDOMTransformer transformer) throws Exception {
+		Document document = new Document(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
 
-	private void process(File file, PrintWriter writer) {
-		this.writer = writer;
-		try {
-			document = new Document(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setSource(document.get().toCharArray());
 		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-		AST ast = cu.getAST();
-		rewriter = ASTRewrite.create(ast);
+		// AST ast = cu.getAST();
+		// ASTRewrite rewriter = ASTRewrite.create(ast);
 		TypeDeclaration tNode = (TypeDeclaration) cu.types().get(0);
 
 		for (MethodDeclaration mtd : tNode.getMethods()) {
-//			RepairPatch transformed = transformer.matchMethod(mtd, cu.getAST());
-//			if (transformed != null) {
-//
-//				String str = document.get();
-//
-//				String replace = transformed.replaceBody(str);
-//				writer.println(replace);
-//				writer.flush();
-//				return;
-//			}
+			RepairPatch transformed = transformer.matchMethod(mtd, cu.getAST());
+			if (transformed != null) {
+				String str = document.get();
+				String replace = transformed.replaceBody(str);
+				writer.println(replace);
+				writer.flush();
+				return;
+			}
 		}
+
 	}
 }

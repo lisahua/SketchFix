@@ -134,33 +134,33 @@ project-specific build file ("project_id"/"project_id".build.xml) for the
     <target name="preprocess" depends="" description="Run unit tests" >
         <!-- create a temp build directory -->
         <mkdir dir="${d4j.workdir}/work_dir" />
-        <copy todir="${d4j.workdir}/source">
+        <copy todir="${src.dir}">
             <fileset dir="${d4j.workdir}/work_dir">
                 <include name="*.*" />
             </fileset>
         </copy>
-        <preprocess srcDir="${d4j.workdir}/source" workDir="${d4j.workdir}/work_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
+        <preprocess srcDir="${src.dir}" workDir="${d4j.workdir}/work_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
         <mkdir dir="${d4j.workdir}/test_dir" />
-        <copy todir="${d4j.workdir}/tests">
+        <copy todir="${test.dir}">
             <fileset dir="${d4j.workdir}/test_dir">
                 <include name="*.*" />
             </fileset>
         </copy>
-        <preprocess srcDir="${d4j.workdir}/tests" workDir="${d4j.workdir}/test_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
+        <preprocess srcDir="${test.dir}" workDir="${d4j.workdir}/test_dir"  buildpath="${d4j.home}/framework/projects/lib/Tracer.jar" ignorePathFile=".preProcess.txt" />
     </target>
 
 
     <target name="instrument.src" depends="compile.tests" description="Run unit tests">
         <delete dir="${d4j.dir.classes.instrumented}"/> 
         <mkdir dir="${d4j.dir.classes.instrumented}" />
-        <tracer srcDir="${d4j.workdir}/build" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${d4j.workdir}/build"     traceFile="${sk.traceFile}" instrumentDir="${d4j.dir.classes.instrumented}"  >
+        <tracer srcDir="${classes.dir}" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${classes.dir}"     traceFile="${sk.traceFile}" instrumentDir="${d4j.dir.classes.instrumented}"  >
         </tracer>
     </target>
 
     <target name="instrument.tests" depends="compile.tests,instrument.src" description="Run unit tests">
         <delete dir="${d4j.dir.tests.instrumented}" />
         <mkdir dir="${d4j.dir.tests.instrumented}" />
-        <tracer srcDir="${d4j.workdir}/build-tests" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${d4j.workdir}/build"     traceFile="${sk.traceFile}" instrumentDir="${d4j.dir.tests.instrumented}"  >
+        <tracer srcDir="${test.home}" buildpath="${d4j.home}/framework/projects/lib/Tracer.jar"  dependPath="${classes.dir}"     traceFile="${sk.traceFile}" instrumentDir="${d4j.dir.tests.instrumented}"  >
         </tracer>
     </target>
 

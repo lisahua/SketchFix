@@ -33,6 +33,8 @@ of the checked-out project version.
     <property name="test.home" value="${d4j.workdir}/build-tests" />
     <property name="build.home" value="${d4j.workdir}" />
     <property name="classes.dir" value="${d4j.workdir}/build" />
+     <property name="src.dir" value="${d4j.workdir}/source" />
+    <property name="test.dir" value="${d4j.workdir}/tests" />
     <path id="compile.classpath">
         <path  refid="build.classpath" ></path>
         <path location="${d4j.home}/framework/projects/lib/Tracer.jar"></path>

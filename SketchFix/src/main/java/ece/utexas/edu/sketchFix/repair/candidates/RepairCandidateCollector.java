@@ -20,11 +20,12 @@ public class RepairCandidateCollector {
 		this.generator = generator;
 		//init templates
 		candTemplates.add(new NullExceptionHandler(generator));
+		
 		//execute each repair templates
 		Program prog = generator.getProg();
 		for (CandidateTemplate template: candTemplates) {
 			Program updateProg = (Program)template.visitProgram(prog);
-			candidates.add(new SkCandidate(updateProg, generator.getParser(), template.getScope()));
+			candidates.add(new SkCandidate(updateProg, template.getScope(), generator.getStates()));
 		}
 	}
 

@@ -5,6 +5,7 @@ package ece.utexas.edu.sketchFix.repair.postProcessor;
 
 import java.util.List;
 
+import ece.utexas.edu.sketchFix.repair.processor.SkCandidate;
 import ece.utexas.edu.sketchFix.repair.processor.SkLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import sketch.compiler.ast.core.Program;
@@ -14,10 +15,10 @@ public class RepairItem {
 	List<ASTLinePy> stateList;
 	List<SkLinePy> beforeRepair;
 
-	public RepairItem(Program prog, List<ASTLinePy> assList, List<SkLinePy> beforeRepair) {
-		this.prog = prog;
-		stateList = assList;
-		this.beforeRepair = beforeRepair;
+	public RepairItem(SkCandidate candidate) {
+		this.prog = candidate.getProg();
+		stateList = candidate.getStates();
+		this.beforeRepair = candidate.getBeforeRepair();
 	}
 
 	public Program getProg() {

@@ -4,7 +4,6 @@
 package ece.utexas.edu.sketchFix.repair.processor;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -15,6 +14,7 @@ import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
 import ece.utexas.edu.sketchFix.staticTransform.TransformResult;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.passes.printers.SimpleCodePrinter;
 
 public class SketchSynthesizer {
 
@@ -22,30 +22,34 @@ public class SketchSynthesizer {
 
 	public SketchSynthesizer(List<TransformResult> suspLoc) {
 		for (TransformResult location : suspLoc) {
-			RepairGenerator repair = new RepairGenerator(location.getProg());
-			candList = process(location.getOutputFile(), repair);
+			// RepairGenerator repair = new RepairGenerator(location);
+			candList.addAll(process(location));
 		}
 	}
 
-	private List<SkCandidate> process(String skInput, RepairGenerator repair) {
-		String resultFile = skInput + "_";
+	private List<SkCandidate> process(TransformResult location) {
+		String resultFile = location.getOutputFile() + "_";
+		List<SkCandidate> candidates = new ArrayList<SkCandidate>();
 		try {
 			SketchOutputParser parser;
 			if (LocalizerUtility.DEBUG) {
 				parser = forTest(resultFile);
 			} else {
-				parser = invokeCmd(skInput);
+				parser = invokeCmd(location.getOutputFile());
 			}
-			List<SkCandidate> candidates = repair.setOutputParser(parser);
+			candidates = new RepairGenerator(location).setOutputParser(parser);
 			for (int i = 0; i < candidates.size(); i++) {
 				candidates.get(i).setOutputFile(resultFile + i);
+//				writeFile(candidates.get(i).getProg(), candidates.get(i).getOutputFile());
+				System.out.println(
+						"[Step 3: Sketch Synthesizer] Generate repair candidate " + candidates.get(i).getOutputFile());
 			}
-			return candList;
+
 		} catch (Exception e) {
 			if (LocalizerUtility.DEBUG)
 				e.printStackTrace();
 		}
-		return new ArrayList<SkCandidate>();
+		return candidates;
 
 	}
 
@@ -71,14 +75,14 @@ public class SketchSynthesizer {
 			unsat = Math.max(i, unsat);
 			if (firstLine == null) {
 				firstLine = line;
-				System.out.println("[Step 3: Sketch Synthesizer] " + line);
+				// System.out.println("[Step 3: Sketch Synthesizer] " + line);
 			}
 		}
-		if (firstLine == null) {
-			System.out.println("[Step 3: Sketch Synthesizer] No error");
-		}
+		// if (firstLine == null) {
+		// System.out.println("[Step 3: Sketch Synthesizer] No error");
+		// }
 		parser.setUnsat(unsat);
-
+		System.out.println("[Unsatisfied Assert:] " + unsat);
 		return parser;
 	}
 
@@ -104,12 +108,9 @@ public class SketchSynthesizer {
 		return parser;
 	}
 
-	private void writeFile(Program prog, String outputFile) {
-		try {
-			prog.accept(new SimpleSketchFilePrinter(outputFile));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+	private void writeFile(Program prog, String outputFile) throws Exception {
+		prog.accept(new SimpleSketchFilePrinter(outputFile));
+		prog.accept(new SimpleCodePrinter());
 	}
 
 	public List<SkCandidate> getCandidateList() {

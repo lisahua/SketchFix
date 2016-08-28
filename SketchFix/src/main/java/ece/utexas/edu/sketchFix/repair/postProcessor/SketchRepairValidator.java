@@ -11,20 +11,12 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.repair.processor.SkCandidate;
-import ece.utexas.edu.sketchFix.repair.processor.SkLinePy;
 import ece.utexas.edu.sketchFix.repair.processor.SketchOutputParser;
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
-import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
 import sketch.compiler.ast.core.Program;
 
 public class SketchRepairValidator {
-	SkRepairProcessor repairProcessor;
-
-	public SketchRepairValidator(Program prog, List<ASTLinePy> stateList, List<SkLinePy> beforeRepair) {
-		RepairItem repairItem = new RepairItem(prog, stateList, beforeRepair);
-		repairProcessor = new SkRepairProcessor(repairItem);
-	}
 
 	public SketchRepairValidator(List<SkCandidate> candidates) {
 		for (SkCandidate candidate : candidates) {
@@ -40,11 +32,15 @@ public class SketchRepairValidator {
 			if (LocalizerUtility.DEBUG) {
 				parser = forTest(resultFile);
 			} else {
-				parser = invokeCmd(skInput);
+				candidate.getProg().accept(new SimpleSketchFilePrinter(candidate.getOutputFile()));
+				parser = invokeCmd(candidate.getOutputFile());
 			}
 			if (parser == null)
 				return;
-			repairProcessor.setScope(parser.parseRepairOutput(candidate.getProg()));
+			SketchRepairDeltaMapper mapper = new SketchRepairDeltaMapper(new RepairItem(candidate));
+			SketchToDOMTransformer transformer = mapper.setNewScope(parser.parseRepairOutput(candidate.getProg()));
+			SketchRewriterProcessor rewriter = new SketchRewriterProcessor(candidate.getFileAbsolutePath());
+			rewriter.process(transformer);
 		} catch (Exception e) {
 			if (LocalizerUtility.DEBUG)
 				e.printStackTrace();
@@ -60,17 +56,21 @@ public class SketchRepairValidator {
 	 */
 	private SketchOutputParser forTest(String outputFile) throws Exception {
 		SketchOutputParser parser = new SketchOutputParser();
-		BufferedReader reader = new BufferedReader(new FileReader(LocalizerUtility.baseDir + outputFile));
+		BufferedReader reader = new BufferedReader(new FileReader(outputFile));
+		// BufferedReader reader = new BufferedReader(new
+		// FileReader(LocalizerUtility.baseDir + outputFile));
 		String line = "";
 		while ((line = reader.readLine()) != null) {
 			parser.append(line);
 		}
 		reader.close();
+
 		return parser;
 	}
 
 	private SketchOutputParser invokeCmd(String skInput) throws Exception {
-		PrintWriter writer = new PrintWriter(skInput);
+		String resultFile = skInput+"_";
+		PrintWriter writer = new PrintWriter(resultFile);
 		SketchOutputParser parser = new SketchOutputParser();
 		Process p = Runtime.getRuntime().exec("sketch " + skInput);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -87,11 +87,11 @@ public class SketchRepairValidator {
 		while ((line = reader.readLine()) != null) {
 			if (firstLine == null) {
 				firstLine = line;
-				System.out.println("[Step 3: Sketch Synthesizer] " + line);
+//				System.out.println("[Step 3: Sketch Synthesizer] " + line);
 			}
 		}
-		if (firstLine != null)
-			return null;
+//		if (firstLine != null)
+//			return null;
 		return parser;
 	}
 

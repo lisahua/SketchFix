@@ -11,7 +11,8 @@ def _main_():
     defect4j=os.environ["DEFECT4J"]
     print defect4j
     script="ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"   run.dev.tests 2>&1  -Dtest.entry.class="
-  
+    os.system("rm -f Repair-* ")
+    os.system("rm -f .sketchOrig.s* ")
     os.system("ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"  instrument.tests ")
 
     f= open(fname,"r")
@@ -36,8 +37,10 @@ def _main_():
         os.system(tmp)
         os.system("cat .trace_state.txt | wc -l >> .tmp/multi_trace.txt")
         os.system("ant -Dbuild.compile=javac1.6   -f "+ defect4j+"/framework/projects/defects4j.build.xml    -Dd4j.home="+defect4j+"    -Dbasedir="+os.getcwd()+"  sketchFix.repair ")
-        os.system("mv .sketchOrig.sk .tmp/sketchOrig"+str(i)+".sk")
-        os.system("mv .sketchOrig.sk2 .tmp/sketchOrig"+str(i)+".sk2")
-        os.system("mv .sketchOrig.sk3 .tmp/sketchOrig"+str(i)+".sk3")
-        os.system("mv .sketchOrig.sk4 .tmp/sketchOrig"+str(i)+".sk4")
+        os.system("mv .trace_state.txt .tmp/.trace_state"+str(i))
+   #     os.system("mv .sketchOrig.sk .tmp/sketchOrig"+str(i)+".sk")
+#        os.system("mv .sketchOrig.sk2 .tmp/sketchOrig"+str(i)+".sk2")
+ #       os.system("mv .sketchOrig.sk3 .tmp/sketchOrig"+str(i)+".sk3")
+  #      os.system("mv .sketchOrig.sk4 .tmp/sketchOrig"+str(i)+".sk4")
+   #     os.system("mv .sketchOrig.sk5 .tmp/sketchOrig"+str(i)+".sk5")
 _main_()

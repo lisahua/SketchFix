@@ -27,38 +27,14 @@ public class SketchRepairDeltaMapper {
 	List<SkLinePy> beforeRepair;
 	ASTLinePy astHole;
 
-	public SketchRepairDeltaMapper(List<ASTLinePy> lists, List<SkLinePy> beforeRepair) {
-		mapBefore(lists, beforeRepair);
-		this.beforeRepair = beforeRepair;
+	public SketchRepairDeltaMapper(RepairItem repairItem) {
+		this.beforeRepair = repairItem.getBeforeRepair();
+		mapBefore(repairItem.getStateList(), repairItem.getBeforeRepair());
+		
 	}
 
 	public SketchToDOMTransformer setNewScope(List<SkLinePy> scope) {
 		return mapNewScope(scope, beforeRepair);
-	}
-
-	@Deprecated
-	private void mapNewScope(List<SkLinePy> scope) {
-		List<Statement> holeStmts = new ArrayList<Statement>();
-		if (hole.getSkStmt() instanceof StmtBlock) {
-			holeStmts.addAll(((StmtBlock) hole.getSkStmt()).getStmts());
-		} else if (hole.getSkStmt() instanceof Statement) {
-			holeStmts.add((Statement) hole.getSkStmt());
-		}
-
-		for (int i = 0; i < scope.size(); i++) {
-			List<Statement> lineStmt = new ArrayList<Statement>();
-			if (scope.get(i).getSkStmt() instanceof StmtBlock) {
-				lineStmt.addAll(((StmtBlock) hole.getSkStmt()).getStmts());
-			} else if (scope.get(i).getSkStmt() instanceof Statement) {
-				lineStmt.add((Statement) hole.getSkStmt());
-			}
-			for (int j = holeStmts.size() - 1; j > -1; j--) {
-				if (hasMatch(lineStmt, holeStmts.get(j))) {
-					// return i;
-				}
-			}
-		}
-		// return -1;
 	}
 
 	private SketchToDOMTransformer mapNewScope(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
@@ -306,14 +282,6 @@ public class SketchRepairDeltaMapper {
 		}
 	}
 
-	private void rewriteDOM(ASTLinePy ast, FENode newStmt) {
-		org.eclipse.jdt.core.dom.Statement origDomStmt = ast.getStatement();
-		List<Statement> astSkStmts = ast.getSkStmts();
-		if (newStmt instanceof StmtBlock) {
-			// List<Statement> newStmts =
-		}
-	}
-
 	private ASTLinePy matchDOMStmt(List<ASTLinePy> astLines, List<Statement> stmts) {
 		for (Statement stmt : stmts) {
 			ASTLinePy ast = matchDOMStmt(astLines, stmt);
@@ -341,4 +309,6 @@ public class SketchRepairDeltaMapper {
 		}
 		return false;
 	}
+	
+	
 }
