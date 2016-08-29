@@ -14,22 +14,22 @@ import sketch.compiler.ast.core.Program;
 public class StateInsertProcessor extends FEReplacer {
 
 	List<ASTLinePy> allLines = new ArrayList<ASTLinePy>();
-Function currentMtd;
-	public StateInsertProcessor(List<ASTLinePy> assLines, List<ASTLinePy> codeLines, Function currentFunc) {
-		allLines.addAll(codeLines);
-		allLines.addAll(assLines);
-		currentMtd = currentFunc;
+	Function currentMtd;
+	Function testMethod;
+
+	public StateInsertProcessor() {
+
 	}
 
 	public Object visitProgram(Program prog) {
-		//FIXME more replacer goes here
-		TraceConnectionReplacer traceConnect = new TraceConnectionReplacer (allLines, currentMtd);
+		// FIXME more replacer goes here
+		TraceConnectionReplacer traceConnect = new TraceConnectionReplacer(allLines, currentMtd);
 		prog = (Program) traceConnect.visitProgram(prog);
-		
-		NotNullTraceReplacer replacer = new NotNullTraceReplacer(allLines,currentMtd);
+
+		NotNullTraceReplacer replacer = new NotNullTraceReplacer(allLines, currentMtd);
 		prog = (Program) replacer.visitProgram(prog);
-		
-		
+		ConditionTraceReplacer condRep = new ConditionTraceReplacer(allLines, currentMtd);
+		prog = (Program) condRep.visitProgram(prog);
 		return prog;
 	}
 
@@ -37,4 +37,15 @@ Function currentMtd;
 		return allLines;
 	}
 
+	public void insertStates(List<ASTLinePy> linePyList) {
+		allLines.addAll(linePyList);
+	}
+
+	public void setCurrentMtd(Function currentFunc) {
+		this.currentMtd = currentFunc;
+	}
+
+	public void setTestMtd(Function testMtd) {
+		this.testMethod = testMtd;
+	}
 }

@@ -26,7 +26,7 @@ public class RepairGenerator {
 		List<SkLinePy> lines = parser.parseOutput(result.getProg());
 		lines = processMethodScope(lines, parser.getUnsat(), result.getEditMethod());
 //		lines = processTouchScope(lines);
-		SkCandidate generator = new SkCandidate(result.getProg(), lines, result.getLines());
+		SkCandidate generator = new SkCandidate(result.getProg(), lines, result.getLines(),result.getData());
 		RepairCandidateCollector candidate = new RepairCandidateCollector(generator);
 		return candidate.getCandidates();
 	}
@@ -40,8 +40,8 @@ public class RepairGenerator {
 			if (line.getSkStmt() instanceof Function) {
 				Function func = (Function) line.getSkStmt();
 				String fName = func.getName();
-				if (fName.contains("_"))
-					fName = fName.substring(0, fName.indexOf("_"));
+//				if (fName.contains("_"))
+//					fName = fName.substring(0, fName.indexOf("_"));
 				if (fName.equals(mtdName))
 					funcID = i;
 				else if (funcID > -1) {

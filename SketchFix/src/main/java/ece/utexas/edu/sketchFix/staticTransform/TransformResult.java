@@ -5,6 +5,8 @@ package ece.utexas.edu.sketchFix.staticTransform;
 
 import java.util.List;
 
+import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
+import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Program;
 
 public class TransformResult {
@@ -12,11 +14,14 @@ public class TransformResult {
 	Program prog;
 	List<ASTLinePy> lines;
 	String outputFile;
-
-	public TransformResult(Program prog, List<ASTLinePy> lines, String outputFile) {
+	Function currentFunc;
+MethodData data;
+	public TransformResult(Program prog, List<ASTLinePy> lines, String outputFile, Function func,MethodData data) {
 		this.prog = prog;
 		this.lines = lines;
 		this.outputFile = outputFile;
+		currentFunc = func;
+		this.data = data;
 	}
 
 	public Program getProg() {
@@ -36,13 +41,15 @@ public class TransformResult {
 	}
 
 	public String getEditMethod() {
-		for (ASTLinePy line : lines) {
-			String mtd = line.getLinePyList().get(0).getMethodName();
-			if (mtd.startsWith("test"))
-				continue;
-			return mtd;
-		}
-		return "";
+		return currentFunc.getName();
+	}
+
+	public MethodData getData() {
+		return data;
+	}
+
+	public void setData(MethodData data) {
+		this.data = data;
 	}
 
 }

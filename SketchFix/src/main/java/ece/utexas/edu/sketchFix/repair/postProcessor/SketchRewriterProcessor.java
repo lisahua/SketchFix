@@ -20,13 +20,13 @@ public class SketchRewriterProcessor {
 	File output;
 
 	public SketchRewriterProcessor(String inputFile) throws Exception {
-		file = new File(inputFile + ".java");
+		file = new File(inputFile);
 		// if (!file.exists()) return;
 		String fileName = inputFile.substring(inputFile.lastIndexOf("/") + 1);
-		output = new File("Repair-" + fileName + ".java");
+		output = new File("Repair-" + fileName );
 		int i = 0;
 		while (output.exists()) {
-			output = new File("Repair-" + fileName + (i++) + ".java");
+			output = new File("Repair-" +(i++)+ fileName  );
 		}
 	}
 

@@ -30,7 +30,7 @@ public class SketchRepairDeltaMapper {
 	public SketchRepairDeltaMapper(RepairItem repairItem) {
 		this.beforeRepair = repairItem.getBeforeRepair();
 		mapBefore(repairItem.getStateList(), repairItem.getBeforeRepair());
-		
+
 	}
 
 	public SketchToDOMTransformer setNewScope(List<SkLinePy> scope) {
@@ -82,7 +82,8 @@ public class SketchRepairDeltaMapper {
 
 	private List<SkLinePy> convertHolesToSoln(List<SkLinePy> holes) {
 		List<SkLinePy> result = new ArrayList<SkLinePy>();
-		if (holes==null || holes.size()==0) return result;
+		if (holes == null || holes.size() == 0)
+			return result;
 		if (holes.get(0).getSkStmt() instanceof StmtIfThen) {
 			StmtIfThen ifStmt = (StmtIfThen) holes.get(0).getSkStmt();
 			Statement condStmt = ifStmt.getCons();
@@ -304,12 +305,14 @@ public class SketchRepairDeltaMapper {
 	private boolean hasMatch(List<Statement> stmts, Statement oneStmt) {
 		for (Statement st : stmts) {
 			// FIXME buggy
-			if (st.toString().equals(oneStmt.toString())) {
-				return true;
+			try {
+				if (st.toString().equals(oneStmt.toString())) {
+					return true;
+				}
+			} catch (Exception e) {
 			}
 		}
 		return false;
 	}
-	
-	
+
 }

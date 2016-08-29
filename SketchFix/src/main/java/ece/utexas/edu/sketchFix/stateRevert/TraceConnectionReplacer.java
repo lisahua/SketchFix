@@ -14,6 +14,8 @@ import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
 import sketch.compiler.ast.core.Program;
 import sketch.compiler.ast.core.exprs.ExprFunCall;
+import sketch.compiler.ast.core.exprs.ExprNamedParam;
+import sketch.compiler.ast.core.exprs.ExprNew;
 import sketch.compiler.ast.core.exprs.ExprVar;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
@@ -22,6 +24,7 @@ import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.stmts.StmtExpr;
 import sketch.compiler.ast.core.stmts.StmtVarDecl;
 import sketch.compiler.ast.core.typs.Type;
+import sketch.compiler.ast.core.typs.TypePrimitive;
 
 public class TraceConnectionReplacer extends FEReplacer {
 
@@ -47,8 +50,10 @@ public class TraceConnectionReplacer extends FEReplacer {
 		// methodName = currentMtd.getClassName();
 		// }
 
-		for (int i = allLines.size() - 1; i >= 0; i--) {
+		for (int i = 0; i < allLines.size(); i++) {
 			// FIXME I know its buggy
+			if (!allLines.get(i).getLinePyList().get(0).getMethodName().startsWith("test"))
+				continue;
 			for (Statement stmt : allLines.get(i).getSkStmts()) {
 				if (stmt instanceof StmtExpr) {
 					Expression expr = ((StmtExpr) stmt).getExpression();
@@ -58,7 +63,7 @@ public class TraceConnectionReplacer extends FEReplacer {
 							directCalled = true;
 						lastCallID = i;
 						// state = getState(i);
-						return;
+//						return;
 					}
 				}
 			}
@@ -123,7 +128,10 @@ public class TraceConnectionReplacer extends FEReplacer {
 		for (int i = 0; i < suspFunc.getParams().size(); i++) {
 			Parameter param = suspFunc.getParams().get(i);
 			Type type = param.getType();
-			StmtVarDecl stmt = new StmtVarDecl(func.getOrigin(), type, param.getName(), type.defaultValue());
+			Expression rhs = type.defaultValue();
+			if (!(type instanceof TypePrimitive))
+				rhs = new ExprNew(func.getOrigin(), type, new ArrayList<ExprNamedParam>(), false);
+			StmtVarDecl stmt = new StmtVarDecl(func.getOrigin(), type, param.getName(), rhs);
 			types.add(type.toString());
 			names.add(param.getName());
 			declParam.add(new ExprVar(func.getOrigin(), stmt.getName(0)));

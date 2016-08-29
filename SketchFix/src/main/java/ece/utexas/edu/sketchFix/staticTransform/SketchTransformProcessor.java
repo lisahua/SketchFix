@@ -35,8 +35,11 @@ public class SketchTransformProcessor {
 		// transform sketch assertion
 
 		try {
+			StateInsertProcessor replacer = new StateInsertProcessor();
 			assertTran.transform(testMethod, generator, locations);
-
+			replacer.insertStates(assertTran.getStateMapper().getLinePyList());
+			replacer.setTestMtd(assertTran.getCurrMethod());
+			// List<ASTLinePy> states = new ArrayList<ASTLinePy>();
 			for (int i = 0, index = 0; index < LocalizerUtility.MAX_REPAIR_LOC
 					&& i < LocalizerUtility.MAX_METHOD_THRESHOLD; i++) {
 				List<ASTLinePy> lines = new ArrayList<ASTLinePy>();
@@ -58,19 +61,20 @@ public class SketchTransformProcessor {
 				Program prog = reverter.getProgram();
 				if (sourceTran.getStateMapper() == null)
 					continue;
-
-				StateInsertProcessor replacer = new StateInsertProcessor(assertTran.getStateMapper().getLinePyList(),
-						sourceTran.getStateMapper().getLinePyList(),sourceTran.getCurrMethod());
+				replacer.insertStates(sourceTran.getStateMapper().getLinePyList());
+				replacer.setCurrentMtd(sourceTran.getCurrMethod());
 				lines = replacer.getAllLines();
 				prog = (Program) replacer.visitProgram(prog);
 				if (prog == null)
 					continue;
 				index++;
-//				prog.accept(new SimpleSketchFilePrinter(outputFile + index));
-				suspLocations.add(new TransformResult(prog, lines, outputFile + index));
-//				System.out.println("[Step 1: Checking suspicious location:]"+(outputFile + index) +":"+ data.getClassFullPath() + ":"
-//						+ data.getMethodNameWithParam()
-//						);
+				// prog.accept(new SimpleSketchFilePrinter(outputFile + index));
+				suspLocations.add(new TransformResult(prog, lines, outputFile + index, sourceTran.getCurrMethod(), data));
+				// System.out.println("[Step 1: Checking suspicious
+				// location:]"+(outputFile + index) +":"+
+				// data.getClassFullPath() + ":"
+				// + data.getMethodNameWithParam()
+				// );
 
 			}
 		} catch (Exception e) {

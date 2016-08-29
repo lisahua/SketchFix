@@ -5,6 +5,7 @@ package ece.utexas.edu.sketchFix.repair.processor;
 
 import java.util.List;
 
+import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import sketch.compiler.ast.core.Program;
 
@@ -15,12 +16,21 @@ public class SkCandidate {
 	String outputFile;
 	List<ASTLinePy> states;
 	String repairFile;
-
-	public SkCandidate(Program prog, List<SkLinePy> lines, List<ASTLinePy> list) {
+	MethodData methodData;
+	public SkCandidate(Program prog, List<SkLinePy> lines, List<ASTLinePy> list, MethodData methodData) {
 
 		this.prog = prog;
 		this.beforeRepair = lines;
 		this.states = list;
+		this.methodData = methodData;
+	}
+
+	public MethodData getMethodData() {
+		return methodData;
+	}
+
+	public void setMethodData(MethodData methodData) {
+		this.methodData = methodData;
 	}
 
 	public Program getProg() {
@@ -56,14 +66,14 @@ public class SkCandidate {
 	}
 
 	public String getFileAbsolutePath() {
-		return repairFile;
+		return methodData.getClassAbsolutePath();
 	}
 
-	public void setBaseDir(String dir) {
-		String className = "";
-		if (states != null && states.size() > 0)
-			className = states.get(0).getLinePyList().get(0).getFilePath();
-		repairFile = dir + className;
-	}
+//	public void setBaseDir(String dir) {
+//		String className = "";
+//		if (states != null && states.size() > 0)
+//			className = states.get(states.size()-1).getLinePyList().get(0).getFilePath();
+//		repairFile = dir + className;
+//	}
 
 }

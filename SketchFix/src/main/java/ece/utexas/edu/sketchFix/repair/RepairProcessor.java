@@ -54,8 +54,8 @@ public class RepairProcessor {
 			return;
 			
 		}
-		for (SkCandidate cand : candidates)
-			cand.setBaseDir(argument.getSourceDir()[0]);
+//		for (SkCandidate cand : candidates)
+//			cand.setBaseDir(argument.getSourceDir()[0]);
 		// check repair candidates
 		SketchRepairValidator validator = new SketchRepairValidator(candidates);
 		// List<RepairItem> rewriter = validator.process(argument.skOrigin +
