@@ -35,4 +35,14 @@ public class TransformResult {
 		this.outputFile = outputFile;
 	}
 
+	public String getEditMethod() {
+		for (ASTLinePy line : lines) {
+			String mtd = line.getLinePyList().get(0).getMethodName();
+			if (mtd.startsWith("test"))
+				continue;
+			return mtd;
+		}
+		return "";
+	}
+
 }

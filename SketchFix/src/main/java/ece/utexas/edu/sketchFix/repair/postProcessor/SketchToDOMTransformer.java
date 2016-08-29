@@ -52,7 +52,7 @@ public class SketchToDOMTransformer {
 	org.eclipse.jdt.core.dom.Statement origDOMStmt;
 	MethodDeclaration methodDecl;
 	AST typeNode;
-//	private org.eclipse.jdt.core.dom.Statement comment;
+	// private org.eclipse.jdt.core.dom.Statement comment;
 
 	// MethodDeclaration mtdDecl ;
 	public SketchToDOMTransformer(Function func, List<Statement> delta, ASTLinePy astHole) {
@@ -101,6 +101,8 @@ public class SketchToDOMTransformer {
 		// List<org.eclipse.jdt.core.dom.Statement> newstmts =
 		// newBlock.statements();
 		List<org.eclipse.jdt.core.dom.Statement> stmts = block.statements();
+		if (origDOMStmt == null)
+			return patch;
 		for (int i = 0; i < stmts.size(); i++) {
 			if (stmts.get(i).toString().equals(origDOMStmt.toString())) {
 				patch.setInsertPoint(i);

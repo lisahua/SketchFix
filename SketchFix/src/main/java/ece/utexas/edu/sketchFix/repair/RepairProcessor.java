@@ -52,6 +52,7 @@ public class RepairProcessor {
 		if (candidates.size() == 0) {
 			System.out.println("[Sketch Repair] Unable to repair this type of error !");
 			return;
+			
 		}
 		for (SkCandidate cand : candidates)
 			cand.setBaseDir(argument.getSourceDir()[0]);

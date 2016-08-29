@@ -11,6 +11,7 @@ import java.util.Vector;
 import sketch.compiler.ast.core.FEReplacer;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.exprs.ExprFunCall;
+import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtAssert;
 import sketch.compiler.ast.core.stmts.StmtAssign;
 import sketch.compiler.ast.core.stmts.StmtExpr;
@@ -24,11 +25,12 @@ public class SkLineMapper extends FEReplacer {
 	private Vector<String> output;
 	List<String> funcs = new ArrayList<String>();
 	List<Integer> funcStart = new ArrayList<Integer>();
-
+	List<Statement> touchedStmt;
 	private TreeMap<Integer, SkLinePy> lineItems = new TreeMap<Integer, SkLinePy>();
 
-	public SkLineMapper(Vector<String> output) {
+	public SkLineMapper(Vector<String> output, List<Statement> touchedStmt) {
 		this.output = output;
+		this.touchedStmt = touchedStmt;
 	}
 
 	public Object visitFunction(Function func) {
@@ -49,7 +51,15 @@ public class SkLineMapper extends FEReplacer {
 	public Object visitStmtAssert(StmtAssert stmt) {
 		for (int i = 0; i < output.size(); i++) {
 			if (output.get(i).contains(stmt.toString())) {
-				lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STASS));
+				SkLinePy line = new SkLinePy(output.get(i), stmt, SkLineType.STASS);
+				for (Statement tStmt : touchedStmt) {
+					if (tStmt instanceof StmtAssert
+							&& ((StmtAssert) tStmt).getCond().toString().equals(stmt.getCond().toString())) {
+						line.setTouched(true);
+						break;
+					}
+				}
+				lineItems.put(i, line);
 			}
 		}
 		return super.visitStmtAssert(stmt);
@@ -62,7 +72,15 @@ public class SkLineMapper extends FEReplacer {
 			String ifLine = output.get(i).replace(" ", "").replace("\t", "");
 			// System.out.println(ifLine+"--"+line);
 			if (ifLine.indexOf(line) > -1) {
-				lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STIFTHEN));
+				SkLinePy skLine = new SkLinePy(output.get(i), stmt, SkLineType.STIFTHEN);
+				for (Statement tStmt : touchedStmt) {
+					if (tStmt instanceof StmtIfThen
+							&& ((StmtIfThen) tStmt).getCond().toString().equals(stmt.getCond().toString())) {
+						skLine.setTouched(true);
+						break;
+					}
+				}
+				lineItems.put(i, skLine);
 			}
 		}
 
@@ -72,7 +90,15 @@ public class SkLineMapper extends FEReplacer {
 	public Object visitStmtVarDecl(StmtVarDecl stmt) {
 		for (int i = 0; i < output.size(); i++) {
 			if (output.get(i).contains(stmt.toString())) {
-				lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STVAR));
+				SkLinePy skLine =  new SkLinePy(output.get(i), stmt, SkLineType.STVAR);
+				for (Statement tStmt : touchedStmt) {
+					if (tStmt instanceof StmtVarDecl
+							&& ((StmtVarDecl) tStmt).getName(0).toString().equals(stmt.getName(0).toString())) {
+						skLine.setTouched(true);
+						break;
+					}
+				}
+				lineItems.put(i, skLine);
 			}
 		}
 		return super.visitStmtVarDecl(stmt);
@@ -81,7 +107,9 @@ public class SkLineMapper extends FEReplacer {
 	public Object visitStmtReturn(StmtReturn stmt) {
 		for (int i = 0; i < output.size(); i++) {
 			if (output.get(i).contains(stmt.toString())) {
-				lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STRTN));
+				SkLinePy skLine  = new SkLinePy(output.get(i), stmt, SkLineType.STRTN);
+				skLine.setTouched(true);
+				lineItems.put(i, skLine);
 			}
 		}
 		return super.visitStmtReturn(stmt);
@@ -93,7 +121,15 @@ public class SkLineMapper extends FEReplacer {
 		for (int i = 0; i < output.size(); i++) {
 			String ifLine = output.get(i).replace(" ", "").replace("\t", "");
 			if (ifLine.contains(line)) {
-				lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STWHILE));
+				SkLinePy skLine = new SkLinePy(output.get(i), stmt, SkLineType.STWHILE);
+				for (Statement tStmt : touchedStmt) {
+					if (tStmt instanceof StmtWhile
+							&& ((StmtWhile) tStmt).getCond().toString().equals(stmt.getCond().toString())) {
+						skLine.setTouched(true);
+						break;
+					}
+				}
+				lineItems.put(i, skLine);
 			}
 		}
 		return super.visitStmtWhile(stmt);
@@ -103,7 +139,15 @@ public class SkLineMapper extends FEReplacer {
 		for (int i = 0; i < output.size(); i++) {
 			if (output.get(i).contains(stmt.toString())) {
 				// if (!lineItems.containsKey(i))
-				lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STExpr));
+				SkLinePy skLine = new SkLinePy(output.get(i), stmt, SkLineType.STExpr);
+				for (Statement tStmt : touchedStmt) {
+					if (tStmt instanceof StmtExpr
+							&& ((StmtExpr) tStmt).getExpression().toString().equals(stmt.getExpression().toString())) {
+						skLine.setTouched(true);
+						break;
+					}
+				}
+				lineItems.put(i, skLine);
 				return super.visitStmtExpr(stmt);
 			}
 		}
@@ -112,7 +156,15 @@ public class SkLineMapper extends FEReplacer {
 			for (int i = 0; i < output.size(); i++) {
 				String line = output.get(i);
 				if (output.get(i).contains(call.getName() + "(")) {
-					lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STExpr));
+					SkLinePy skLine = new SkLinePy(output.get(i), stmt, SkLineType.STExpr);
+					for (Statement tStmt : touchedStmt) {
+						if (tStmt instanceof StmtExpr
+								&& ((StmtExpr) tStmt).getExpression().toString().equals(stmt.getExpression().toString())) {
+							skLine.setTouched(true);
+							break;
+						}
+					}
+					lineItems.put(i,skLine);
 				}
 			}
 		}
@@ -122,7 +174,15 @@ public class SkLineMapper extends FEReplacer {
 	public Object visitStmtAssign(StmtAssign stmt) {
 		for (int i = 0; i < output.size(); i++) {
 			if (output.get(i).contains(stmt.toString())) {
-				lineItems.put(i, new SkLinePy(output.get(i), stmt, SkLineType.STASSIGN));
+				SkLinePy skLine = new SkLinePy(output.get(i), stmt, SkLineType.STASSIGN);
+				for (Statement tStmt : touchedStmt) {
+					if (tStmt instanceof StmtAssign
+							&& ((StmtAssign) tStmt).getRHS().toString().equals(stmt.getRHS().toString())) {
+						skLine.setTouched(true);
+						break;
+					}
+				}
+				lineItems.put(i, skLine);
 			}
 		}
 		return super.visitStmtAssign(stmt);

@@ -82,6 +82,7 @@ public class SketchRepairDeltaMapper {
 
 	private List<SkLinePy> convertHolesToSoln(List<SkLinePy> holes) {
 		List<SkLinePy> result = new ArrayList<SkLinePy>();
+		if (holes==null || holes.size()==0) return result;
 		if (holes.get(0).getSkStmt() instanceof StmtIfThen) {
 			StmtIfThen ifStmt = (StmtIfThen) holes.get(0).getSkStmt();
 			Statement condStmt = ifStmt.getCons();

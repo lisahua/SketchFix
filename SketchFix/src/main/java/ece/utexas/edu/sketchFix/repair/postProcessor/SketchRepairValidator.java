@@ -8,13 +8,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.repair.processor.SkCandidate;
 import ece.utexas.edu.sketchFix.repair.processor.SketchOutputParser;
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
+import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.stmts.Statement;
 
 public class SketchRepairValidator {
 
@@ -27,13 +30,20 @@ public class SketchRepairValidator {
 	private void process(SkCandidate candidate) {
 		String skInput = candidate.getOutputFile();
 		String resultFile = skInput + "_";
-		SketchOutputParser parser;
 		try {
+			List<Statement> touchLines = new ArrayList<Statement>();
+			for (ASTLinePy line : candidate.getStates()) {
+				touchLines.addAll(line.getSkStmts());
+			}
+			SketchOutputParser parser = new SketchOutputParser(touchLines);
+			
+			candidate.getProg().accept(new SimpleSketchFilePrinter(candidate.getOutputFile()));
+			System.out.println("[Step 3: Sketch Synthesizer] Generate repair candidate " + candidate.getOutputFile());
+			
 			if (LocalizerUtility.DEBUG) {
-				parser = forTest(resultFile);
+				parser = forTest(parser, resultFile);
 			} else {
-				candidate.getProg().accept(new SimpleSketchFilePrinter(candidate.getOutputFile()));
-				parser = invokeCmd(candidate.getOutputFile());
+				parser = invokeCmd(parser, candidate.getOutputFile());
 			}
 			if (parser == null)
 				return;
@@ -54,8 +64,8 @@ public class SketchRepairValidator {
 	 * @param outputFile
 	 * @return
 	 */
-	private SketchOutputParser forTest(String outputFile) throws Exception {
-		SketchOutputParser parser = new SketchOutputParser();
+	private SketchOutputParser forTest(SketchOutputParser parser, String outputFile) throws Exception {
+		// SketchOutputParser parser = new SketchOutputParser();
 		BufferedReader reader = new BufferedReader(new FileReader(outputFile));
 		// BufferedReader reader = new BufferedReader(new
 		// FileReader(LocalizerUtility.baseDir + outputFile));
@@ -68,10 +78,10 @@ public class SketchRepairValidator {
 		return parser;
 	}
 
-	private SketchOutputParser invokeCmd(String skInput) throws Exception {
-		String resultFile = skInput+"_";
+	private SketchOutputParser invokeCmd(SketchOutputParser parser, String skInput) throws Exception {
+		String resultFile = skInput + "_";
 		PrintWriter writer = new PrintWriter(resultFile);
-		SketchOutputParser parser = new SketchOutputParser();
+		// SketchOutputParser parser = new SketchOutputParser();
 		Process p = Runtime.getRuntime().exec("sketch " + skInput);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 		String line = "";
@@ -87,11 +97,11 @@ public class SketchRepairValidator {
 		while ((line = reader.readLine()) != null) {
 			if (firstLine == null) {
 				firstLine = line;
-//				System.out.println("[Step 3: Sketch Synthesizer] " + line);
+				// System.out.println("[Step 3: Sketch Synthesizer] " + line);
 			}
 		}
-//		if (firstLine != null)
-//			return null;
+		// if (firstLine != null)
+		// return null;
 		return parser;
 	}
 

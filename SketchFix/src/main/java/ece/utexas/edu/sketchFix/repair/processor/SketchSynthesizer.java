@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
+import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import ece.utexas.edu.sketchFix.staticTransform.SimpleSketchFilePrinter;
 import ece.utexas.edu.sketchFix.staticTransform.TransformResult;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.passes.printers.SimpleCodePrinter;
 
 public class SketchSynthesizer {
@@ -29,20 +31,27 @@ public class SketchSynthesizer {
 
 	private List<SkCandidate> process(TransformResult location) {
 		String resultFile = location.getOutputFile() + "_";
+		List<Statement> touchLines = new ArrayList<Statement>();
+		for (ASTLinePy line : location.getLines()) {
+			touchLines.addAll(line.getSkStmts());
+		}
+		
 		List<SkCandidate> candidates = new ArrayList<SkCandidate>();
 		try {
 			SketchOutputParser parser;
+			location.getProg().accept(new SimpleSketchFilePrinter(location.getOutputFile()));
+			System.out.println("[Step 1: Checking suspicious location:]"+location.getEditMethod() +":"+ location.getOutputFile());
 			if (LocalizerUtility.DEBUG) {
-				parser = forTest(resultFile);
+				parser = forTest(resultFile,touchLines);
 			} else {
-				parser = invokeCmd(location.getOutputFile());
+				parser = invokeCmd(location.getOutputFile(),touchLines);
 			}
 			candidates = new RepairGenerator(location).setOutputParser(parser);
 			for (int i = 0; i < candidates.size(); i++) {
 				candidates.get(i).setOutputFile(resultFile + i);
 //				writeFile(candidates.get(i).getProg(), candidates.get(i).getOutputFile());
-				System.out.println(
-						"[Step 3: Sketch Synthesizer] Generate repair candidate " + candidates.get(i).getOutputFile());
+//				System.out.println(
+//						"[Step 3: Sketch Synthesizer] Generate repair candidate " + candidates.get(i).getOutputFile());
 			}
 
 		} catch (Exception e) {
@@ -53,12 +62,12 @@ public class SketchSynthesizer {
 
 	}
 
-	private SketchOutputParser invokeCmd(String skInput) throws Exception {
+	private SketchOutputParser invokeCmd(String skInput,List<Statement> touchLines) throws Exception {
 		String resultFile = skInput + "_";
 		PrintWriter writer = new PrintWriter(resultFile);
 		Process p = Runtime.getRuntime().exec("sketch " + skInput);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		SketchOutputParser parser = new SketchOutputParser();
+		SketchOutputParser parser = new SketchOutputParser(touchLines);
 		String line = "";
 		while ((line = reader.readLine()) != null) {
 			parser.append(line);
@@ -92,9 +101,9 @@ public class SketchSynthesizer {
 	 * 
 	 * @param outputFile
 	 */
-	public SketchOutputParser forTest(String outputFile) throws Exception {
+	public SketchOutputParser forTest(String outputFile,List<Statement> touchLines) throws Exception {
 		BufferedReader reader;
-		SketchOutputParser parser = new SketchOutputParser();
+		SketchOutputParser parser = new SketchOutputParser(touchLines);
 		reader = new BufferedReader(new FileReader(outputFile));
 		// reader = new BufferedReader(new FileReader(LocalizerUtility.baseDir +
 		// outputFile));
@@ -103,7 +112,7 @@ public class SketchSynthesizer {
 			parser.append(line);
 		}
 		reader.close();
-		parser.setUnsat(85);
+		parser.setUnsat(190);
 
 		return parser;
 	}

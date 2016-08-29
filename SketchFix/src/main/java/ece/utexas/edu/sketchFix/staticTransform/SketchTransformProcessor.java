@@ -66,11 +66,11 @@ public class SketchTransformProcessor {
 				if (prog == null)
 					continue;
 				index++;
-				prog.accept(new SimpleSketchFilePrinter(outputFile + index));
+//				prog.accept(new SimpleSketchFilePrinter(outputFile + index));
 				suspLocations.add(new TransformResult(prog, lines, outputFile + index));
-				System.out.println("[Step 1: Checking suspicious location:]"+(outputFile + index) +":"+ data.getClassFullPath() + ":"
-						+ data.getMethodNameWithParam()
-						);
+//				System.out.println("[Step 1: Checking suspicious location:]"+(outputFile + index) +":"+ data.getClassFullPath() + ":"
+//						+ data.getMethodNameWithParam()
+//						);
 
 			}
 		} catch (Exception e) {

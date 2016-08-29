@@ -23,6 +23,7 @@ public class SkLinePy {
 	TreeMap<String, HashSet<String>> availExprs = new TreeMap<String, HashSet<String>>();
 	boolean isHole = false;
 	SkLineType type;
+	boolean touched = false;
 
 	public String toString() {
 		return lineString;
@@ -100,6 +101,14 @@ public class SkLinePy {
 
 	public void setType(SkLineType type) {
 		this.type = type;
+	}
+
+	public boolean isTouched() {
+		return touched;
+	}
+
+	public void setTouched(boolean touched) {
+		this.touched = touched;
 	}
 
 }

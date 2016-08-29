@@ -7,10 +7,15 @@ import java.util.List;
 import java.util.Vector;
 
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.stmts.Statement;
 
 public class SketchOutputParser {
 	private Vector<String> output = new Vector<String>();
 	private int unsat = -1;
+List<Statement> touchLines;
+	public SketchOutputParser(List<Statement> touchLines) {
+	this.touchLines = touchLines;
+	}
 
 	public void append(String line) {
 		if (output.contains("/* BEGIN PACKAGE sketchFix*/")) {
@@ -20,13 +25,13 @@ public class SketchOutputParser {
 	}
 
 	public List<SkLinePy> parseOutput(Program prog) {
-		SkLineMapper lineParser = new SkLineMapper(output);
+		SkLineMapper lineParser = new SkLineMapper(output, touchLines);
 		lineParser.visitProgram(prog);
 		return lineParser.postProcess();
 	}
 
 	public List<SkLinePy> parseRepairOutput(Program prog) {
-		SkLineMapper lineParser = new SkLineMapper(output);
+		SkLineMapper lineParser = new SkLineMapper(output, touchLines);
 		lineParser.visitProgram(prog);
 		return lineParser.getSkLineList();
 	}

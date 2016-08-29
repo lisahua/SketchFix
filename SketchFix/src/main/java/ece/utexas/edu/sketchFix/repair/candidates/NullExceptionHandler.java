@@ -50,7 +50,7 @@ public class NullExceptionHandler extends CandidateTemplate {
 		for (int i = 0; i < scope.size(); i++) {
 			if (scope.get(i).getSkStmt() instanceof StmtExpr) {
 				StmtExpr lastExpr = (StmtExpr) scope.get(i).getSkStmt();
-				if (lastExpr.getExpression() instanceof ExprFunCall) {
+				if (lastExpr.getExpression() instanceof ExprFunCall && scope.get(i).isTouched()) {
 					lastCall = (ExprFunCall) lastExpr.getExpression();
 					lastCallID = i;
 				}

@@ -60,7 +60,8 @@ public class RepairPatch {
 	}
 
 	public String replaceBody(String str) {
-
+		if (originStmt == null)
+			return str;
 		String part1 = str.substring(0, originStmt.getStartPosition());
 		String indent = str.substring(part1.lastIndexOf("\n"), originStmt.getStartPosition());
 		part1 += "//SketchFix:Start" + getAddString(indent);
