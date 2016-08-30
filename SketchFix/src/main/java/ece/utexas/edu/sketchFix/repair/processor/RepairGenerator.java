@@ -25,13 +25,13 @@ public class RepairGenerator {
 	public List<SkCandidate> setOutputParser(SketchOutputParser parser) {
 		List<SkLinePy> lines = parser.parseOutput(result.getProg());
 		lines = processMethodScope(lines, parser.getUnsat(), result.getEditMethod());
-//		lines = processTouchScope(lines);
-		SkCandidate generator = new SkCandidate(result.getProg(), lines, result.getLines(),result.getData());
+		// lines = processTouchScope(lines);
+		SkCandidate generator = new SkCandidate(result.getProg(), lines, result.getLines(), result.getData(),
+				result.getCurrentFunc(),result.ge);
+		generator.setOutputFile(result.getOutputFile() + "_");
 		RepairCandidateCollector candidate = new RepairCandidateCollector(generator);
 		return candidate.getCandidates();
 	}
-
-	
 
 	private List<SkLinePy> processMethodScope(List<SkLinePy> lines, int unsat, String mtdName) {
 		int funcID = -1;
@@ -40,8 +40,8 @@ public class RepairGenerator {
 			if (line.getSkStmt() instanceof Function) {
 				Function func = (Function) line.getSkStmt();
 				String fName = func.getName();
-//				if (fName.contains("_"))
-//					fName = fName.substring(0, fName.indexOf("_"));
+				// if (fName.contains("_"))
+				// fName = fName.substring(0, fName.indexOf("_"));
 				if (fName.equals(mtdName))
 					funcID = i;
 				else if (funcID > -1) {
@@ -53,8 +53,6 @@ public class RepairGenerator {
 		}
 		return lines;
 	}
-
-
 
 	public List<SkLinePy> getScope() {
 		return beforeRepair;

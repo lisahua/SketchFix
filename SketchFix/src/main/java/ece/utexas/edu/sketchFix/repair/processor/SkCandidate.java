@@ -3,11 +3,15 @@
  */
 package ece.utexas.edu.sketchFix.repair.processor;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
+import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.stmts.Statement;
 
 public class SkCandidate {
 
@@ -17,12 +21,23 @@ public class SkCandidate {
 	List<ASTLinePy> states;
 	String repairFile;
 	MethodData methodData;
-	public SkCandidate(Program prog, List<SkLinePy> lines, List<ASTLinePy> list, MethodData methodData) {
+	Function currentFunc;
+	HashMap<Statement, Integer> stmtScopeMap = new HashMap<Statement, Integer>();
+
+	public SkCandidate(Program prog, List<SkLinePy> lines, List<ASTLinePy> list, MethodData methodData, Function func) {
 
 		this.prog = prog;
 		this.beforeRepair = lines;
 		this.states = list;
 		this.methodData = methodData;
+		this.currentFunc = func;
+
+		for (int i = 0; i < beforeRepair.size(); i++) {
+			SkLinePy skLine = beforeRepair.get(i);
+			if (skLine.getSkStmt() instanceof Function)
+				continue;
+			stmtScopeMap.put((Statement) skLine.getSkStmt(), i);
+		}
 	}
 
 	public MethodData getMethodData() {
@@ -69,11 +84,58 @@ public class SkCandidate {
 		return methodData.getClassAbsolutePath();
 	}
 
-//	public void setBaseDir(String dir) {
-//		String className = "";
-//		if (states != null && states.size() > 0)
-//			className = states.get(states.size()-1).getLinePyList().get(0).getFilePath();
-//		repairFile = dir + className;
-//	}
+	// public void setBaseDir(String dir) {
+	// String className = "";
+	// if (states != null && states.size() > 0)
+	// className =
+	// states.get(states.size()-1).getLinePyList().get(0).getFilePath();
+	// repairFile = dir + className;
+	// }
+
+	public List<Statement> getAllTouchStatement() {
+		List<Statement> stmtList = new ArrayList<Statement>();
+		for (ASTLinePy line : states) {
+			stmtList.addAll(line.getSkStmts());
+		}
+		return stmtList;
+	}
+
+	public List<Statement> getAllCurrentMtdTouchStatement() {
+		List<Statement> stmtList = new ArrayList<Statement>();
+		String currMethod = methodData.getMethodName();
+		for (ASTLinePy line : states) {
+			if (line.getLinePyList().get(0).getMethodName().equals(currMethod)) {
+				stmtList.addAll(line.getSkStmts());
+			}
+		}
+		return stmtList;
+	}
+
+	public List<List<Statement>> getAllCurrentFirstTouchStatement() {
+		List<List<Statement>> stmtList = new ArrayList<List<Statement>>();
+		String currMethod = methodData.getMethodName();
+		for (ASTLinePy line : states) {
+			if (line.getLinePyList().get(0).getMethodName().equals(currMethod)) {
+				stmtList.add(line.getSkStmts());
+			}
+		}
+		return stmtList;
+	}
+
+	public Function getCurrentFunc() {
+		return currentFunc;
+	}
+
+	public void setCurrentFunc(Function currentFunc) {
+		this.currentFunc = currentFunc;
+	}
+	
+	public void updateSkLineHole(Statement origin, Statement update, SkLineType lineType) {
+		//TODO 
+//		scope.get(lastCallID).setSkStmt(block);
+//		scope.get(lastCallID).setHole(true);
+//		scope.get(lastCallID).setType(SkLineType.STBLOCK);
+	}
+
 
 }

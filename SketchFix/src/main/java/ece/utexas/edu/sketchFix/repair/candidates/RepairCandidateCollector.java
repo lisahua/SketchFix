@@ -20,13 +20,25 @@ public class RepairCandidateCollector {
 		this.generator = generator;
 		// init templates
 		candTemplates.add(new NullExceptionHandler(generator));
-
+		
+		
+		
+		int outputFileCount = 0;
 		// execute each repair templates
 		Program prog = generator.getProg();
 		for (CandidateTemplate template : candTemplates) {
 			Program updateProg = (Program) template.visitProgram(prog);
-			candidates.add(
-					new SkCandidate(updateProg, template.getScope(), generator.getStates(), generator.getMethodData()));
+			int verified = -1;
+			// FIXME
+			while (verified != 0) {
+				verified = template.validateWithSketch(updateProg);
+				if (verified == 1) {
+					SkCandidate cand = new SkCandidate(updateProg, template.getScope(), generator.getStates(),
+							generator.getMethodData(), generator.getCurrentFunc());
+					cand.setOutputFile(generator.getOutputFile() + outputFileCount++);
+					candidates.add(cand);
+				}
+			}
 		}
 	}
 

@@ -17,7 +17,7 @@ public class StmtStateMapper {
 	// HashMap<String, ASTLinePy> strLine = new HashMap<String, ASTLinePy>();
 	// ObjectMapper mapper = new ObjectMapper();
 	// HashMap<String, String> classNames = new HashMap<String, String>();
-	StateRequest request = new StateRequest();
+//	StateRequest request = new StateRequest();
 	TreeMap<Integer, ASTLinePy> allMapping = new TreeMap<Integer, ASTLinePy>();
 
 	public StmtStateMapper(Vector<LinePy> trace, List<LinePy> list, String[] baseDir) {

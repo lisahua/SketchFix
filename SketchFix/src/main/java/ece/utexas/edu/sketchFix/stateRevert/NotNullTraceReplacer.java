@@ -4,6 +4,7 @@
 package ece.utexas.edu.sketchFix.stateRevert;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
@@ -26,6 +27,9 @@ public class NotNullTraceReplacer extends FEReplacer {
 	StmtExpr atomCall = null;
 	int lastCallID = 0;
 	// String state;
+	HashMap<Expression, Integer> callerNotNullMap = new HashMap<Expression, Integer>();
+	// HashMap<Expression, Statement> violation = new HashMap<Expression,
+	// Statement>();
 
 	public NotNullTraceReplacer(List<ASTLinePy> allLines, Function data) {
 		this.allLines = allLines;
@@ -59,13 +63,26 @@ public class NotNullTraceReplacer extends FEReplacer {
 		List<Statement> list = new ArrayList<Statement>();
 		list.add(stmt);
 		if (expr instanceof ExprFunCall) {
-			 if (expr.toString().equals(atomCall.toString())) {
 			Expression invoker = ((ExprFunCall) expr).getParams().get(0);
 			Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_NEQ, invoker, ExprNullPtr.nullPtr);
-			StmtAssert ass = new StmtAssert(stmt.getOrigin(), exprBin, false);
-			list.add(ass);
+			callerNotNullMap.put(exprBin, 3);
+			callerNotNullMap.put(new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_EQ, invoker, ExprNullPtr.nullPtr),
+					-3);
+			if (expr.toString().equals(atomCall.toString())) {
+				// Expression invoker = ((ExprFunCall) expr).getParams().get(0);
+				// Expression exprBin = new ExprBinary(stmt.getOrigin(),
+				// ExprBinary.BINOP_NEQ, invoker,
+				// ExprNullPtr.nullPtr);
+				StmtAssert ass = new StmtAssert(stmt.getOrigin(), exprBin, false);
+				list.add(ass);
+			} else {
+				// Expression invoker = ((ExprFunCall) expr).getParams().get(0);
+				// ExprNew exprNew = new ExprNew(stmt.getOrigin(),
+				// ExprBinary.BINOP_NEQ, invoker,
+				// ExprNullPtr.nullPtr);
+
+			}
 		}
-		 }
 		return new StmtBlock(stmt.getOrigin(), list);
 	}
 
@@ -87,6 +104,8 @@ public class NotNullTraceReplacer extends FEReplacer {
 		if ((lhs instanceof ExprVar) && state.equals("null")) {
 			StmtAssign assign = new StmtAssign(stmt.getOrigin(), lhs, ExprNullPtr.nullPtr);
 			list.add(assign);
+			Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_EQ, lhs, ExprNullPtr.nullPtr);
+			callerNotNullMap.put(exprBin, 1);
 		}
 		return new StmtBlock(stmt.getOrigin(), list);
 	}
@@ -111,5 +130,24 @@ public class NotNullTraceReplacer extends FEReplacer {
 			}
 		}
 		return candidates;
+	}
+
+	public HashMap<Expression, Integer> getTraceInvariant() {
+		return callerNotNullMap;
+	}
+
+	public HashMap<Expression, Integer> getViolation() {
+		HashMap<Expression, Integer> violate = new HashMap<Expression, Integer>();
+		HashMap<String, Expression> trace = new HashMap<String, Expression>();
+		for (Expression exp : callerNotNullMap.keySet()) {
+			String expS = exp.toString();
+			if (trace.containsKey(expS)) {
+				int v = callerNotNullMap.get(exp) * callerNotNullMap.get(trace.get(expS));
+				if (v < 0)
+					violate.put(exp, 100);
+			} else
+				trace.put(expS, exp);
+		}
+		return violate;
 	}
 }

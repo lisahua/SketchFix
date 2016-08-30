@@ -4,12 +4,14 @@
 package ece.utexas.edu.sketchFix.stateRevert;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
 import sketch.compiler.ast.core.FEReplacer;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.exprs.Expression;
 
 public class StateInsertProcessor extends FEReplacer {
 
@@ -17,8 +19,10 @@ public class StateInsertProcessor extends FEReplacer {
 	Function currentMtd;
 	Function testMethod;
 
-	public StateInsertProcessor() {
+	HashMap<Expression, Integer> invariantMap = new HashMap<Expression, Integer>();
+	HashMap<Expression, Integer> invViolation = new HashMap<Expression, Integer>();
 
+	public StateInsertProcessor() {
 	}
 
 	public Object visitProgram(Program prog) {
@@ -30,6 +34,10 @@ public class StateInsertProcessor extends FEReplacer {
 		prog = (Program) replacer.visitProgram(prog);
 		ConditionTraceReplacer condRep = new ConditionTraceReplacer(allLines, currentMtd);
 		prog = (Program) condRep.visitProgram(prog);
+
+		invariantMap.putAll(replacer.getTraceInvariant());
+		invariantMap.putAll(replacer.getViolation());
+		invariantMap.putAll(condRep.getTraceInvariant());
 		return prog;
 	}
 
@@ -47,5 +55,9 @@ public class StateInsertProcessor extends FEReplacer {
 
 	public void setTestMtd(Function testMtd) {
 		this.testMethod = testMtd;
+	}
+
+	public HashMap<Expression, Integer> getInvariantMap() {
+		return invariantMap;
 	}
 }

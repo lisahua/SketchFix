@@ -46,6 +46,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 	ExpressionAdapter exprAdapter;
 	List<Statement> stmtList = new ArrayList<Statement>();
 	String varDeclName = "";
+	HashMap<String, Statement> varScope = new HashMap<String, Statement>();
 
 	public StatementAdapter(MethodDeclarationAdapter node) {
 		method = node;
@@ -92,6 +93,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 			StmtWhile skWhile = new StmtWhile(method.getMethodContext(), exp,
 					(Statement) transform(whileStmt.getBody()));
 			list.add(skWhile);
+
+			for (Statement s : list) {
+				if (s instanceof StmtVarDecl)
+					varScope.put(((StmtVarDecl) s).getName(0), skWhile);
+			}
 			return list;
 		} else if (stmt instanceof ForStatement) {
 			ForStatement forStmt = (ForStatement) stmt;
@@ -232,6 +238,7 @@ public class StatementAdapter extends AbstractASTAdapter {
 		}
 		// for (Statement stmt: stmtList)
 		insertState(vds, sType.toString(), lists);
+
 		return lists;
 	}
 
@@ -264,6 +271,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 
 		stmtList.add(skIfStmt);
 		insertState(ifStmt, "bit", stmtList);
+
+		for (Statement s : stmtList) {
+			if (s instanceof StmtVarDecl)
+				varScope.put(((StmtVarDecl) s).getName(0), skIfStmt);
+		}
+
 		return stmtList;
 	}
 
@@ -298,6 +311,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 		StmtWhile skWhile = new StmtWhile(method.getMethodContext(), (Expression) exprAdapter.transform(cond), block);
 		initList.add(skWhile);
 		insertState(forStmt, "bit", initList);
+
+		for (Statement s : initList) {
+			if (s instanceof StmtVarDecl)
+				varScope.put(((StmtVarDecl) s).getName(0), skWhile);
+		}
+
 		return initList;
 	}
 
@@ -324,8 +343,8 @@ public class StatementAdapter extends AbstractASTAdapter {
 	private List<Statement> handleTryStmt(TryStatement tryStmt) {
 		List<Statement> skList = new ArrayList<Statement>();
 		// catch bit
-		StmtAssign try1 = new StmtAssign(getMethodContext(), new ExprVar(getMethodContext(), AbstractASTAdapter.excepName),
-				ExprConstInt.zero);
+		StmtAssign try1 = new StmtAssign(getMethodContext(),
+				new ExprVar(getMethodContext(), AbstractASTAdapter.excepName), ExprConstInt.zero);
 		skList.add(try1);
 		Expression tryIf = new ExprVar(getMethodContext(), AbstractASTAdapter.excepName);
 		// try block
@@ -341,6 +360,12 @@ public class StatementAdapter extends AbstractASTAdapter {
 		skList.add(tryIfStmt);
 		if (tryStmt.getFinally() != null)
 			skList.add((StmtBlock) transform(tryStmt.getFinally()));
+
+		for (Statement s : skList) {
+			if (s instanceof StmtVarDecl)
+				varScope.put(((StmtVarDecl) s).getName(0), tryIfStmt);
+		}
+
 		return skList;
 	}
 
@@ -350,5 +375,11 @@ public class StatementAdapter extends AbstractASTAdapter {
 
 	public String getVarDecl() {
 		return varDeclName;
+	}
+	public HashMap<String,Statement> getVarScope() {
+		return varScope;
+	}
+	public HashMap<Expression, Type> getExprType() {
+		return exprAdapter.getExprType();
 	}
 }

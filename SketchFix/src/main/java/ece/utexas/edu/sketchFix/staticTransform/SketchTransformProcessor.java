@@ -69,7 +69,7 @@ public class SketchTransformProcessor {
 					continue;
 				index++;
 				// prog.accept(new SimpleSketchFilePrinter(outputFile + index));
-				suspLocations.add(new TransformResult(prog, lines, outputFile + index, sourceTran.getCurrMethod(), data));
+				suspLocations.add(new TransformResult(prog, lines, outputFile + index, sourceTran.getCurrMethod(), data, replacer.getInvariantMap()));
 				// System.out.println("[Step 1: Checking suspicious
 				// location:]"+(outputFile + index) +":"+
 				// data.getClassFullPath() + ":"

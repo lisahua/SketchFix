@@ -60,4 +60,12 @@ public class ConditionExpHandler extends CandidateTemplate  {
 		return scope;
 	}
 
+
+
+	@Override
+	protected boolean hasDone() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

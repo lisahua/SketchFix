@@ -25,7 +25,7 @@ public class ConditionTraceReplacer extends FEReplacer {
 	// StmtExpr atomCall = null;
 	// int lastCallID = 0;
 	// String state;
-	HashMap<String, Integer> ifExpr = new HashMap<String, Integer>();
+	HashMap<Expression, Integer> ifExpr = new HashMap<Expression, Integer>();
 
 	public ConditionTraceReplacer(List<ASTLinePy> allLines, Function data) {
 		this.allLines = allLines;
@@ -37,7 +37,7 @@ public class ConditionTraceReplacer extends FEReplacer {
 			for (Statement stmt : allLines.get(i).getSkStmts()) {
 				if (stmt instanceof StmtIfThen) {
 					if (currIf != null)
-						ifExpr.put(currIf.getCond().toString(), -1);
+						ifExpr.put(currIf.getCond(), -1);
 					currIf = (StmtIfThen) stmt;
 				} else if (currIf != null) {
 					Statement cons = currIf.getCons();
@@ -46,7 +46,7 @@ public class ConditionTraceReplacer extends FEReplacer {
 						for (Statement s : list) {
 							if (s instanceof StmtAssign && stmt instanceof StmtAssign) {
 								if (((StmtAssign) s).getRHS().equals(((StmtAssign) stmt).getRHS())) {
-									ifExpr.put(currIf.getCond().toString(), 1);
+									ifExpr.put(currIf.getCond(), 1);
 									currIf = null;
 									break;
 								}
@@ -54,11 +54,11 @@ public class ConditionTraceReplacer extends FEReplacer {
 							} else if (s instanceof StmtVarDecl && stmt instanceof StmtVarDecl) {
 								if (((StmtVarDecl) s).getType(0).toString()
 										.equals(((StmtVarDecl) stmt).getType(0).toString())) {
-									ifExpr.put(currIf.getCond().toString(), 1);
+									ifExpr.put(currIf.getCond(), 1);
 									currIf = null;
 									break;
 								}
-								ifExpr.put(currIf.getCond().toString(), 1);
+								ifExpr.put(currIf.getCond(), 1);
 								currIf = null;
 								break;
 							}
@@ -71,20 +71,20 @@ public class ConditionTraceReplacer extends FEReplacer {
 	}
 
 	public Object visitStmtIfThen(StmtIfThen stmt) {
-	try {
-		if ( !ifExpr.containsKey(stmt.getCond().toString()))
+		try {
+			if (!ifExpr.containsKey(stmt.getCond()))
+				return super.visitStmtIfThen(stmt);
+		} catch (Exception e) {
 			return super.visitStmtIfThen(stmt);
-	} catch (Exception e) {
-		return super.visitStmtIfThen(stmt);
-	}
+		}
 		Expression exp = stmt.getCond();
 		if (!(exp instanceof ExprBinary))
 			return super.visitStmtIfThen(stmt);
 		ExprBinary bin = (ExprBinary) exp;
 		StmtAssign assign = null;
-		if (bin.getOp() == ExprBinary.BINOP_EQ && ifExpr.get(stmt.getCond().toString()) == 1) {
+		if (bin.getOp() == ExprBinary.BINOP_EQ && ifExpr.get(stmt.getCond()) == 1) {
 			assign = new StmtAssign(stmt.getOrigin(), bin.getLeft(), bin.getRight());
-		} else if (bin.getOp() == ExprBinary.BINOP_NEQ && ifExpr.get(stmt.getCond().toString()) == -1) {
+		} else if (bin.getOp() == ExprBinary.BINOP_NEQ && ifExpr.get(stmt.getCond()) == -1) {
 			assign = new StmtAssign(stmt.getOrigin(), bin.getLeft(), bin.getRight());
 		}
 		if (assign == null)
@@ -130,16 +130,21 @@ public class ConditionTraceReplacer extends FEReplacer {
 	// return "";
 	// }
 
-	private List<ASTLinePy> isTouched(StmtAssign stmt) {
-		List<ASTLinePy> candidates = new ArrayList<ASTLinePy>();
-		for (ASTLinePy line : allLines) {
-			for (Statement st : line.getSkStmts()) {
-				if (st instanceof StmtAssign) {
-					if (((StmtAssign) st).getLHS().toString().equals(stmt.getLHS().toString()))
-						candidates.add(line);
-				}
-			}
-		}
-		return candidates;
+	// private List<ASTLinePy> isTouched(StmtAssign stmt) {
+	// List<ASTLinePy> candidates = new ArrayList<ASTLinePy>();
+	// for (ASTLinePy line : allLines) {
+	// for (Statement st : line.getSkStmts()) {
+	// if (st instanceof StmtAssign) {
+	// if (((StmtAssign)
+	// st).getLHS().toString().equals(stmt.getLHS().toString()))
+	// candidates.add(line);
+	// }
+	// }
+	// }
+	// return candidates;
+	// }
+
+	public HashMap<Expression, Integer> getTraceInvariant() {
+		return ifExpr;
 	}
 }

@@ -58,8 +58,9 @@ import sketch.compiler.ast.core.typs.TypePrimitive;
 public class ExpressionAdapter extends AbstractASTAdapter {
 
 	protected StatementAdapter stmtAdapter;
-	private HashMap<String, Type> arrayTypes = new HashMap<String, Type>();
+	// private HashMap<String, Type> arrayTypes = new HashMap<String, Type>();
 	private Type currVarType = null;
+	private HashMap<Expression, Type> exprType = new HashMap<Expression, Type>();
 
 	public ExpressionAdapter(StatementAdapter method) {
 		this.stmtAdapter = method;
@@ -228,6 +229,15 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			invoker = thisObj;
 		invokerType = resolveType(invoker).toString();
 
+		// Type invkType = resolveType(invoker);
+		// if (!(invkType instanceof TypePrimitive)) {
+		// StmtAssign var = new StmtAssign(stmtAdapter.getMethodContext(),
+		// invoker,
+		// new ExprNew(stmtAdapter.getMethodContext(), invkType, new
+		// ArrayList<ExprNamedParam>(), false));
+		// stmtAdapter.insertStmt(var);
+		// }
+
 		List<org.eclipse.jdt.core.dom.Expression> arg = mtdInvoke.arguments();
 		expArg.add(invoker);
 		String name = mtdInvoke.getName().toString();
@@ -337,6 +347,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 
 	public Type resolveType(Expression expr) {
 		if (expr instanceof ExprNew) {
+			exprType.put(expr, ((ExprNew) expr).getTypeToConstruct());
 			return ((ExprNew) expr).getTypeToConstruct();
 		} else if (expr instanceof ExprField) {
 			ExprField fAccess = (ExprField) expr;
@@ -344,17 +355,20 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			Type invoker = resolveType(left);
 			Type field = stmtAdapter.getFieldTypeOf(invoker.toString(), fAccess.getName());
 			useRecorder.insertField(invoker.toString(), fAccess.getName());
+			exprType.put(expr, (field == null) ? TypePrimitive.int32type : field);
 			return (field == null) ? TypePrimitive.int32type : field;
 		} else if (expr instanceof ExprFunCall) {
 			ExprFunCall funCall = (ExprFunCall) expr;
 			Expression rtnExp = funCall.getParams().get(funCall.getParams().size() - 1);
 			Type type = resolveType(rtnExp);
+			exprType.put(expr, (type == null) ? TypePrimitive.int32type : type);
 			return (type == null) ? TypePrimitive.int32type : type;
 		} else if (expr instanceof ExprBinary) {
 			// TODO
 		} else if (expr instanceof ExprVar) {
 			Type type = stmtAdapter.getVarType(((ExprVar) expr).getName());
 			type = (type == null) ? TypeAdapter.getType(expr.toString()) : type;
+			exprType.put(expr, type);
 			return type;
 		} else if (expr instanceof ExprArrayInit) {
 			// return arrayTypes.get(expr.toString());
@@ -369,6 +383,7 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 		} else if (expr instanceof ExprNullPtr) {
 			return TypePrimitive.nulltype;
 		}
+		exprType.put(expr, TypePrimitive.int32type);
 		return TypePrimitive.int32type;
 	}
 
@@ -595,5 +610,9 @@ public class ExpressionAdapter extends AbstractASTAdapter {
 			return field;
 		}
 
+	}
+
+	public HashMap<Expression, Type> getExprType() {
+		return exprType;
 	}
 }

@@ -14,11 +14,11 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
-import ece.utexas.edu.sketchFix.instrument.restoreState.LinePy;
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StatementAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.TypeCandidateCollector;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeResolver;
 import sketch.compiler.ast.core.FENode;
@@ -26,11 +26,9 @@ import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Function.FcnType;
 import sketch.compiler.ast.core.Function.FunctionCreator;
 import sketch.compiler.ast.core.Parameter;
-import sketch.compiler.ast.core.exprs.ExprNamedParam;
 import sketch.compiler.ast.core.stmts.Statement;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 import sketch.compiler.ast.core.typs.Type;
-import sketch.compiler.ast.core.typs.TypePrimitive;
 
 public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private TypeDeclaration clazz;
@@ -45,6 +43,7 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 	private LinePyGenerator utility;
 	private StmtStateMapper stateMapper = null;
 	private OverloadHandler overloadHandler = new OverloadHandler();
+	private TypeCandidateCollector typeCandCollector = new TypeCandidateCollector();
 
 	public MethodDeclarationAdapter(CompilationUnit cu, MethodData method, LinePyGenerator utility) {
 		this.utility = utility;
@@ -99,7 +98,19 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		// TODO add repair here
 		Function function = creator.create();
 
+		typeCandCollector.setMethod(name);
+
 		return function;
+	}
+
+	public TypeCandidateCollector getTypeCandCollector() {
+
+		typeCandCollector.insertVars(varType);
+		typeCandCollector.insertVarScope(stmtAdapter.getVarScope());
+		typeCandCollector.insertExprType(stmtAdapter.getExprType());
+		typeCandCollector.insertUsageRecorder(useRecorder);
+		typeCandCollector.insertTypeResolver(typeResolver);
+		return typeCandCollector;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -131,11 +142,13 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 		// AbstractASTAdapter.excepType);
 
 		// return value;
-//		Parameter excpParam = new Parameter(getMethodContext(), TypePrimitive.bittype, AbstractASTAdapter.excepName);
-//		AbstractASTAdapter.excepName += AbstractASTAdapter.excepName + 1;
-//		param.add(excpParam);
-//		varType.put(excpParam.getName(), excpParam.getType());
-		if (returnType==null )	return param;
+		// Parameter excpParam = new Parameter(getMethodContext(),
+		// TypePrimitive.bittype, AbstractASTAdapter.excepName);
+		// AbstractASTAdapter.excepName += AbstractASTAdapter.excepName + 1;
+		// param.add(excpParam);
+		// varType.put(excpParam.getName(), excpParam.getType());
+		if (returnType == null)
+			return param;
 		rtnType = (Type) TypeAdapter.getType(returnType.toString());
 		if (rtnType != null) {
 			Parameter rtnParam = new Parameter(getMethodContext(), rtnType, AbstractASTAdapter.returnObj);
