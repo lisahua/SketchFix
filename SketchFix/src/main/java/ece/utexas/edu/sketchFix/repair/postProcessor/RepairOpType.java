@@ -4,5 +4,5 @@
 package ece.utexas.edu.sketchFix.repair.postProcessor;
 
 public enum RepairOpType {
-	ADD, DELETE, REPLACE
+	ADDBEFORE, ADDAFTER, DELETE, REPLACE
 }

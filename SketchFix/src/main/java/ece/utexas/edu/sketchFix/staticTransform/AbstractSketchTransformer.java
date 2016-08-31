@@ -26,6 +26,7 @@ import ece.utexas.edu.sketchFix.staticTransform.model.MethodDeclarationAdapter;
 import ece.utexas.edu.sketchFix.staticTransform.model.OverloadHandler;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StmtStateMapper;
 import ece.utexas.edu.sketchFix.staticTransform.model.stmts.StructDefGenerator;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.TypeCandidateCollector;
 import ece.utexas.edu.sketchFix.staticTransform.model.type.TypeUsageRecorder;
 import sketch.compiler.Directive;
 import sketch.compiler.ast.core.Annotation;
@@ -56,7 +57,7 @@ public abstract class AbstractSketchTransformer {
 	protected StmtStateMapper stateMapper = null;
 	private Function currMethod = null;
 	private OverloadHandler overloadHandler = null;
-
+private  TypeCandidateCollector typeCandCollector = new TypeCandidateCollector();
 	protected void staticTransform(MethodData method, List<MethodData> locations) throws Exception {
 		this.locations = locations;
 		AbstractASTAdapter.setUseRecorder(new TypeUsageRecorder());
@@ -80,6 +81,7 @@ public abstract class AbstractSketchTransformer {
 		// TODO create structDef correspondingly
 		methods.addAll(generator.getMethodMap());
 		methods.add(currMethod);
+		typeCandCollector = mtdDecl.getTypeCandCollector();
 		structs.addAll(generator.getStructDefMap());
 		stateMapper = mtdDecl.getStateMapper();
 	}
@@ -252,5 +254,7 @@ public abstract class AbstractSketchTransformer {
 	public void setRefTransformer(AbstractSketchTransformer refTransformer) {
 		overloadHandler = new OverloadHandler(refTransformer);
 	}
-
+	public TypeCandidateCollector getTypeCandidateCollector() {
+		return typeCandCollector;
+	}
 }

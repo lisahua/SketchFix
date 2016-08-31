@@ -246,4 +246,8 @@ public class MethodDeclarationAdapter extends AbstractASTAdapter {
 
 		return typeResolver.validateParams(type, paramTypes);
 	}
+
+	public TypeCandidateCollector getTypeCandidateCollector() {
+		return typeCandCollector;
+	}
 }

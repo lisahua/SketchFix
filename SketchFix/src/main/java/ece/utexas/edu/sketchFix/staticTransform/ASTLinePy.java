@@ -17,7 +17,7 @@ public class ASTLinePy {
 	private List<Statement> skStmts = new ArrayList<Statement>();
 	private int firstLineNum = 0;
 	private String type = "";
-
+//private int centerSkStmtID = 0;
 	public ASTLinePy() {
 
 	}
@@ -30,10 +30,10 @@ public class ASTLinePy {
 		return firstLinePyString;
 	}
 
-	public ASTLinePy(LinePy linePy, org.eclipse.jdt.core.dom.Statement stmt) {
-		linePyList.add(linePy);
-		statement = stmt;
-	}
+//	public ASTLinePy(LinePy linePy, org.eclipse.jdt.core.dom.Statement stmt) {
+//		linePyList.add(linePy);
+//		statement = stmt;
+//	}
 
 	public void addLinePy(LinePy linePy) {
 		if (linePyList.size() == 0) {
@@ -104,5 +104,9 @@ public class ASTLinePy {
 	public List<Statement> getSkStmts() {
 		return skStmts;
 	}
+	
+//	public Statement getCenterSkStmt() {
+//		
+//	}
 
 }

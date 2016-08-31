@@ -9,8 +9,10 @@ import java.util.List;
 
 import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;
+import ece.utexas.edu.sketchFix.staticTransform.model.stmts.TypeCandidateCollector;
 import sketch.compiler.ast.core.Function;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
 
 public class SkCandidate {
@@ -23,8 +25,11 @@ public class SkCandidate {
 	MethodData methodData;
 	Function currentFunc;
 	HashMap<Statement, Integer> stmtScopeMap = new HashMap<Statement, Integer>();
+	TypeCandidateCollector typeCandidateCollector;
+	HashMap<Expression, Integer> invariantMap;
 
-	public SkCandidate(Program prog, List<SkLinePy> lines, List<ASTLinePy> list, MethodData methodData, Function func) {
+	public SkCandidate(Program prog, List<SkLinePy> lines, List<ASTLinePy> list, MethodData methodData, Function func,
+			HashMap<Expression, Integer> invariantMap, TypeCandidateCollector typeCandidateCollector) {
 
 		this.prog = prog;
 		this.beforeRepair = lines;
@@ -38,6 +43,13 @@ public class SkCandidate {
 				continue;
 			stmtScopeMap.put((Statement) skLine.getSkStmt(), i);
 		}
+		this.typeCandidateCollector = typeCandidateCollector;
+		this.invariantMap = invariantMap;
+	}
+
+	public SkCandidate(Program prog, SkCandidate cand) {
+		this(prog, cand.getBeforeRepair(), cand.getStates(), cand.getMethodData(), cand.getCurrentFunc(),
+				cand.getInvariantMap(), cand.getTypeCandidateCollector());
 	}
 
 	public MethodData getMethodData() {
@@ -129,13 +141,28 @@ public class SkCandidate {
 	public void setCurrentFunc(Function currentFunc) {
 		this.currentFunc = currentFunc;
 	}
-	
+
 	public void updateSkLineHole(Statement origin, Statement update, SkLineType lineType) {
-		//TODO 
-//		scope.get(lastCallID).setSkStmt(block);
-//		scope.get(lastCallID).setHole(true);
-//		scope.get(lastCallID).setType(SkLineType.STBLOCK);
+		// TODO
+		// scope.get(lastCallID).setSkStmt(block);
+		// scope.get(lastCallID).setHole(true);
+		// scope.get(lastCallID).setType(SkLineType.STBLOCK);
 	}
 
+	public TypeCandidateCollector getTypeCandidateCollector() {
+		return typeCandidateCollector;
+	}
+
+	public void setTypeCandidateCollector(TypeCandidateCollector typeCandidateCollector) {
+		this.typeCandidateCollector = typeCandidateCollector;
+	}
+
+	public HashMap<Expression, Integer> getInvariantMap() {
+		return invariantMap;
+	}
+
+	public void setInvariantMap(HashMap<Expression, Integer> invariantMap) {
+		this.invariantMap = invariantMap;
+	}
 
 }

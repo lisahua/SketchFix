@@ -27,7 +27,7 @@ public class RepairGenerator {
 		lines = processMethodScope(lines, parser.getUnsat(), result.getEditMethod());
 		// lines = processTouchScope(lines);
 		SkCandidate generator = new SkCandidate(result.getProg(), lines, result.getLines(), result.getData(),
-				result.getCurrentFunc(),result.ge);
+				result.getCurrentFunc(),result.getInvariantMap(), result.getTypeCandidateCollector());
 		generator.setOutputFile(result.getOutputFile() + "_");
 		RepairCandidateCollector candidate = new RepairCandidateCollector(generator);
 		return candidate.getCandidates();
@@ -57,4 +57,5 @@ public class RepairGenerator {
 	public List<SkLinePy> getScope() {
 		return beforeRepair;
 	}
+	
 }
