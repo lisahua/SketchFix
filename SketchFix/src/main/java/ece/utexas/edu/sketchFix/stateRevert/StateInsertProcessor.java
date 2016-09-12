@@ -16,6 +16,7 @@ import sketch.compiler.ast.core.exprs.Expression;
 public class StateInsertProcessor extends FEReplacer {
 
 	List<ASTLinePy> allLines = new ArrayList<ASTLinePy>();
+	List<ASTLinePy> testLines = new ArrayList<ASTLinePy>();
 	Function currentMtd;
 	Function testMethod;
 
@@ -27,14 +28,14 @@ public class StateInsertProcessor extends FEReplacer {
 
 	public Object visitProgram(Program prog) {
 		// FIXME more replacer goes here
-		TraceConnectionReplacer traceConnect = new TraceConnectionReplacer(allLines, currentMtd);
+		TraceConnectionReplacer traceConnect = new TraceConnectionReplacer(testLines, currentMtd);
 		prog = (Program) traceConnect.visitProgram(prog);
 
 		NotNullTraceReplacer replacer = new NotNullTraceReplacer(allLines, currentMtd);
 		prog = (Program) replacer.visitProgram(prog);
 		ConditionTraceReplacer condRep = new ConditionTraceReplacer(allLines, currentMtd);
 		prog = (Program) condRep.visitProgram(prog);
-
+		invariantMap.clear();
 		invariantMap.putAll(replacer.getTraceInvariant());
 		invariantMap.putAll(replacer.getViolation());
 		invariantMap.putAll(condRep.getTraceInvariant());
@@ -47,6 +48,22 @@ public class StateInsertProcessor extends FEReplacer {
 
 	public void insertStates(List<ASTLinePy> linePyList) {
 		allLines.addAll(linePyList);
+	}
+
+	public void setTestStates(List<ASTLinePy> tests) {
+		testLines = tests;
+	}
+
+	public List<ASTLinePy> getTestStates() {
+		return testLines;
+	}
+
+	public void setStates(List<ASTLinePy> linePyList) {
+		allLines = linePyList;
+	}
+
+	public void clearState() {
+		allLines.clear();
 	}
 
 	public void setCurrentMtd(Function currentFunc) {

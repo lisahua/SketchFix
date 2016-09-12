@@ -43,6 +43,9 @@ public class SketchRewriterProcessor {
 			if (transformed != null) {
 				String str = document.get();
 				String replace = transformed.replaceBody(str);
+				if (!replace.contains("SketchFix")) {
+					return;
+				}
 				PrintWriter writer = new PrintWriter(output);
 				writer.println(replace);
 				writer.close();

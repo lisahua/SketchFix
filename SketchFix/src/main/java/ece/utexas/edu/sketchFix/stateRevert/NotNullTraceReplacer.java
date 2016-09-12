@@ -24,20 +24,25 @@ import sketch.compiler.ast.core.stmts.StmtExpr;
 public class NotNullTraceReplacer extends FEReplacer {
 
 	List<ASTLinePy> allLines = new ArrayList<ASTLinePy>();
-	StmtExpr atomCall = null;
-	int lastCallID = 0;
+	// HashSet<ExprFunCall> callSet = new HashSet<ExprFunCall>();
+	StmtExpr lastCall = null;
+	// int lastCallID = 0;
 	// String state;
 	HashMap<Expression, Integer> callerNotNullMap = new HashMap<Expression, Integer>();
+	HashMap<String, Statement> assAssign = new HashMap<String, Statement>();
+	// Function current;
+	// boolean curFlag;
 	// HashMap<Expression, Statement> violation = new HashMap<Expression,
 	// Statement>();
 
 	public NotNullTraceReplacer(List<ASTLinePy> allLines, Function data) {
 		this.allLines = allLines;
+		// current =data;
 		String methodName = data.getName();
 		if (methodName.contains("_"))
 			methodName = methodName.substring(0, methodName.indexOf("_"));
 
-		for (int i = allLines.size() - 1; i >= 0; i--) {
+		for (int i = 0; i < allLines.size(); i++) {
 			// FIXME I know its buggy
 			if (!allLines.get(i).getLinePyList().get(0).getMethodName().equals(methodName))
 				continue;
@@ -45,10 +50,30 @@ public class NotNullTraceReplacer extends FEReplacer {
 				if (stmt instanceof StmtExpr) {
 					Expression expr = ((StmtExpr) stmt).getExpression();
 					if (expr instanceof ExprFunCall) {
-						atomCall = (StmtExpr) stmt;
-						lastCallID = i;
-						// state = getState(i);
-						return;
+						lastCall = (StmtExpr) stmt;
+
+						Expression invoker = ((ExprFunCall) lastCall.getExpression()).getParams().get(0);
+						Expression exprBin = new ExprBinary(lastCall.getOrigin(), ExprBinary.BINOP_NEQ, invoker,
+								ExprNullPtr.nullPtr);
+						callerNotNullMap.put(exprBin, 3);
+						callerNotNullMap.put(
+								new ExprBinary(lastCall.getOrigin(), ExprBinary.BINOP_EQ, invoker, ExprNullPtr.nullPtr),
+								-3);
+						StmtAssert ass = new StmtAssert(stmt.getOrigin(), exprBin, false);
+						assAssign.put(stmt.toString(), ass);
+					}
+				} else if (stmt instanceof StmtAssign) {
+					StringBuilder builder = new StringBuilder();
+					builder.append(allLines.get(i).getStateIfAny());
+					String state = builder.toString();
+					StmtAssign assign = (StmtAssign) stmt;
+					if ((assign.getLHS() instanceof ExprVar) && state.equals("null")) {
+						StmtAssign newassign = new StmtAssign(stmt.getOrigin(), ((StmtAssign) stmt).getLHS(),
+								ExprNullPtr.nullPtr);
+						assAssign.put(assign.toString(), newassign);
+						Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_EQ,
+								((StmtAssign) stmt).getLHS(), ExprNullPtr.nullPtr);
+						callerNotNullMap.put(exprBin, 1);
 					}
 				}
 			}
@@ -56,57 +81,29 @@ public class NotNullTraceReplacer extends FEReplacer {
 
 	}
 
-	public Object visitStmtExpr(StmtExpr stmt) {
-		if (atomCall == null)
-			return super.visitStmtExpr(stmt);
-		Expression expr = stmt.getExpression();
-		List<Statement> list = new ArrayList<Statement>();
-		list.add(stmt);
-		if (expr instanceof ExprFunCall) {
-			Expression invoker = ((ExprFunCall) expr).getParams().get(0);
-			Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_NEQ, invoker, ExprNullPtr.nullPtr);
-			callerNotNullMap.put(exprBin, 3);
-			callerNotNullMap.put(new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_EQ, invoker, ExprNullPtr.nullPtr),
-					-3);
-			if (expr.toString().equals(atomCall.toString())) {
-				// Expression invoker = ((ExprFunCall) expr).getParams().get(0);
-				// Expression exprBin = new ExprBinary(stmt.getOrigin(),
-				// ExprBinary.BINOP_NEQ, invoker,
-				// ExprNullPtr.nullPtr);
-				StmtAssert ass = new StmtAssert(stmt.getOrigin(), exprBin, false);
-				list.add(ass);
-			} else {
-				// Expression invoker = ((ExprFunCall) expr).getParams().get(0);
-				// ExprNew exprNew = new ExprNew(stmt.getOrigin(),
-				// ExprBinary.BINOP_NEQ, invoker,
-				// ExprNullPtr.nullPtr);
+	public Object visitStmtExpr(StmtExpr call) {
+		if (lastCall==null||!call.toString().equals(lastCall.toString()))
+			return super.visitStmtExpr(call);
 
-			}
-		}
-		return new StmtBlock(stmt.getOrigin(), list);
+		StmtAssert ass = (StmtAssert) assAssign.get(call.toString());
+		List<Statement> list = new ArrayList<Statement>();
+		list.add(call);
+		list.add(ass);
+		return new StmtBlock(call.getOrigin(), list);
+
 	}
 
 	public Object visitStmtAssign(StmtAssign stmt) {
-		List<ASTLinePy> lines = isTouched(stmt);
-		if (lines.size() == 0 || !(stmt instanceof StmtAssign))
+
+		if (!assAssign.containsKey(stmt.toString()))
 			return super.visitStmtAssign(stmt);
 
 		Expression lhs = stmt.getLHS();
 		List<Statement> list = new ArrayList<Statement>();
 		list.add(stmt);
 
-		StringBuilder builder = new StringBuilder();
-		for (ASTLinePy line : lines)
-			builder.append(line.getStateIfAny());
-		String state = builder.toString();
-		if (state.trim().length() == 0)
-			return super.visitStmtAssign(stmt);
-		if ((lhs instanceof ExprVar) && state.equals("null")) {
-			StmtAssign assign = new StmtAssign(stmt.getOrigin(), lhs, ExprNullPtr.nullPtr);
-			list.add(assign);
-			Expression exprBin = new ExprBinary(stmt.getOrigin(), ExprBinary.BINOP_EQ, lhs, ExprNullPtr.nullPtr);
-			callerNotNullMap.put(exprBin, 1);
-		}
+		StmtAssign assign = new StmtAssign(stmt.getOrigin(), lhs, ExprNullPtr.nullPtr);
+		list.add(assign);
 		return new StmtBlock(stmt.getOrigin(), list);
 	}
 
@@ -119,18 +116,18 @@ public class NotNullTraceReplacer extends FEReplacer {
 	// return "";
 	// }
 
-	private List<ASTLinePy> isTouched(StmtAssign stmt) {
-		List<ASTLinePy> candidates = new ArrayList<ASTLinePy>();
-		for (ASTLinePy line : allLines) {
-			for (Statement st : line.getSkStmts()) {
-				if (st instanceof StmtAssign) {
-					if (((StmtAssign) st).getLHS().toString().equals(stmt.getLHS().toString()))
-						candidates.add(line);
-				}
-			}
-		}
-		return candidates;
-	}
+//	private List<ASTLinePy> isTouched(StmtAssign stmt) {
+//		List<ASTLinePy> candidates = new ArrayList<ASTLinePy>();
+//		for (ASTLinePy line : allLines) {
+//			for (Statement st : line.getSkStmts()) {
+//				if (st instanceof StmtAssign) {
+//					if (((StmtAssign) st).getLHS().toString().equals(stmt.getLHS().toString()))
+//						candidates.add(line);
+//				}
+//			}
+//		}
+//		return candidates;
+//	}
 
 	public HashMap<Expression, Integer> getTraceInvariant() {
 		return callerNotNullMap;

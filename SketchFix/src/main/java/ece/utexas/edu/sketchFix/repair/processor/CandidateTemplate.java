@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import ece.utexas.edu.sketchFix.repair.candidates.RepairItem;
 import ece.utexas.edu.sketchFix.repair.candidates.RepairReplaceActor;
@@ -18,8 +19,8 @@ public abstract class CandidateTemplate {
 
 	// protected List<SkLinePy> scope;
 	protected SkCandidate originCand = null;
-	protected List<RepairItem> repairItems = new ArrayList<RepairItem>();
-
+	protected PriorityQueue<RepairItem> repairItems = new PriorityQueue<RepairItem>();
+int id=0;
 	public CandidateTemplate(SkCandidate generator) {
 		// this.prog = generator.prog;
 		// scope = generator.beforeRepair;
@@ -29,6 +30,7 @@ public abstract class CandidateTemplate {
 	public List<SkCandidate> process() {
 		 List<SkCandidate> candidates = new ArrayList<SkCandidate>();
 		if (repairItems==null) return candidates;
+		id=0;
 		for (RepairItem item: repairItems) {
 			Program prog = (Program) new RepairReplaceActor(item).visitProgram(originCand.getProg());
 			if (validateWithSketch(prog)>0) {
@@ -41,18 +43,20 @@ public abstract class CandidateTemplate {
 	public int validateWithSketch(Program updateProg) {
 		Process p;
 		try {
-			// FIXME
-			updateProg.accept(new SimpleSketchFilePrinter(originCand.getOutputFile()+"_"));
-			System.out.println("[Generate Repair] " + originCand.getOutputFile());
+			String name = originCand.getOutputFile()+(id++);
+			updateProg.accept(new SimpleSketchFilePrinter(name));
+//			System.out.println("[Generate Repair] " + originCand.getOutputFile());
 			if (LocalizerUtility.DEBUG) {
-				return 0;
+				return 1;
 			} else {
-				p = Runtime.getRuntime().exec("sketch " + originCand.getOutputFile());
+				p = Runtime.getRuntime().exec("sketch " + name);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 				String line = "";
 				while ((line = reader.readLine()) != null) {
 					// FIXME buggy
 					if (line.length() > 0) {
+						System.out.println(line);
+						id--;
 						return -1;
 					}
 				}
@@ -64,7 +68,10 @@ public abstract class CandidateTemplate {
 	}
 
 	public List<RepairItem> getRepairItems() {
-		return repairItems;
+		List<RepairItem> list=  new ArrayList<RepairItem>();
+		for (RepairItem item: list)
+			list.add(item);
+		return list;
 	}
 
 	protected abstract void init();

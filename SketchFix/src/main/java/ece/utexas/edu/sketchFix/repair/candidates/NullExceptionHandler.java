@@ -31,10 +31,9 @@ public class NullExceptionHandler extends CandidateTemplate {
 	protected void init() {
 
 		List<Statement> allTouchStmts = new ArrayList<Statement>();
-		for (List<Statement> stmts : originCand.getAllCurrentFirstTouchStatement()) {
-			for (Statement stmt : stmts)
+			for (Statement stmt : originCand.getAllTouchStatement())
 				allTouchStmts.add(stmt);
-		}
+		
 		List<Statement> insertStmt = new ArrayList<Statement>();
 		HashMap<Expression, Integer> inv = originCand.getInvariantMap();
 		for (Expression exp : inv.keySet()) {
@@ -45,9 +44,10 @@ public class NullExceptionHandler extends CandidateTemplate {
 		List<Statement> stmts = ((StmtBlock) originCand.getCurrentFunc().getBody()).getStmts();
 		List<Statement> tmp = new ArrayList<Statement>();
 		for (Statement stmt : allTouchStmts) {
-			if (stmts.contains(stmt)) {
+			int index = stmts.indexOf(stmt);
+			if (index>-1) {
 				for (Statement insert : insertStmt) {
-					repairItems.add(new RepairItem(stmt, originCand.getCurrentFunc(), insert, RepairOpType.ADDBEFORE));
+					repairItems.add(new RepairItem(index, stmt, originCand.getCurrentFunc(), insert, RepairOpType.ADDBEFORE));
 					tmp.add(stmt);
 				}
 			}
@@ -58,9 +58,10 @@ public class NullExceptionHandler extends CandidateTemplate {
 			if (line instanceof StmtWhile) {
 				List<Statement> lines = ((StmtBlock) ((StmtWhile) line).getBody()).getStmts();
 				for (Statement stmt : allTouchStmts) {
-					if (lines.contains(stmt)) {
+					int index = stmts.indexOf(stmt);
+					if (index>-1) {
 						for (Statement insert : insertStmt) {
-							repairItems.add(new RepairItem(stmt, line, insert, RepairOpType.ADDBEFORE));
+							repairItems.add(new RepairItem(index,stmt, line, insert, RepairOpType.ADDBEFORE));
 							tmp.add(stmt);
 						}
 					}
@@ -68,9 +69,10 @@ public class NullExceptionHandler extends CandidateTemplate {
 			} else if (line instanceof StmtFor) {
 				List<Statement> lines = ((StmtBlock) ((StmtFor) line).getBody()).getStmts();
 				for (Statement stmt : allTouchStmts) {
-					if (lines.contains(stmt)) {
+					int index = stmts.indexOf(stmt);
+					if (index>-1) {
 						for (Statement insert : insertStmt) {
-							repairItems.add(new RepairItem(stmt, line, insert, RepairOpType.ADDBEFORE));
+							repairItems.add(new RepairItem(index, stmt, line, insert, RepairOpType.ADDBEFORE));
 							tmp.add(stmt);
 						}
 					}
@@ -81,9 +83,10 @@ public class NullExceptionHandler extends CandidateTemplate {
 					lines.addAll(((StmtBlock) ((StmtIfThen) line).getAlt()).getStmts());
 
 				for (Statement stmt : allTouchStmts) {
-					if (lines.contains(stmt)) {
+					int index = stmts.indexOf(stmt);
+					if (index>-1) {
 						for (Statement insert : insertStmt) {
-							repairItems.add(new RepairItem(stmt, line, insert, RepairOpType.ADDBEFORE));
+							repairItems.add(new RepairItem(index, stmt, line, insert, RepairOpType.ADDBEFORE));
 							tmp.add(stmt);
 						}
 					}

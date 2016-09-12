@@ -34,42 +34,25 @@ public class SketchRepairDeltaMapper {
 	}
 
 	public SketchToDOMTransformer setNewScope(List<SkLinePy> scope) {
-		return mapNewScope(scope, beforeRepair);
+		return startMappingFuncs(scope, beforeRepair);
 	}
-
-	private SketchToDOMTransformer mapNewScope(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
-		// System.out.println(scope.size() + "-" + beforeRepair.size());
-		for (int i = 0; i < scope.size(); i++) {
-			for (int j = 0; j < beforeRepair.size(); j++) {
-				if (matchTwoSkLinePy(scope.get(i), beforeRepair.get(j))) {
-					return startMappingFuncs(scope.subList(i, scope.size()),
-							beforeRepair.subList(j, beforeRepair.size()));
-					// System.out.println(i + "-" + j + ":" + scope.get(i) +
-					// "--" + beforeRepair.get(j));
-
-				}
-			}
-		}
-		return null;
-		// System.out.println(matchArr);
-	}
+	//
 
 	private SketchToDOMTransformer startMappingFuncs(List<SkLinePy> scope, List<SkLinePy> beforeRepair) {
 		List<SkLinePy> holes = new ArrayList<SkLinePy>();
 		List<Integer> ids = new ArrayList<Integer>();
+		List<SkLinePy> insert = new ArrayList<SkLinePy>();
 		for (int i = 0; i < scope.size(); i++) {
+			boolean flag = false;
 			for (int j = 0; j < beforeRepair.size(); j++) {
 				if (matchTwoSkLinePy(scope.get(i), beforeRepair.get(j))) {
-					// if (scopeMatch[i] != 0)
-					// continue;
-					// scopeMatch[i] = j;
-					if (beforeRepair.get(j).isHole()) {
+					flag = true;
+					if (beforeRepair.get(j).isHole())
 						ids.add(i);
-					}
-					// System.out.println(i + "-" + j + " (" + isHole + "):" +
-					// scope.get(i) + "--" + beforeRepair.get(j));
 				}
 			}
+			if (!flag)
+				insert.add(scope.get(i));
 		}
 		if (ids.size() > 1) {
 			for (int i = ids.get(0); i <= ids.get(1); i++)
@@ -77,7 +60,11 @@ public class SketchRepairDeltaMapper {
 		} else if (ids.size() == 1)
 			holes.add(scope.get(ids.get(0)));
 		holes = convertHolesToSoln(holes);
-		return new SketchToDOMTransformer(func, findDelta(holes), astHole);
+//		if (holes.size() > 0)
+			return new SketchToDOMTransformer(func, findDelta(holes), astHole);
+		// FIXME what if no hole?
+//		else
+//			return new SketchToDOMTransformer(func, findDelta(insert));
 	}
 
 	private List<SkLinePy> convertHolesToSoln(List<SkLinePy> holes) {
@@ -113,22 +100,25 @@ public class SketchRepairDeltaMapper {
 			newList.add(stmt);
 		return newList;
 	}
-
-	private List<Statement> findDelta(List<SkLinePy> isHole) {
+//
+	private List<Statement> findDelta(List<SkLinePy> delta) {
 
 		List<Statement> newList = new ArrayList<Statement>();
-		if (astHole == null)
-			return newList;
-		List<Statement> oldList = astHole.getSkStmts();
-
-		for (SkLinePy newLine : isHole) {
-			if (newLine.getType().equals(SkLineType.STBLOCK))
-				newList.addAll(((StmtBlock) newLine.getSkStmt()).getStmts());
-			else
-				newList.add((Statement) newLine.getSkStmt());
-		}
-
-		return findDelta(newList, oldList);
+//		if (astHole != null) {
+			List<Statement> oldList = astHole.getSkStmts();
+			for (SkLinePy newLine : delta) {
+				if (newLine.getType().equals(SkLineType.STBLOCK))
+					newList.addAll(((StmtBlock) newLine.getSkStmt()).getStmts());
+				else
+					newList.add((Statement) newLine.getSkStmt());
+			}
+			return findDelta(newList, oldList);
+//		} else {
+//			for (SkLinePy line : delta) {
+//				newList.add((Statement) line.getSkStmt());
+//			}
+//		
+//		}
 
 	}
 
@@ -280,6 +270,9 @@ public class SketchRepairDeltaMapper {
 						return;
 					// rewriteDOM(ast, node);
 				}
+			} else if (node instanceof Statement) {
+				Statement stmt = (Statement) node;
+
 			}
 		}
 	}

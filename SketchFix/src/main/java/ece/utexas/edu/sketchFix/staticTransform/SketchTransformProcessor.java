@@ -4,6 +4,7 @@
 package ece.utexas.edu.sketchFix.staticTransform;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import ece.utexas.edu.sketchFix.instrument.restoreState.LinePyGenerator;
@@ -13,6 +14,7 @@ import ece.utexas.edu.sketchFix.slicing.localizer.model.MethodData;
 import ece.utexas.edu.sketchFix.stateRevert.StateInsertProcessor;
 import ece.utexas.edu.sketchFix.stateRevert.TransformPostProcessor;
 import sketch.compiler.ast.core.Program;
+import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.StmtBlock;
 
 public class SketchTransformProcessor {
@@ -37,7 +39,7 @@ public class SketchTransformProcessor {
 		try {
 			StateInsertProcessor replacer = new StateInsertProcessor();
 			assertTran.transform(testMethod, generator, locations);
-			replacer.insertStates(assertTran.getStateMapper().getLinePyList());
+			replacer.setTestStates(assertTran.getStateMapper().getLinePyList());
 			replacer.setTestMtd(assertTran.getCurrMethod());
 			// List<ASTLinePy> states = new ArrayList<ASTLinePy>();
 			for (int i = 0, index = 0; index < LocalizerUtility.MAX_REPAIR_LOC
@@ -61,7 +63,8 @@ public class SketchTransformProcessor {
 				Program prog = reverter.getProgram();
 				if (sourceTran.getStateMapper() == null)
 					continue;
-				replacer.insertStates(sourceTran.getStateMapper().getLinePyList());
+	
+				replacer.setStates(sourceTran.getStateMapper().getLinePyList());
 				replacer.setCurrentMtd(sourceTran.getCurrMethod());
 				lines = replacer.getAllLines();
 				prog = (Program) replacer.visitProgram(prog);
@@ -69,7 +72,7 @@ public class SketchTransformProcessor {
 					continue;
 				index++;
 				// prog.accept(new SimpleSketchFilePrinter(outputFile + index));
-				suspLocations.add(new TransformResult(prog, lines, outputFile + index, sourceTran.getCurrMethod(), data, replacer.getInvariantMap(), sourceTran.getTypeCandidateCollector()));
+				suspLocations.add(new TransformResult(prog, lines, outputFile + index, sourceTran.getCurrMethod(), data, (HashMap<Expression,Integer>) replacer.getInvariantMap().clone(), sourceTran.getTypeCandidateCollector()));
 				// System.out.println("[Step 1: Checking suspicious
 				// location:]"+(outputFile + index) +":"+
 				// data.getClassFullPath() + ":"

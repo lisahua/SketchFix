@@ -9,8 +9,8 @@ import ece.utexas.edu.sketchFix.main.RepairMain;
 import ece.utexas.edu.sketchFix.slicing.LocalizerUtility;
 
 public class TestRepairProcessor {
-
-	public static void main(String[] args) {
+@Test
+	public  void main() {
 		// String[] arg = {
 		// "org.jfree.chart.renderer.category.junit.AbstractCategoryItemRendererTests",
 		// "test2947660" };

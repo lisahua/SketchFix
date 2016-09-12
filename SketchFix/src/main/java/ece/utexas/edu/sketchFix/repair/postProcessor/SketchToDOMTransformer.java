@@ -63,14 +63,13 @@ public class SketchToDOMTransformer {
 			for (int i = 1; i < token.length; i++)
 				params[i - 1] = token[i];
 		}
-		// init(isHole, astHole);
 		this.delta = delta;
 		if (astHole != null)
 			origDOMStmt = astHole.getStatement();
 	}
-
-	public SketchToDOMTransformer() {
-
+	
+	public SketchToDOMTransformer(Function func, SkRepairPatch skPatch) {
+		// TODO Auto-generated constructor stub
 	}
 
 	public RepairPatch matchMethod(MethodDeclaration mtd, AST node) {
@@ -97,9 +96,7 @@ public class SketchToDOMTransformer {
 	private RepairPatch buildNewNode(MethodDeclaration methodNode) {
 		Block block = methodNode.getBody();
 		RepairPatch patch = new RepairPatch(block, typeNode);
-		// Block newBlock = typeNode.newBlock();
-		// List<org.eclipse.jdt.core.dom.Statement> newstmts =
-		// newBlock.statements();
+
 		List<org.eclipse.jdt.core.dom.Statement> stmts = block.statements();
 		if (origDOMStmt == null)
 			return patch;

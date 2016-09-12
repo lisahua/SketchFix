@@ -22,19 +22,20 @@ public class RepairReplaceActor extends FEReplacer {
 	}
 
 	public Object visitFunction(Function func) {
-		if (!func.equals(repairItem.getScope()))
+		if (!(repairItem.getScope() instanceof Function) || !((Function)  repairItem.getScope()).getName().equals(func.getName()))
 			return super.visitFunction(func);
 		List<Statement> newStmts = new ArrayList<Statement>();
 		List<Statement> stmts = ((StmtBlock) func.getBody()).getStmts();
-		for (Statement stmt : stmts) {
-			if (!stmt.equals(repairItem.getInsertPoint()))
-				newStmts.add(stmt);
+		for (int i=0;i<stmts.size();i++) {
+//		for (Statement stmt : stmts) {
+			if (i !=repairItem.getInsertID())
+				newStmts.add(stmts.get(i));
 			else {
 				if (repairItem.getRepairType() == RepairOpType.ADDBEFORE) {
 					newStmts.add(repairItem.getReplaceStmt());
-					newStmts.add(stmt);
+					newStmts.add(stmts.get(i));
 				} else if (repairItem.getRepairType() == RepairOpType.ADDAFTER) {
-					newStmts.add(stmt);
+					newStmts.add(stmts.get(i));
 					newStmts.add(repairItem.getReplaceStmt());
 				}
 			}
@@ -42,8 +43,8 @@ public class RepairReplaceActor extends FEReplacer {
 		FunctionCreator creator = new FunctionCreator(AbstractASTAdapter.getContext());
 		creator.name(func.getName());
 		creator.params(func.getParams());
-		List<Statement> body = new ArrayList<Statement>();
-		creator.body(new StmtBlock(func.getOrigin(), body));
+//		List<Statement> body = new ArrayList<Statement>();
+		creator.body(new StmtBlock(func.getOrigin(), newStmts));
 		return creator.create();
 	}
 	

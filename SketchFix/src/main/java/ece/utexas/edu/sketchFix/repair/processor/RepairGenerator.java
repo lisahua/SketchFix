@@ -5,6 +5,7 @@ package ece.utexas.edu.sketchFix.repair.processor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import ece.utexas.edu.sketchFix.repair.candidates.RepairCandidateCollector;
 import ece.utexas.edu.sketchFix.staticTransform.ASTLinePy;

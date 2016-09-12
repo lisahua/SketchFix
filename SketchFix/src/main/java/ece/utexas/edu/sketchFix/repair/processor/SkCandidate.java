@@ -15,7 +15,7 @@ import sketch.compiler.ast.core.Program;
 import sketch.compiler.ast.core.exprs.Expression;
 import sketch.compiler.ast.core.stmts.Statement;
 
-public class SkCandidate {
+public class SkCandidate  {
 
 	Program prog;
 	List<SkLinePy> beforeRepair;
@@ -104,7 +104,7 @@ public class SkCandidate {
 	// repairFile = dir + className;
 	// }
 
-	public List<Statement> getAllTouchStatement() {
+	public List<Statement> getAllTouchStatement(){ 
 		List<Statement> stmtList = new ArrayList<Statement>();
 		for (ASTLinePy line : states) {
 			stmtList.addAll(line.getSkStmts());

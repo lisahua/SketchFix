@@ -7,14 +7,25 @@ import ece.utexas.edu.sketchFix.repair.postProcessor.RepairOpType;
 import sketch.compiler.ast.core.FENode;
 import sketch.compiler.ast.core.stmts.Statement;
 
-public class RepairItem {
+public class RepairItem implements Comparable<RepairItem> {
 
 	Statement insertPoint;
 	FENode scope;
 	Statement replaceStmt;
 	RepairOpType repairType;
+	int insertID = 0;
 
-	public RepairItem(Statement insertPoint, FENode scope, Statement replaceStmt, RepairOpType repairType) {
+	// public RepairItem(Statement insertPoint, FENode scope, Statement
+	// replaceStmt, RepairOpType repairType) {
+	// this.insertPoint = insertPoint;
+	// this.scope = scope;
+	// this.replaceStmt = replaceStmt;
+	// this.repairType = repairType;
+	// }
+
+	public RepairItem(int insertID, Statement insertPoint, FENode scope, Statement replaceStmt,
+			RepairOpType repairType) {
+		this.insertID = insertID;
 		this.insertPoint = insertPoint;
 		this.scope = scope;
 		this.replaceStmt = replaceStmt;
@@ -51,6 +62,19 @@ public class RepairItem {
 
 	public void setRepairType(RepairOpType repairType) {
 		this.repairType = repairType;
+	}
+
+	public int getInsertID() {
+		return insertID;
+	}
+
+	public void setInsertID(int insertID) {
+		this.insertID = insertID;
+	}
+
+	@Override
+	public int compareTo(RepairItem o) {
+		return o.insertID-insertID ;
 	}
 
 }
